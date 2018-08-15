@@ -78,14 +78,14 @@ class WhiteListFilter(ValueFilter):
         for policy in access_policies:
             # Ensure there is a graph object. SP can be removed from graph, but it still has an access.
             if policy['object_id'] not in principal_dics.keys():
-                policy["display_name"] = None
-                policy["object_type"] = None
-                policy["principal_name"] = None
+                policy['display_name'] = None
+                policy['object_type'] = None
+                policy['principal_name'] = None
                 continue
             aad_object = principal_dics[policy['object_id']]
-            policy["display_name"] = aad_object.display_name
-            policy["object_type"] = aad_object.object_type
-            policy["principal_name"] = self.get_principal_name(aad_object)
+            policy['display_name'] = aad_object.display_name
+            policy['object_type'] = aad_object.object_type
+            policy['principal_name'] = self.get_principal_name(aad_object)
 
         return access_policies
 
