@@ -84,7 +84,7 @@ This policy will find all KeyVaults with an access of Service Principals not in 
           resource: azure.keyvault
           filters:
             - type: whitelist
-              key: access_policies[].principal_name
+              key: accessPolicies[].principalName
               op: difference
               value:
                 - account1@sample.com

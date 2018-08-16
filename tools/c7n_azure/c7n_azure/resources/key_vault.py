@@ -42,16 +42,16 @@ class WhiteListFilter(ValueFilter):
         self.op = 'difference'
 
     def __call__(self, i):
-        if 'access_policies' not in i:
+        if 'accessPolicies' not in i:
             client = self.manager.get_client()
             vault = client.vaults.get(i['resourceGroup'], i['name'])
             # Retrieve access policies for the keyvaults
             access_policies = []
             for policy in vault.properties.access_policies:
                 access_policies.append({
-                    'tenant_id': policy.tenant_id,
-                    'object_id': policy.object_id,
-                    'application_id': policy.application_id,
+                    'tenantId': policy.tenant_id,
+                    'objectId': policy.object_id,
+                    'applicationId': policy.application_id,
                     'permissions': {
                         'keys': policy.permissions.keys,
                         'secrets': policy.permissions.secrets,
@@ -59,7 +59,7 @@ class WhiteListFilter(ValueFilter):
                     }
                 })
             # Enhance access policies with display_name, object_type and principal_name
-            i['access_policies'] = self.enhance_policies(access_policies)
+            i['accessPolicies'] = self.enhance_policies(access_policies)
         return super(WhiteListFilter, self).__call__(i)
 
     def enhance_policies(self, access_policies):
@@ -68,15 +68,15 @@ class WhiteListFilter(ValueFilter):
             self.graph_client = GraphRbacManagementClient(s.get_credentials(), s.get_tenant_id())
 
         # Retrieve graph objects for all object_id
-        object_ids = [p['object_id'] for p in access_policies]
+        object_ids = [p['objectId'] for p in access_policies]
         # GraphHelper.get_principal_dictionary returns empty AADObject if not found with graph
         # or if graph is not available.
         principal_dics = GraphHelper.get_principal_dictionary(self.graph_client, object_ids)
 
         for policy in access_policies:
-            aad_object = principal_dics[policy['object_id']]
-            policy['display_name'] = aad_object.display_name
-            policy['object_type'] = aad_object.object_type
-            policy['principal_name'] = GraphHelper.get_principal_name(aad_object)
+            aad_object = principal_dics[policy['objectId']]
+            policy['displayName'] = aad_object.display_name
+            policy['aadType'] = aad_object.object_type
+            policy['principalName'] = GraphHelper.get_principal_name(aad_object)
 
         return access_policies
