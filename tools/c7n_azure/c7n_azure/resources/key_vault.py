@@ -37,6 +37,10 @@ class WhiteListFilter(ValueFilter):
     schema = type_schema('whitelist', rinherit=ValueFilter.schema)
     graph_client = None
 
+    def __init__(self, data, manager=None):
+        super(WhiteListFilter, self).__init__(data, manager)
+        self.op = 'difference'
+
     def __call__(self, i):
         if 'access_policies' not in i:
             client = self.manager.get_client()
