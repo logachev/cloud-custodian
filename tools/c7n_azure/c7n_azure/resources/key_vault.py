@@ -35,13 +35,13 @@ class KeyVault(ArmResourceManager):
 @KeyVault.filter_registry.register('whitelist')
 class WhiteListFilter(Filter):
     schema = type_schema('whitelist', rinherit=None,
-                          required=['key'],
-                          key={'type': 'string'},
-                          users={'type':'array'},
-                          permissions={
-                              'certificates': {'type': 'array'},
-                              'secrets': {'type': 'array'},
-                              'keys': {'type': 'array'}})
+                         required=['key'],
+                         key={'type': 'string'},
+                         users={'type': 'array'},
+                         permissions={
+                             'certificates': {'type': 'array'},
+                             'secrets': {'type': 'array'},
+                             'keys': {'type': 'array'}})
     graph_client = None
 
     def __init__(self, data, manager=None):
