@@ -12,9 +12,12 @@ Filters
     - Tag Filter - Filter on tag presence and/or values
     - Marked-For-Op Filter - Filter on tag that indicates a scheduled operation for a resource
 - Whitelist filter - Filter on whitelist of Service Principals allowed to have a KeyVault access or Service Principals with specified access permissions
-    - You can use `objectId`, `displayName`, `principal_name` for the key
-    - You can specify allowed set of permissions for keys, secrets and certificates
-    - Note: if you use `display_name` or `principal_name`, you need to use azure cli authentication
+    - You can use `objectId`, `displayName`, `principalName` for the key
+    - You can specify allowed set of permissions for keys, secrets and certificates (case insensitive)
+    - Keys permissions: `Get`, `Create`, `Delete`, `List`, `Update`, `Import`, `Backup`, `Restore`, `Recover`, `Decrypt`, `UnwrapKey`, `Encrypt`, `WrapKey`, `Verify`, `Sign`, `Purge`
+    - Secret permissions: `Get`, `List`, `Set`, `Delete`, `Backup`, `Restore`, `Recover`, `Purge`
+    - Certificate permissions: `Get`, `List`, `Delete`, `Create`, `Import`, `Update`, `ManageContacts`, `GetIssuers`, `ListIssuers`, `SetIssuers`, `DeleteIssuers`, `ManageIssuers`, `Recover`, `Backup`, `Restore`, `Purge`
+    - Note: if you use `displayName` or `principalName`, you need to use azure cli authentication
 
 Actions
 -------

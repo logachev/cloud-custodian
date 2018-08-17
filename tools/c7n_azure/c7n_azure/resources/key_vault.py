@@ -76,12 +76,12 @@ class WhiteListFilter(Filter):
         #   - Permissions don't exceed allowed permissions
         for p in i['accessPolicies']:
             if p[self.key] not in self.users:
-                if not self.compare_policies(p['permissions'], self.permissions):
+                if not self.compare_permissions(p['permissions'], self.permissions):
                     return False
         return True
 
     @staticmethod
-    def compare_policies(user_permissions, permissions):
+    def compare_permissions(user_permissions, permissions):
         for v in user_permissions.keys():
             if user_permissions[v]:
                 if v not in permissions.keys():
