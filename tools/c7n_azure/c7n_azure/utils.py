@@ -17,25 +17,32 @@ import six
 
 from azure.graphrbac.models import GetObjectsParameters, AADObject
 from msrestazure.azure_exceptions import CloudError
+from msrestazure.tools import parse_resource_id
 
 
 class ResourceIdParser(object):
 
     @staticmethod
     def get_namespace(resource_id):
-        return resource_id.split('/')[6]
+        return parse_resource_id(resource_id)['namespace']
 
     @staticmethod
     def get_resource_group(resource_id):
-        return resource_id.split('/')[4]
+        return parse_resource_id(resource_id)['resource_group']
 
     @staticmethod
     def get_resource_type(resource_id):
-        return resource_id.split('/')[7]
+        parsed = parse_resource_id(resource_id)
+        # parse_resource_id returns dictionary with "child_type_#" to represent
+        # types sequence. "type" stores root type.
+        child_type_keys = [k for k in parsed.keys() if k.find("child_type_") != -1]
+        types = [parsed[k] for k in sorted(child_type_keys)]
+        types.insert(0, parsed['type'])
+        return '/'.join(types)
 
     @staticmethod
     def get_resource_name(resource_id):
-        return resource_id.split('/')[8]
+        return parse_resource_id(resource_id)['resource_name']
 
 
 class StringUtils(object):
