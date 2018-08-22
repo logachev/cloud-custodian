@@ -28,7 +28,12 @@ class ResourceIdParser(object):
 
     @staticmethod
     def get_resource_group(resource_id):
-        return parse_resource_id(resource_id)['resource_group']
+        result = parse_resource_id(resource_id).get("resource_group")
+        # parse_resource_id fails to parse resource id for resource groups
+        if result is None:
+            return resource_id.split('/')[4]
+        return result
+
 
     @staticmethod
     def get_resource_type(resource_id):
