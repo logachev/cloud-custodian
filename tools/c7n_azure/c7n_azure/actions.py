@@ -72,7 +72,7 @@ class TagHelper:
 
             try:
                 client.resources.update_by_id(resource['id'], api_version, generic_resource)
-            except CloudError as e:
+            except Exception as e:
                 log.error("Failed to update tags for the resource.\n"
                           "Type: {0}.\n"
                           "Name: {1}.\n"
