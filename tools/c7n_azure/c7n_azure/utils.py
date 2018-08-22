@@ -34,7 +34,6 @@ class ResourceIdParser(object):
             return resource_id.split('/')[4]
         return result
 
-
     @staticmethod
     def get_resource_type(resource_id):
         parsed = parse_resource_id(resource_id)
