@@ -24,7 +24,7 @@ class ResourceIdParser(object):
 
     @staticmethod
     def get_namespace(resource_id):
-        return parse_resource_id(resource_id)['namespace']
+        return parse_resource_id(resource_id).get('namespace')
 
     @staticmethod
     def get_resource_group(resource_id):
@@ -40,13 +40,13 @@ class ResourceIdParser(object):
         # parse_resource_id returns dictionary with "child_type_#" to represent
         # types sequence. "type" stores root type.
         child_type_keys = [k for k in parsed.keys() if k.find("child_type_") != -1]
-        types = [parsed[k] for k in sorted(child_type_keys)]
-        types.insert(0, parsed['type'])
+        types = [parsed.get(k) for k in sorted(child_type_keys)]
+        types.insert(0, parsed.get('type'))
         return '/'.join(types)
 
     @staticmethod
     def get_resource_name(resource_id):
-        return parse_resource_id(resource_id)['resource_name']
+        return parse_resource_id(resource_id).get('resource_name')
 
 
 class StringUtils(object):
