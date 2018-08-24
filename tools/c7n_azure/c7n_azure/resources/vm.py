@@ -14,10 +14,13 @@
 
 from c7n_azure.provider import resources
 from c7n_azure.resources.arm import ArmResourceManager
+from c7n_azure.utils import TagHelper
 
 from c7n.actions import BaseAction
 from c7n.filters.core import ValueFilter, type_schema
 from c7n.filters.related import RelatedResourceFilter
+
+from c7n.filters.offhours import OffHour, OnHour
 
 
 @resources.register('vm')
@@ -127,3 +130,27 @@ class VmRestartAction(BaseAction):
     def process(self, vms):
         for vm in vms:
             self.restart(vm['resourceGroup'], vm['name'])
+
+
+@VirtualMachine.filter_registry.register('offhour')
+class AzureVMOffHour(OffHour):
+
+    # Override get_tag_value because Azure stores tags differently from AWS
+    def get_tag_value(self, i):
+        return TagHelper.get_tag_value(resource=i,
+                                       tag=self.tag_key,
+                                       enforce_utf_8=True,
+                                       to_lower=True,
+                                       strip_chars=['"', "'"])
+
+
+@VirtualMachine.filter_registry.register('onhour')
+class AzureVMOnHour(OnHour):
+
+    # Override get_tag_value because Azure stores tags differently from AWS
+    def get_tag_value(self, i):
+        return TagHelper.get_tag_value(resource=i,
+                                       tag=self.tag_key,
+                                       enforce_utf_8=True,
+                                       to_lower=True,
+                                       strip_chars=['"', "'"])
