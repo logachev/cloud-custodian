@@ -14,7 +14,7 @@
 
 from c7n_azure.provider import resources
 from c7n_azure.resources.arm import ArmResourceManager
-from c7n_azure.utils import TagHelper
+from c7n_azure.tags import TagHelper
 
 from c7n.actions import BaseAction
 from c7n.filters.core import ValueFilter, type_schema
@@ -137,11 +137,13 @@ class AzureVMOffHour(OffHour):
 
     # Override get_tag_value because Azure stores tags differently from AWS
     def get_tag_value(self, i):
-        return TagHelper.get_tag_value(resource=i,
+        tag_value = TagHelper.get_tag_value(resource=i,
                                        tag=self.tag_key,
-                                       enforce_utf_8=True,
-                                       to_lower=True,
-                                       strip_chars=['"', "'"])
+                                       utf_8=True)
+
+        if tag_value is not False:
+            tag_value = tag_value.lower().strip("'").strip('"')
+        return tag_value
 
 
 @VirtualMachine.filter_registry.register('onhour')
@@ -149,8 +151,10 @@ class AzureVMOnHour(OnHour):
 
     # Override get_tag_value because Azure stores tags differently from AWS
     def get_tag_value(self, i):
-        return TagHelper.get_tag_value(resource=i,
+        tag_value = TagHelper.get_tag_value(resource=i,
                                        tag=self.tag_key,
-                                       enforce_utf_8=True,
-                                       to_lower=True,
-                                       strip_chars=['"', "'"])
+                                       utf_8=True)
+
+        if tag_value is not False:
+            tag_value = tag_value.lower().strip("'").strip('"')
+        return tag_value

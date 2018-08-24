@@ -17,7 +17,7 @@ from azure_common import BaseTest
 from c7n_azure.utils import Math
 from c7n_azure.utils import ResourceIdParser
 from c7n_azure.utils import StringUtils
-from c7n_azure.utils import TagHelper
+from c7n_azure.tags import TagHelper
 
 
 RESOURCE_ID = (
@@ -76,10 +76,8 @@ class UtilsTest(BaseTest):
         self.assertFalse(StringUtils.equal(True, False))
 
     def test_get_tag_value(self):
-        resource = {'tags': {'tag1': '"value1"', 'tAg2': '"VaLuE2"', 'TAG3': '"VALUE3"'}}
+        resource = {'tags': {'tag1': 'value1', 'tAg2': 'VaLuE2', 'TAG3': 'VALUE3'}}
 
-        self.assertEqual(TagHelper.get_tag_value(resource, 'tag1', True, True, ['"']), 'value1')
-        self.assertEqual(TagHelper.get_tag_value(resource, 'tag2', True, True, ['"']), 'value2')
-        self.assertEqual(TagHelper.get_tag_value(resource, 'tag3', True, True, ['"']), 'value3')
-        self.assertEqual(TagHelper.get_tag_value(resource, 'TaG3', True, False, ['"']), 'VALUE3')
-        self.assertEqual(TagHelper.get_tag_value(resource, 'TaG2', True, False, []), '"VaLuE2"')
+        self.assertEqual(TagHelper.get_tag_value(resource, 'tag1', True), 'value1')
+        self.assertEqual(TagHelper.get_tag_value(resource, 'tag2', True), 'VaLuE2')
+        self.assertEqual(TagHelper.get_tag_value(resource, 'tag3', True), 'VALUE3')

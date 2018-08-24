@@ -13,8 +13,12 @@
 # limitations under the License.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import datetime
+
 from azure_common import BaseTest, arm_template
 from mock import patch
+from tests.test_offhours import mock_datetime_now
+from dateutil import zoneinfo
 
 
 class VMTest(BaseTest):
@@ -237,3 +241,36 @@ class VMTest(BaseTest):
         })
         resources = p.run()
         self.assertEqual(len(resources), 0)
+
+    @arm_template('vm.json')
+    def test_on_off_hours(self):
+
+        t = datetime.datetime.now(zoneinfo.gettz("pt"))
+        t = t.replace(year=2018, month=8, day=24, hour=14, minute=30)
+
+        with mock_datetime_now(t, datetime):
+            p = self.load_policy({
+                'name': 'test-azure-vm',
+                'resource': 'azure.vm',
+                'filters': [
+                    {'type': 'offhour',
+                    'opt-in': 'true',
+                    'tag': 'schedule'}
+                ],
+            })
+
+            resources = p.run()
+            self.assertEqual(len(resources), 1)
+
+            p = self.load_policy({
+                'name': 'test-azure-vm',
+                'resource': 'azure.vm',
+                'filters': [
+                    {'type': 'onhour',
+                    'opt-in': 'true',
+                    'tag': 'schedule'}
+                ],
+            })
+
+            resources = p.run()
+            self.assertEqual(len(resources), 1)

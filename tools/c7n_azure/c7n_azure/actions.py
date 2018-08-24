@@ -18,7 +18,8 @@ import datetime
 from datetime import timedelta
 
 from c7n_azure.storage_utils import StorageUtilities
-from c7n_azure.utils import utcnow, TagHelper
+from c7n_azure.utils import utcnow
+from c7n_azure.tags import TagHelper
 from dateutil import zoneinfo
 from msrestazure.azure_exceptions import CloudError
 
