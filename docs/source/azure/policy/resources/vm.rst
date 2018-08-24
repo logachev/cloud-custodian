@@ -29,7 +29,7 @@ Filters
         :module: c7n_azure.resources.vm
 
 - ``off-hours and on-hours``
-  Filter based on on-hour and off-hour configurations (see :ref:`quickstart_offhours`)
+  Filter based on on-hour and off-hour configurations (see :ref:`offhours`)
 
 Actions
 -------

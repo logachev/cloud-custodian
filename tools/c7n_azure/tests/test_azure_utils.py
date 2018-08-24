@@ -76,7 +76,7 @@ class UtilsTest(BaseTest):
         self.assertFalse(StringUtils.equal(True, False))
 
     def test_get_tag_value(self):
-        resource = {'tags': {'tag1': '"value1"', 'tAg2': '"VaLuE2"', 'TAG3':'"VALUE3"'}}
+        resource = {'tags': {'tag1': '"value1"', 'tAg2': '"VaLuE2"', 'TAG3': '"VALUE3"'}}
 
         self.assertEqual(TagHelper.get_tag_value(resource, 'tag1', True, True, ['"']), 'value1')
         self.assertEqual(TagHelper.get_tag_value(resource, 'tag2', True, True, ['"']), 'value2')
