@@ -254,8 +254,9 @@ class VMTest(BaseTest):
                 'resource': 'azure.vm',
                 'filters': [
                     {'type': 'offhour',
-                    'opt-in': 'true',
-                    'tag': 'schedule'}
+                     'default_tz': "pt",
+                     'offhour': 19,
+                     'tag': 'schedule'}
                 ],
             })
 
@@ -267,8 +268,9 @@ class VMTest(BaseTest):
                 'resource': 'azure.vm',
                 'filters': [
                     {'type': 'onhour',
-                    'opt-in': 'true',
-                    'tag': 'schedule'}
+                     'default_tz': "pt",
+                     'onhour': 8,
+                     'tag': 'schedule'}
                 ],
             })
 
