@@ -246,7 +246,7 @@ class VMTest(BaseTest):
     def test_on_off_hours(self):
 
         t = datetime.datetime.now(zoneinfo.gettz("pt"))
-        t = t.replace(year=2018, month=8, day=24, hour=14, minute=30)
+        t = t.replace(year=2018, month=8, day=24, hour=18, minute=30)
 
         with mock_datetime_now(t, datetime):
             p = self.load_policy({
@@ -255,7 +255,7 @@ class VMTest(BaseTest):
                 'filters': [
                     {'type': 'offhour',
                      'default_tz': "pt",
-                     'offhour': 19,
+                     'offhour': 18,
                      'tag': 'schedule'}
                 ],
             })
@@ -263,6 +263,9 @@ class VMTest(BaseTest):
             resources = p.run()
             self.assertEqual(len(resources), 1)
 
+        t = t.replace(year=2018, month=8, day=24, hour=8, minute=30)
+
+        with mock_datetime_now(t, datetime):
             p = self.load_policy({
                 'name': 'test-azure-vm',
                 'resource': 'azure.vm',
