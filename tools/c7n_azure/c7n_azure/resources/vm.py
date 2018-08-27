@@ -142,7 +142,7 @@ class AzureVMOffHour(OffHour):
                                        utf_8=True)
 
         if tag_value is not False:
-            tag_value = tag_value.lower().strip("'").strip('"')
+            tag_value = tag_value.lower().strip("'\"")
         return tag_value
 
 
@@ -156,5 +156,5 @@ class AzureVMOnHour(OnHour):
                                        utf_8=True)
 
         if tag_value is not False:
-            tag_value = tag_value.lower().strip("'").strip('"')
+            tag_value = tag_value.lower().strip("'\"")
         return tag_value

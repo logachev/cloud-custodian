@@ -107,15 +107,10 @@ class TagHelper:
     def get_tag_value(resource, tag, utf_8=False):
         """Get the resource's tag value."""
 
-        found = False
-        tags = resource.get('tags', {})
+        tags = {k.lower(): v for k, v in resource.get('tags', {}).items()}
+        value = tags.get(tag, False)
 
-        for key in tags.keys():
-            if StringUtils.equal(tag, key):
-                found = tags[key]
-                break
-
-        if found is not False:
+        if value is not False:
             if utf_8:
-                found = found.encode('utf8').decode('utf8')
-        return found
+                value = value.encode('utf8').decode('utf8')
+        return value
