@@ -116,3 +116,80 @@ class GraphHelper(object):
         elif graph_object.service_principal_names:
             return graph_object.service_principal_names[0]
         return graph_object.display_name or ''
+
+
+class PortsRangeHelper(object):
+
+    """ Given a string with a port or port range: '80', '80-120'
+        Returns tuple with range start and end ports: (80, 80), (80, 120)
+    """
+    @staticmethod
+    def get_port_range(range_str):
+        if range_str == '*':
+            return (0, 65535)
+        
+        s = range_str.split('-')
+        if len(s) == 2:
+            return (int(s[0]), int(s[1]))
+
+        return (int(s[0]), int(s[0]))
+
+    """ Extracts ports ranges from the NSG rule object
+        Returns an array of tuples with port ranges
+    """
+    @staticmethod
+    def get_rule_port_ranges(rule):
+        properties = rule['properties']
+        if 'destinationPortRange' in properties:
+            return [PortsRangeHelper.get_port_range(properties['destinationPortRange'])]
+        else:
+            return [PortsRangeHelper.get_port_range(r) for r in properties['destinationPortRanges']]
+
+    """ Converts array of port ranges to the set of integers
+        Example: [(10-12), (20,20)] -> {10, 11, 12, 20}
+    """ 
+    @staticmethod
+    def port_ranges_to_set(ranges):
+        return set([i for r in ranges for i in range(r[0], r[1] + 1)])
+
+    """ Convert ports range string to the set of integers
+        Example: "10-12, 20" -> {10, 11, 12, 20}
+    """
+    @staticmethod
+    def get_ports_set_from_string(ports):
+        ranges = [PortsRangeHelper.get_port_range(r) for r in ports.split(',') if r != '']
+        return PortsRangeHelper.port_ranges_to_set(ranges)
+
+    """ Extract port ranges from NSG rule and convert it to the set of integers
+    """
+    @staticmethod
+    def get_ports_set_from_rule(rule):
+        ranges = PortsRangeHelper.get_rule_port_ranges(rule)
+        return PortsRangeHelper.port_ranges_to_set(ranges)
+
+    """ Build entire ports array filled with True (Allow), False (Deny) and None(default - Deny)
+        based on the provided Network Security Group object, direction and protocol.
+    """
+    @staticmethod
+    def build_ports_array(nsg, direction_key, ip_protocol):
+        rules = sorted(nsg['properties']['securityRules'], key=lambda k: k['properties']['priority'])
+        ports = [None for i in range(65536)]
+
+        for rule in rules:
+            if not StringUtils.equal(direction_key, rule['properties']['direction']):
+                continue
+
+            protocol = rule['properties']['protocol']
+            if not StringUtils.equal(protocol, "*") and \
+               not StringUtils.equal(ip_protocol, "*") and \
+               not StringUtils.equal(protocol, ip_protocol):
+                continue
+
+            access = StringUtils.equal(rule['properties']['access'], 'allow')
+            ports_set = PortsRangeHelper.get_ports_set_from_rule(rule)
+
+            for p in ports_set:
+                if ports[p] is None:
+                    ports[p] = access
+
+        return ports
