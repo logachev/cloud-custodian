@@ -127,7 +127,7 @@ class PortsRangeHelper(object):
     def get_port_range(range_str):
         if range_str == '*':
             return (0, 65535)
-        
+
         s = range_str.split('-')
         if len(s) == 2:
             return (int(s[0]), int(s[1]))
@@ -147,7 +147,7 @@ class PortsRangeHelper(object):
 
     """ Converts array of port ranges to the set of integers
         Example: [(10-12), (20,20)] -> {10, 11, 12, 20}
-    """ 
+    """
     @staticmethod
     def port_ranges_to_set(ranges):
         return set([i for r in ranges for i in range(r[0], r[1] + 1)])
@@ -172,7 +172,8 @@ class PortsRangeHelper(object):
     """
     @staticmethod
     def build_ports_array(nsg, direction_key, ip_protocol):
-        rules = sorted(nsg['properties']['securityRules'], key=lambda k: k['properties']['priority'])
+        rules = nsg['properties']['securityRules']
+        rules = sorted(rules, key=lambda k: k['properties']['priority'])
         ports = [None for i in range(65536)]
 
         for rule in rules:

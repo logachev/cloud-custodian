@@ -14,11 +14,6 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from azure_common import BaseTest, arm_template
-from c7n_azure.resources.network_security_group \
-    import PORTS, EXCEPT_PORTS, IP_PROTOCOL, ACCESS, DIRECTION
-from mock import patch
-
-from c7n.filters.core import PolicyValidationError
 
 
 class NetworkSecurityGroupTest(BaseTest):
@@ -41,7 +36,6 @@ class NetworkSecurityGroupTest(BaseTest):
         resources = p.run()
         self.assertEqual(len(resources), 1)
 
-
     @arm_template('networksecuritygroup.json')
     def test_allow_single_port(self):
         p = self.load_policy({
@@ -53,7 +47,7 @@ class NetworkSecurityGroupTest(BaseTest):
                  'op': 'eq',
                  'value_type': 'normalize',
                  'value': 'c7n-nsg'},
-                 {'type': 'ingress',
+                {'type': 'ingress',
                  'ports': '80',
                  'access': 'Allow'}],
         })
@@ -72,7 +66,7 @@ class NetworkSecurityGroupTest(BaseTest):
                  'op': 'eq',
                  'value_type': 'normalize',
                  'value': 'c7n-nsg'},
-                 {'type': 'ingress',
+                {'type': 'ingress',
                  'ports': '80,8080-8084',
                  'ports-op': 'all',
                  'access': 'Allow'}],
@@ -92,7 +86,7 @@ class NetworkSecurityGroupTest(BaseTest):
                  'op': 'eq',
                  'value_type': 'normalize',
                  'value': 'c7n-nsg'},
-                 {'type': 'ingress',
+                {'type': 'ingress',
                  'ports': '40-100',
                  'ports-op': 'any',
                  'access': 'Allow'}],
@@ -112,7 +106,7 @@ class NetworkSecurityGroupTest(BaseTest):
                  'op': 'eq',
                  'value_type': 'normalize',
                  'value': 'c7n-nsg'},
-                 {'type': 'ingress',
+                {'type': 'ingress',
                  'ports': '8086',
                  'access': 'Deny'}],
         })
@@ -131,7 +125,7 @@ class NetworkSecurityGroupTest(BaseTest):
                  'op': 'eq',
                  'value_type': 'normalize',
                  'value': 'c7n-nsg'},
-                 {'type': 'egress',
+                {'type': 'egress',
                  'ports': '22',
                  'ipProtocol': 'TCP',
                  'access': 'Allow'}],
@@ -149,7 +143,7 @@ class NetworkSecurityGroupTest(BaseTest):
                  'op': 'eq',
                  'value_type': 'normalize',
                  'value': 'c7n-nsg'},
-                 {'type': 'egress',
+                {'type': 'egress',
                  'ports': '22',
                  'ipProtocol': 'UDP',
                  'access': 'Allow'}],
@@ -157,7 +151,6 @@ class NetworkSecurityGroupTest(BaseTest):
 
         resources = p.run()
         self.assertEqual(len(resources), 0)
-
 
     @arm_template('networksecuritygroup.json')
     def test_action(self):
@@ -170,7 +163,7 @@ class NetworkSecurityGroupTest(BaseTest):
                  'op': 'eq',
                  'value_type': 'normalize',
                  'value': 'c7n-nsg'},
-                 {'type': 'ingress',
+                {'type': 'ingress',
                  'ports': '1000-1100',
                  'ports-op': 'any',
                  'access': 'Deny'}],
@@ -194,7 +187,7 @@ class NetworkSecurityGroupTest(BaseTest):
                  'op': 'eq',
                  'value_type': 'normalize',
                  'value': 'c7n-nsg'},
-                 {'type': 'ingress',
+                {'type': 'ingress',
                  'ports': '1000-1100',
                  'ports-op': 'any',
                  'access': 'Deny'}],
@@ -202,8 +195,7 @@ class NetworkSecurityGroupTest(BaseTest):
                 {
                     'type': 'open',
                     'ports': '1000-1100',
-                    'direction': 'Inbound'}
-            ]
+                    'direction': 'Inbound'}]
         })
 
         resources = p.run()

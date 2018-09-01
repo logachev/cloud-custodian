@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from copy import deepcopy
 import re
 import uuid
 
@@ -80,7 +79,6 @@ class SecurityRuleFilter(Filter):
                 raise FilterValidationError("exceptPorts string has wrong format.")
         return True
 
-
     def process(self, network_security_groups, event=None):
         # Get variables
         self.ip_protocol = self.data.get(IP_PROTOCOL, '*')
@@ -91,8 +89,8 @@ class SecurityRuleFilter(Filter):
         #   If ports not specified -- assuming the entire range
         #   If except_ports not specifed -- nothing
         ports_set = PortsRangeHelper.get_ports_set_from_string(self.data.get(PORTS, '0-65535'))
-        except_ports_set = PortsRangeHelper.get_ports_set_from_string(self.data.get(EXCEPT_PORTS, ''))
-        self.ports = ports_set.difference(except_ports_set)
+        except_set = PortsRangeHelper.get_ports_set_from_string(self.data.get(EXCEPT_PORTS, ''))
+        self.ports = ports_set.difference(except_set)
 
         nsgs = [nsg for nsg in network_security_groups if self.check_nsg(nsg)]
         return nsgs
@@ -113,7 +111,6 @@ class SecurityRuleFilter(Filter):
                 return allow > 0
             else:
                 return deny > 0
-
 
 
 @NetworkSecurityGroup.filter_registry.register('ingress')
@@ -161,7 +158,7 @@ class NetworkSecurityGroupPortsAction(BaseAction):
     def build_ports_string(self, nsg, direction_key, ip_protocol):
         # Build list of ports for a given nsg, True if allow, False if Deny
         nsg_ports = PortsRangeHelper.build_ports_array(nsg, direction_key, ip_protocol)
-        nsg_ports = [False if x == None else x for x in nsg_ports]
+        nsg_ports = [False if x is None else x for x in nsg_ports]
 
         access = StringUtils.equal(self.access_action, "allow")
 
@@ -189,25 +186,30 @@ class NetworkSecurityGroupPortsAction(BaseAction):
 
     def process(self, network_security_groups):
 
+        ip_protocol = self.data.get(IP_PROTOCOL, '*')
+        direction = self.data[DIRECTION]
         # Build a list of ports described in the action.
-        action_ports = PortsRangeHelper.get_ports_set_from_string(self.data.get(PORTS, '0-65535'))
-        action_except_ports = PortsRangeHelper.get_ports_set_from_string(self.data.get(EXCEPT_PORTS, ''))
-        self.action_ports = action_ports.difference(action_except_ports)
+        ports = PortsRangeHelper.get_ports_set_from_string(self.data.get(PORTS, '0-65535'))
+        except_ports = PortsRangeHelper.get_ports_set_from_string(self.data.get(EXCEPT_PORTS, ''))
+        self.action_ports = ports.difference(except_ports)
 
         for nsg in network_security_groups:
             nsg_name = nsg['name']
             resource_group = nsg['resourceGroup']
 
             # Get list of ports to Deny or Allow access to.
-            ports = self.build_ports_string(nsg, self.data[DIRECTION], self.data.get(IP_PROTOCOL, '*'))
+            ports = self.build_ports_string(nsg, direction, ip_protocol)
             if ports == '':
-                # If its empty, it means NSG already blocks/allows access to all ports, no need to change.
+                # If its empty, it means NSG already blocks/allows access to all ports,
+                # no need to change.
                 self.manager.log.info("Network security group %s satisfies provided "
                                       "ports configuration, no actions scheduled.", nsg_name)
                 continue
 
-            rules = sorted(nsg['properties']['securityRules'], key=lambda k: k['properties']['priority'])
-            rules = [r for r in rules if StringUtils.equal(r['properties']['direction'], self.data[DIRECTION])]
+            rules = nsg['properties']['securityRules']
+            rules = sorted(rules, key=lambda k: k['properties']['priority'])
+            rules = [r for r in rules
+                     if StringUtils.equal(r['properties']['direction'], direction)]
             lowest_priority = rules[0]['properties']['priority'] if len(rules) > 0 else 4096
 
             # Create new top-priority rule to allow/block ports from the action.
@@ -220,13 +222,13 @@ class NetworkSecurityGroupPortsAction(BaseAction):
                     'destinationPortRanges': ports,
                     'direction': self.data[DIRECTION],
                     'priority': lowest_priority - 10,
-                    'protocol': self.data.get(IP_PROTOCOL, '*'),
+                    'protocol': ip_protocol,
                     'sourceAddressPrefix': '*',
                     'sourcePortRange': '*',
                 }
             }
             self.manager.log.info("NSG %s. Creating new rule to %s access for ports %s",
-                                    nsg_name, self.access_action, ports)
+                                  nsg_name, self.access_action, ports)
 
             self.manager.get_client().security_rules.create_or_update(
                 resource_group,
