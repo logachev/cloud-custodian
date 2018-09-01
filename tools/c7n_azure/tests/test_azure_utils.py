@@ -18,6 +18,7 @@ from c7n_azure.utils import Math
 from c7n_azure.utils import ResourceIdParser
 from c7n_azure.utils import StringUtils
 from c7n_azure.tags import TagHelper
+from c7n_azure.utils import PortsRangeHelper
 
 
 RESOURCE_ID = (
@@ -81,3 +82,10 @@ class UtilsTest(BaseTest):
         self.assertEqual(TagHelper.get_tag_value(resource, 'tag1', True), 'value1')
         self.assertEqual(TagHelper.get_tag_value(resource, 'tag2', True), 'VaLuE2')
         self.assertEqual(TagHelper.get_tag_value(resource, 'tag3', True), 'VALUE3')
+
+    def test_get_ports(self):
+        self.assertEqual(PortsRangeHelper.get_ports_set_from_string("5, 4-5, 9"), set([4, 5, 9]))
+        rule = {'properties':{'destinationPortRange': '10-12'}}
+        self.assertEqual(PortsRangeHelper.get_ports_set_from_rule(rule), set([10, 11, 12]))
+        rule = {'properties':{'destinationPortRanges': ['80', '10-12']}}
+        self.assertEqual(PortsRangeHelper.get_ports_set_from_rule(rule), set([10, 11, 12, 80]))
