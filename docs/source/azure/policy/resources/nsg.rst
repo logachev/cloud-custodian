@@ -43,36 +43,24 @@ Actions
 Example Policies
 ----------------
 
-This policy will deny access to all security rules with Inbound SSH ports in the range [8080,8090]
+This policy will deny access to all ports that are NOT 22, 23 or 24 for all Network Security Groups
 
 .. code-block:: yaml
 
-     policies:
-       - name: close-ingress-8080-8090
+      policies:
+       - name: close-inboud-except-22-24
          resource: azure.networksecuritygroup
          filters:
           - type: ingress
-            fromPort: 8080
-            toPort: 8090
-            access: Allow
+            exceptPorts: '22-24'
+            ports-op: 'any'
+            access: 'Allow'
          actions:
           - type: close
+            exceptPorts: '22-24'
+            direction: 'Inbound'
 
-This policy will deny access to all security rules with any Inbound SSH ports that are NOT 22, 23 or 24
-
-.. code-block:: yaml
-
-     policies:
-       - name: close-ingress-except-22-24
-         resource: azure.networksecuritygroup
-         filters:
-          - type: ingress
-            exceptPorts: [22,23,24]
-            access: Allow
-         actions:
-          - type: close
-
-This policy will deny access to all security rules with any Outbound SSH ports with a TCP Protocol
+This policy will find all NSGs with opened port 80 and closed port 443 and it will open port 443
 
 .. code-block:: yaml
 
@@ -80,8 +68,12 @@ This policy will deny access to all security rules with any Outbound SSH ports w
        - name: close-egress-except-TCP
          resource: azure.networksecuritygroup
          filters:
-          - type: egress
-            ipProtocol: TCP
-            access: Allow
+          - type: ingress
+            ports: '80'
+            access: 'Allow'
+          - type: ingress
+            ports: '443'
+            access: 'Deny'
          actions:
-          - type: close
+          - type: open
+            ports: '443'
