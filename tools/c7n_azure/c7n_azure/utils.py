@@ -218,13 +218,13 @@ class PortsRangeHelper(object):
         return result
 
     @staticmethod
-    def build_ports_array(nsg, direction_key, ip_protocol):
+    def build_ports_dict(nsg, direction_key, ip_protocol):
         """ Build entire ports array filled with True (Allow), False (Deny) and None(default - Deny)
             based on the provided Network Security Group object, direction and protocol.
         """
         rules = nsg['properties']['securityRules']
         rules = sorted(rules, key=lambda k: k['properties']['priority'])
-        ports = [None for i in range(65536)]
+        ports = {}
 
         for rule in rules:
             # Skip rules with different direction
@@ -243,7 +243,7 @@ class PortsRangeHelper(object):
             ports_set = PortsRangeHelper.get_ports_set_from_rule(rule)
 
             for p in ports_set:
-                if ports[p] is None:
+                if p not in ports:
                     ports[p] = IsAllowed
 
         return ports

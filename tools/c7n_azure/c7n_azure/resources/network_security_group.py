@@ -99,9 +99,9 @@ class NetworkSecurityGroupFilter(Filter):
         return nsgs
 
     def __check_nsg(self, nsg):
-        nsg_ports = PortsRangeHelper.build_ports_array(nsg, self.direction_key, self.ip_protocol)
+        nsg_ports = PortsRangeHelper.build_ports_dict(nsg, self.direction_key, self.ip_protocol)
 
-        num_allow_ports = len([p for p in self.ports if nsg_ports[p]])
+        num_allow_ports = len([p for p in self.ports if nsg_ports.get(p)])
         num_deny_ports = len(self.ports) - num_allow_ports
 
         if self.match == 'all':
@@ -158,14 +158,12 @@ class NetworkSecurityGroupPortsAction(BaseAction):
         return True
 
     def __build_ports_strings(self, nsg, direction_key, ip_protocol):
-        # Build list of ports for a given nsg, True if allow, False if Deny
-        nsg_ports = PortsRangeHelper.build_ports_array(nsg, direction_key, ip_protocol)
-        nsg_ports = [False if x is None else x for x in nsg_ports]
+        nsg_ports = PortsRangeHelper.build_ports_dict(nsg, direction_key, ip_protocol)
 
-        access = StringUtils.equal(self.access_action, ALLOW_OPERATION)
+        IsAllowed = StringUtils.equal(self.access_action, ALLOW_OPERATION)
 
         # Find ports with different access level from NSG and this action
-        diff_ports = sorted([p for p in self.action_ports if nsg_ports[p] != access])
+        diff_ports = sorted([p for p in self.action_ports if nsg_ports.get(p, False) != IsAllowed])
 
         return PortsRangeHelper.get_ports_strings_from_list(diff_ports)
 
