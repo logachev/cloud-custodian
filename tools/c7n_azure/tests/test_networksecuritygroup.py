@@ -30,7 +30,7 @@ class NetworkSecurityGroupTest(BaseTest):
                  'key': 'name',
                  'op': 'eq',
                  'value_type': 'normalize',
-                 'value': 'anzoloch-test-vm-nsg'}],
+                 'value': 'c7n-nsg'}],
         })
 
         resources = p.run()
