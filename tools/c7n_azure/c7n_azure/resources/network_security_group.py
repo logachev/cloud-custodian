@@ -23,6 +23,8 @@ from c7n_azure.provider import resources
 from c7n_azure.resources.arm import ArmResourceManager
 from c7n_azure.utils import StringUtils, PortsRangeHelper
 
+from msrestazure.azure_exceptions import CloudError
+
 
 @resources.register('networksecuritygroup')
 class NetworkSecurityGroup(ArmResourceManager):
@@ -213,12 +215,17 @@ class NetworkSecurityGroupPortsAction(BaseAction):
             self.manager.log.info("NSG %s. Creating new rule to %s access for ports %s",
                                   nsg_name, self.access_action, ports)
 
-            self.manager.get_client().security_rules.create_or_update(
-                resource_group,
-                nsg_name,
-                rule_name,
-                new_rule
-            )
+            try:
+                self.manager.get_client().security_rules.create_or_update(
+                    resource_group,
+                    nsg_name,
+                    rule_name,
+                    new_rule
+                )
+            except CloudError as e:
+                self.manager.log.error('Failed to create or update security rule for %s NSG.',
+                                       nsg_name)
+                self.manager.log.error(e)
 
 
 @NetworkSecurityGroup.action_registry.register('close')
