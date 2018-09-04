@@ -89,3 +89,25 @@ class UtilsTest(BaseTest):
         self.assertEqual(PortsRangeHelper.get_ports_set_from_rule(rule), set([10, 11, 12]))
         rule = {'properties': {'destinationPortRanges': ['80', '10-12']}}
         self.assertEqual(PortsRangeHelper.get_ports_set_from_rule(rule), set([10, 11, 12, 80]))
+
+    def test_validate_ports_string(self):
+        self.assertEqual(PortsRangeHelper.validate_ports_string('80'), True)
+        self.assertEqual(PortsRangeHelper.validate_ports_string('22-26'), True)
+        self.assertEqual(PortsRangeHelper.validate_ports_string('80,22'), True)
+        self.assertEqual(PortsRangeHelper.validate_ports_string('80,22-26'), True)
+        self.assertEqual(PortsRangeHelper.validate_ports_string('80,22-26,30-34'), True)
+        self.assertEqual(PortsRangeHelper.validate_ports_string('65537'), False)
+        self.assertEqual(PortsRangeHelper.validate_ports_string('-1'), False)
+        self.assertEqual(PortsRangeHelper.validate_ports_string('10-8'), False)
+        self.assertEqual(PortsRangeHelper.validate_ports_string('80,30,25-65538'), False)
+        self.assertEqual(PortsRangeHelper.validate_ports_string('65536-65537'), False)
+
+    def test_get_ports_strings_from_list(self):
+        self.assertEqual(PortsRangeHelper.get_ports_strings_from_list([]),
+                         [])
+        self.assertEqual(PortsRangeHelper.get_ports_strings_from_list([10, 11]),
+                         ['10-11'])
+        self.assertEqual(PortsRangeHelper.get_ports_strings_from_list([10, 12, 13, 14]),
+                         ['10', '12-14'])
+        self.assertEqual(PortsRangeHelper.get_ports_strings_from_list([10, 12, 13, 14, 20, 21, 22]),
+                         ['10', '12-14', '20-22'])

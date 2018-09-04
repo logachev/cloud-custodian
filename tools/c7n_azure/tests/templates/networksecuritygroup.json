@@ -26,7 +26,7 @@
                 "securityRules": [
                     {
                         "name": "test1",
-                        "etag": "W/\"cfc7d5e0-a043-4b81-a98f-c884254ad13d\"",
+                        "etag": "W/\"85e459b5-893d-4ccd-8d7d-47511bb90310\"",
                         "properties": {
                             "provisioningState": "Succeeded",
                             "protocol": "*",
@@ -45,7 +45,7 @@
                     },
                     {
                         "name": "test2",
-                        "etag": "W/\"cfc7d5e0-a043-4b81-a98f-c884254ad13d\"",
+                        "etag": "W/\"85e459b5-893d-4ccd-8d7d-47511bb90310\"",
                         "properties": {
                             "provisioningState": "Succeeded",
                             "protocol": "*",
@@ -67,7 +67,7 @@
                     },
                     {
                         "name": "test3",
-                        "etag": "W/\"cfc7d5e0-a043-4b81-a98f-c884254ad13d\"",
+                        "etag": "W/\"85e459b5-893d-4ccd-8d7d-47511bb90310\"",
                         "properties": {
                             "provisioningState": "Succeeded",
                             "protocol": "*",
@@ -86,7 +86,7 @@
                     },
                     {
                         "name": "test4",
-                        "etag": "W/\"cfc7d5e0-a043-4b81-a98f-c884254ad13d\"",
+                        "etag": "W/\"85e459b5-893d-4ccd-8d7d-47511bb90310\"",
                         "properties": {
                             "provisioningState": "Succeeded",
                             "protocol": "TCP",
@@ -105,7 +105,7 @@
                     },
                     {
                         "name": "test5",
-                        "etag": "W/\"cfc7d5e0-a043-4b81-a98f-c884254ad13d\"",
+                        "etag": "W/\"85e459b5-893d-4ccd-8d7d-47511bb90310\"",
                         "properties": {
                             "provisioningState": "Succeeded",
                             "protocol": "TCP",
@@ -121,12 +121,31 @@
                             "sourceAddressPrefixes": [],
                             "destinationAddressPrefixes": []
                         }
+                    },
+                    {
+                        "name": "test6",
+                        "etag": "W/\"85e459b5-893d-4ccd-8d7d-47511bb90310\"",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "88-90",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 330,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
                     }
                 ],
                 "defaultSecurityRules": [
                     {
                         "name": "AllowVnetInBound",
-                        "etag": "W/\"cfc7d5e0-a043-4b81-a98f-c884254ad13d\"",
+                        "etag": "W/\"85e459b5-893d-4ccd-8d7d-47511bb90310\"",
                         "properties": {
                             "provisioningState": "Succeeded",
                             "description": "Allow inbound traffic from all VMs in VNET",
@@ -146,7 +165,7 @@
                     },
                     {
                         "name": "AllowAzureLoadBalancerInBound",
-                        "etag": "W/\"cfc7d5e0-a043-4b81-a98f-c884254ad13d\"",
+                        "etag": "W/\"85e459b5-893d-4ccd-8d7d-47511bb90310\"",
                         "properties": {
                             "provisioningState": "Succeeded",
                             "description": "Allow inbound traffic from azure load balancer",
@@ -166,7 +185,7 @@
                     },
                     {
                         "name": "DenyAllInBound",
-                        "etag": "W/\"cfc7d5e0-a043-4b81-a98f-c884254ad13d\"",
+                        "etag": "W/\"85e459b5-893d-4ccd-8d7d-47511bb90310\"",
                         "properties": {
                             "provisioningState": "Succeeded",
                             "description": "Deny all inbound traffic",
@@ -186,7 +205,7 @@
                     },
                     {
                         "name": "AllowVnetOutBound",
-                        "etag": "W/\"cfc7d5e0-a043-4b81-a98f-c884254ad13d\"",
+                        "etag": "W/\"85e459b5-893d-4ccd-8d7d-47511bb90310\"",
                         "properties": {
                             "provisioningState": "Succeeded",
                             "description": "Allow outbound traffic from all VMs to all VMs in VNET",
@@ -206,7 +225,7 @@
                     },
                     {
                         "name": "AllowInternetOutBound",
-                        "etag": "W/\"cfc7d5e0-a043-4b81-a98f-c884254ad13d\"",
+                        "etag": "W/\"85e459b5-893d-4ccd-8d7d-47511bb90310\"",
                         "properties": {
                             "provisioningState": "Succeeded",
                             "description": "Allow outbound traffic from all VMs to Internet",
@@ -226,7 +245,7 @@
                     },
                     {
                         "name": "DenyAllOutBound",
-                        "etag": "W/\"cfc7d5e0-a043-4b81-a98f-c884254ad13d\"",
+                        "etag": "W/\"85e459b5-893d-4ccd-8d7d-47511bb90310\"",
                         "properties": {
                             "provisioningState": "Succeeded",
                             "description": "Deny all outbound traffic",

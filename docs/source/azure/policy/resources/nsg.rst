@@ -11,14 +11,26 @@ Filters
     - Metric Filter - Filter on metrics from Azure Monitor
     - Tag Filter - Filter on tag presence and/or values
     - Marked-For-Op Filter - Filter on tag that indicates a scheduled operation for a resource
-- ``ingress``
-  Filter based on Inbound Security Rules
+- ``ingress`` Filter based on Inbound Security Rules
+    - `ports`: ports to include (`0-65535` if not specified)
+        - `80`, `80-100`, `80,90-100`
+    - `exceptPorts`: ports to ignore (empty if not specified)
+    - `match`: match operation, filter includes NSGs with all or at least one port from the list.
+        -Possible values: `any`, `all`
+    - `ipProtocol`: `TCP`, `UDP` or `*`. Default: `*`
+    - `access`: `Allow`, `Deny`
 
   .. c7n-schema:: IngressFilter
       :module: c7n_azure.resources.network_security_group
 
-- ``egress``
-  Filter based on Outbound Security Rules
+- ``egress`` Filter based on Outbound Security Rules
+    - `ports`: ports to include (`0-65535` if not specified)
+        - `80`, `80-100`, `80,90-100`
+    - `exceptPorts`: ports to ignore (empty if not specified)
+    - `match`: match operation, filter includes NSGs with all or at least one port from the list.
+        -Possible values: `any`, `all`
+    - `ipProtocol`: `TCP`, `UDP` or `*`. Default: `*`
+    - `access`: `Allow`, `Deny`
 
   .. c7n-schema:: EgressFilter
       :module: c7n_azure.resources.network_security_group
@@ -27,14 +39,24 @@ Filters
 Actions
 -------
 - ARM Resource Actions (see :ref:`azure_genericarmaction`)
-- ``open``
-  Allow access to security rules
+- ``open`` Allow access to security rules
+    - `ports`: ports to include (`0-65535` if not specified)
+        - `80`, `80-100`, `80,90-100`
+    - `exceptPorts`: ports to ignore (empty if not specified)
+    - `ipProtocol`: `TCP`, `UDP` or `*`. Default: `*`
+    - `direction`: `Inbound`, `Outbound`
+    - `access`: `Allow`, `Deny`
 
   .. c7n-schema:: CloseRules
       :module: c7n_azure.resources.network_security_group
 
-- ``close``
-  Deny access to security rules
+- ``close`` Deny access to security rules
+    - `ports`: ports to include (`0-65535` if not specified)
+        - `80`, `80-100`, `80,90-100`
+    - `exceptPorts`: ports to ignore (empty if not specified)
+    - `ipProtocol`: `TCP`, `UDP` or `*`. Default: `*`
+    - `direction`: `Inbound`, `Outbound`
+    - `access`: `Allow`, `Deny`
 
   .. c7n-schema:: OpenRules
       :module: c7n_azure.resources.network_security_group
@@ -48,7 +70,7 @@ This policy will deny access to all ports that are NOT 22, 23 or 24 for all Netw
 .. code-block:: yaml
 
       policies:
-       - name: close-inboud-except-22-24
+       - name: close-inbound-except-22-24
          resource: azure.networksecuritygroup
          filters:
           - type: ingress
@@ -60,7 +82,7 @@ This policy will deny access to all ports that are NOT 22, 23 or 24 for all Netw
             exceptPorts: '22-24'
             direction: 'Inbound'
 
-This policy will find all NSGs with opened port 80 and closed port 443 and it will open port 443
+This policy will find all NSGs with port 80 opened and port 443 closed, then it will open port 443
 
 .. code-block:: yaml
 

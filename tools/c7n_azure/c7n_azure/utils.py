@@ -11,8 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import collections
 import datetime
 import logging
+import re
 import six
 
 from azure.graphrbac.models import GetObjectsParameters, AADObject
@@ -120,77 +122,128 @@ class GraphHelper(object):
 
 class PortsRangeHelper(object):
 
-    """ Given a string with a port or port range: '80', '80-120'
-        Returns tuple with range start and end ports: (80, 80), (80, 120)
-    """
+    PortsRange = collections.namedtuple('PortsRange', 'start end')
+
     @staticmethod
-    def get_port_range(range_str):
+    def __get_port_range(range_str):
+        """ Given a string with a port or port range: '80', '80-120'
+            Returns tuple with range start and end ports: (80, 80), (80, 120)
+        """
         if range_str == '*':
-            return (0, 65535)
+            return PortsRangeHelper.PortsRange(start=0, end=65535)
 
         s = range_str.split('-')
         if len(s) == 2:
-            return (int(s[0]), int(s[1]))
+            return PortsRangeHelper.PortsRange(start=int(s[0]), end=int(s[1]))
 
-        return (int(s[0]), int(s[0]))
+        return PortsRangeHelper.PortsRange(start=int(s[0]), end=int(s[0]))
 
-    """ Extracts ports ranges from the NSG rule object
-        Returns an array of tuples with port ranges
-    """
     @staticmethod
-    def get_rule_port_ranges(rule):
+    def __get_string_port_ranges(ports):
+        """ Extracts ports ranges from the string
+            Returns an array of PortsRange tuples
+        """
+        return [PortsRangeHelper.__get_port_range(r) for r in ports.split(',') if r != '']
+
+    @staticmethod
+    def __get_rule_port_ranges(rule):
+        """ Extracts ports ranges from the NSG rule object
+            Returns an array of PortsRange tuples
+        """
         properties = rule['properties']
         if 'destinationPortRange' in properties:
-            return [PortsRangeHelper.get_port_range(properties['destinationPortRange'])]
+            return [PortsRangeHelper.__get_port_range(properties['destinationPortRange'])]
         else:
-            return [PortsRangeHelper.get_port_range(r) for r in properties['destinationPortRanges']]
+            return [PortsRangeHelper.__get_port_range(r)
+                    for r in properties['destinationPortRanges']]
 
-    """ Converts array of port ranges to the set of integers
-        Example: [(10-12), (20,20)] -> {10, 11, 12, 20}
-    """
     @staticmethod
-    def port_ranges_to_set(ranges):
-        return set([i for r in ranges for i in range(r[0], r[1] + 1)])
+    def __port_ranges_to_set(ranges):
+        """ Converts array of port ranges to the set of integers
+            Example: [(10-12), (20,20)] -> {10, 11, 12, 20}
+        """
+        return set([i for r in ranges for i in range(r.start, r.end + 1)])
 
-    """ Convert ports range string to the set of integers
-        Example: "10-12, 20" -> {10, 11, 12, 20}
-    """
+    @staticmethod
+    def validate_ports_string(ports):
+        """ Validate that provided string has proper port numbers:
+            1. port number < 65535
+            2. range start < range end
+        """
+        pattern = re.compile('^\\d+(-\\d+)?(,\\d+(-\\d+)?)*$')
+        if pattern.match(ports) is None:
+            return False
+
+        ranges = PortsRangeHelper.__get_string_port_ranges(ports)
+        for r in ranges:
+            if r.start > r.end or r.start > 65535 or r.end > 65535:
+                return False
+        return True
+
     @staticmethod
     def get_ports_set_from_string(ports):
-        ranges = [PortsRangeHelper.get_port_range(r) for r in ports.split(',') if r != '']
-        return PortsRangeHelper.port_ranges_to_set(ranges)
+        """ Convert ports range string to the set of integers
+            Example: "10-12, 20" -> {10, 11, 12, 20}
+        """
+        ranges = PortsRangeHelper.__get_string_port_ranges(ports)
+        return PortsRangeHelper.__port_ranges_to_set(ranges)
 
-    """ Extract port ranges from NSG rule and convert it to the set of integers
-    """
     @staticmethod
     def get_ports_set_from_rule(rule):
-        ranges = PortsRangeHelper.get_rule_port_ranges(rule)
-        return PortsRangeHelper.port_ranges_to_set(ranges)
+        """ Extract port ranges from NSG rule and convert it to the set of integers
+        """
+        ranges = PortsRangeHelper.__get_rule_port_ranges(rule)
+        return PortsRangeHelper.__port_ranges_to_set(ranges)
 
-    """ Build entire ports array filled with True (Allow), False (Deny) and None(default - Deny)
-        based on the provided Network Security Group object, direction and protocol.
-    """
+    @staticmethod
+    def get_ports_strings_from_list(data):
+        """ Transform a list of port numbers to the list of strings with port ranges
+            Example: [10, 12, 13, 14, 15] -> ['10', '12-15']
+        """
+        if len(data) == 0:
+            return []
+
+        # Transform diff_ports list to the ranges list
+        first = 0
+        result = []
+        for it in range(1, len(data)):
+            if data[first] == data[it] - (it - first):
+                continue
+            result.append(PortsRangeHelper.PortsRange(start=data[first], end=data[it - 1]))
+            first = it
+
+        # Update tuples with strings, representing ranges
+        result.append(PortsRangeHelper.PortsRange(start=data[first], end=data[-1]))
+        result = [str(x.start) if x.start == x.end else "%i-%i" % (x.start, x.end) for x in result]
+        return result
+
     @staticmethod
     def build_ports_array(nsg, direction_key, ip_protocol):
+        """ Build entire ports array filled with True (Allow), False (Deny) and None(default - Deny)
+            based on the provided Network Security Group object, direction and protocol.
+        """
         rules = nsg['properties']['securityRules']
         rules = sorted(rules, key=lambda k: k['properties']['priority'])
         ports = [None for i in range(65536)]
 
         for rule in rules:
+            # Skip rules with different direction
             if not StringUtils.equal(direction_key, rule['properties']['direction']):
                 continue
 
+            # Check the protocol: possible values are 'TCP', 'UDP', '*' (both)
+            # Skip only if rule and ip_protocol are 'TCP'/'UDP' pair.
             protocol = rule['properties']['protocol']
             if not StringUtils.equal(protocol, "*") and \
                not StringUtils.equal(ip_protocol, "*") and \
                not StringUtils.equal(protocol, ip_protocol):
                 continue
 
-            access = StringUtils.equal(rule['properties']['access'], 'allow')
+            IsAllowed = StringUtils.equal(rule['properties']['access'], 'allow')
             ports_set = PortsRangeHelper.get_ports_set_from_rule(rule)
 
             for p in ports_set:
                 if ports[p] is None:
-                    ports[p] = access
+                    ports[p] = IsAllowed
 
         return ports

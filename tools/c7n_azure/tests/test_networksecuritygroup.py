@@ -67,8 +67,8 @@ class NetworkSecurityGroupTest(BaseTest):
                  'value_type': 'normalize',
                  'value': 'c7n-nsg'},
                 {'type': 'ingress',
-                 'ports': '80,8080-8084',
-                 'ports-op': 'all',
+                 'ports': '80,8080-8084,88-90',
+                 'match': 'all',
                  'access': 'Allow'}],
         })
 
@@ -88,7 +88,7 @@ class NetworkSecurityGroupTest(BaseTest):
                  'value': 'c7n-nsg'},
                 {'type': 'ingress',
                  'ports': '40-100',
-                 'ports-op': 'any',
+                 'match': 'any',
                  'access': 'Allow'}],
         })
 
@@ -153,7 +153,7 @@ class NetworkSecurityGroupTest(BaseTest):
         self.assertEqual(len(resources), 0)
 
     @arm_template('networksecuritygroup.json')
-    def test_action(self):
+    def test_open_ports(self):
         p = self.load_policy({
             'name': 'test-azure-nsg',
             'resource': 'azure.networksecuritygroup',
@@ -165,7 +165,7 @@ class NetworkSecurityGroupTest(BaseTest):
                  'value': 'c7n-nsg'},
                 {'type': 'ingress',
                  'ports': '1000-1100',
-                 'ports-op': 'any',
+                 'match': 'any',
                  'access': 'Deny'}],
             'actions': [
                 {
@@ -189,13 +189,12 @@ class NetworkSecurityGroupTest(BaseTest):
                  'value': 'c7n-nsg'},
                 {'type': 'ingress',
                  'ports': '1000-1100',
-                 'ports-op': 'any',
+                 'match': 'any',
                  'access': 'Deny'}],
             'actions': [
-                {
-                    'type': 'open',
-                    'ports': '1000-1100',
-                    'direction': 'Inbound'}]
+                {'type': 'open',
+                 'ports': '1000-1100',
+                 'direction': 'Inbound'}]
         })
 
         resources = p.run()

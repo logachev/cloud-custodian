@@ -7,7 +7,7 @@ For more examples see :ref:`azure_nsg`
 .. code-block:: yaml
 
       policies:
-       - name: close-inboud-except-22-24
+       - name: close-inbound-except-22-24
          resource: azure.networksecuritygroup
          filters:
           - type: ingress
