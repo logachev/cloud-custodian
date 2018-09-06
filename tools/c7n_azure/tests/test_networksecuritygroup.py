@@ -89,7 +89,7 @@ class NetworkSecurityGroupTest(BaseTest):
                 {'type': 'ingress',
                  'ports': '40-100',
                  'match': 'any',
-                 'access': 'Allow'}],
+                 'access': 'Allow'}]
         })
 
         resources = p.run()
