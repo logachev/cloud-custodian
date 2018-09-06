@@ -97,10 +97,10 @@ class NetworkSecurityGroupFilter(Filter):
         except_set = PortsRangeHelper.get_ports_set_from_string(self.data.get(EXCEPT_PORTS, ''))
         self.ports = ports_set.difference(except_set)
 
-        nsgs = [nsg for nsg in network_security_groups if self.__check_nsg(nsg)]
+        nsgs = [nsg for nsg in network_security_groups if self._check_nsg(nsg)]
         return nsgs
 
-    def __check_nsg(self, nsg):
+    def _check_nsg(self, nsg):
         nsg_ports = PortsRangeHelper.build_ports_dict(nsg, self.direction_key, self.ip_protocol)
 
         num_allow_ports = len([p for p in self.ports if nsg_ports.get(p)])
@@ -159,7 +159,7 @@ class NetworkSecurityGroupPortsAction(BaseAction):
                 raise PolicyValidationError("exceptPorts string has wrong format.")
         return True
 
-    def __build_ports_strings(self, nsg, direction_key, ip_protocol):
+    def _build_ports_strings(self, nsg, direction_key, ip_protocol):
         nsg_ports = PortsRangeHelper.build_ports_dict(nsg, direction_key, ip_protocol)
 
         IsAllowed = StringUtils.equal(self.access_action, ALLOW_OPERATION)
@@ -183,7 +183,7 @@ class NetworkSecurityGroupPortsAction(BaseAction):
             resource_group = nsg['resourceGroup']
 
             # Get list of ports to Deny or Allow access to.
-            ports = self.__build_ports_strings(nsg, direction, ip_protocol)
+            ports = self._build_ports_strings(nsg, direction, ip_protocol)
             if not ports:
                 # If its empty, it means NSG already blocks/allows access to all ports,
                 # no need to change.

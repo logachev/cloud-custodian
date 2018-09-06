@@ -125,7 +125,7 @@ class PortsRangeHelper(object):
     PortsRange = collections.namedtuple('PortsRange', 'start end')
 
     @staticmethod
-    def __get_port_range(range_str):
+    def _get_port_range(range_str):
         """ Given a string with a port or port range: '80', '80-120'
             Returns tuple with range start and end ports: (80, 80), (80, 120)
         """
@@ -139,26 +139,26 @@ class PortsRangeHelper(object):
         return PortsRangeHelper.PortsRange(start=int(s[0]), end=int(s[0]))
 
     @staticmethod
-    def __get_string_port_ranges(ports):
+    def _get_string_port_ranges(ports):
         """ Extracts ports ranges from the string
             Returns an array of PortsRange tuples
         """
-        return [PortsRangeHelper.__get_port_range(r) for r in ports.split(',') if r != '']
+        return [PortsRangeHelper._get_port_range(r) for r in ports.split(',') if r != '']
 
     @staticmethod
-    def __get_rule_port_ranges(rule):
+    def _get_rule_port_ranges(rule):
         """ Extracts ports ranges from the NSG rule object
             Returns an array of PortsRange tuples
         """
         properties = rule['properties']
         if 'destinationPortRange' in properties:
-            return [PortsRangeHelper.__get_port_range(properties['destinationPortRange'])]
+            return [PortsRangeHelper._get_port_range(properties['destinationPortRange'])]
         else:
-            return [PortsRangeHelper.__get_port_range(r)
+            return [PortsRangeHelper._get_port_range(r)
                     for r in properties['destinationPortRanges']]
 
     @staticmethod
-    def __port_ranges_to_set(ranges):
+    def _port_ranges_to_set(ranges):
         """ Converts array of port ranges to the set of integers
             Example: [(10-12), (20,20)] -> {10, 11, 12, 20}
         """
@@ -174,7 +174,7 @@ class PortsRangeHelper(object):
         if pattern.match(ports) is None:
             return False
 
-        ranges = PortsRangeHelper.__get_string_port_ranges(ports)
+        ranges = PortsRangeHelper._get_string_port_ranges(ports)
         for r in ranges:
             if r.start > r.end or r.start > 65535 or r.end > 65535:
                 return False
@@ -185,15 +185,15 @@ class PortsRangeHelper(object):
         """ Convert ports range string to the set of integers
             Example: "10-12, 20" -> {10, 11, 12, 20}
         """
-        ranges = PortsRangeHelper.__get_string_port_ranges(ports)
-        return PortsRangeHelper.__port_ranges_to_set(ranges)
+        ranges = PortsRangeHelper._get_string_port_ranges(ports)
+        return PortsRangeHelper._port_ranges_to_set(ranges)
 
     @staticmethod
     def get_ports_set_from_rule(rule):
         """ Extract port ranges from NSG rule and convert it to the set of integers
         """
-        ranges = PortsRangeHelper.__get_rule_port_ranges(rule)
-        return PortsRangeHelper.__port_ranges_to_set(ranges)
+        ranges = PortsRangeHelper._get_rule_port_ranges(rule)
+        return PortsRangeHelper._port_ranges_to_set(ranges)
 
     @staticmethod
     def get_ports_strings_from_list(data):
