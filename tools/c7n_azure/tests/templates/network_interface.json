@@ -1,32 +1,38 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
-    "parameters": {},
+    "parameters": {
+        "networkInterfaces_cctestnic_name": {
+            "defaultValue": "cctestnic",
+            "type": "String"
+        },
+        "networkInterfaces_cctestnic_id": {
+            "defaultValue": "/subscriptions/aa98974b-5d2a-4d98-a78a-382f3715d07e/resourceGroups/test_vm/providers/Microsoft.Network/virtualNetworks/MyVNET/subnets/Subnet",
+            "type": "String"
+        }
+    },
     "variables": {},
     "resources": [
         {
-            "comments": "Generalized from resource: '/subscriptions/aa98974b-5d2a-4d98-a78a-382f3715d07e/resourceGroups/test_vm/providers/Microsoft.Network/networkInterfaces/myVMNic'.",
+            "comments": "Generalized from resource: '/subscriptions/aa98974b-5d2a-4d98-a78a-382f3715d07e/resourceGroups/test_network_interface/providers/Microsoft.Network/networkInterfaces/cctestnic'.",
             "type": "Microsoft.Network/networkInterfaces",
-            "name": "myVMNic",
+            "name": "[parameters('networkInterfaces_cctestnic_name')]",
             "apiVersion": "2018-02-01",
-            "location": "southcentralus",
+            "location": "eastus",
             "scale": null,
             "properties": {
                 "provisioningState": "Succeeded",
-                "resourceGuid": "03742713-2734-4457-8c67-84dde4bd6f2c",
+                "resourceGuid": "221eef37-3efa-4227-a48f-b36eb3424221",
                 "ipConfigurations": [
                     {
                         "name": "ipconfig1",
-                        "etag": "W/\"845ad551-3a10-4862-b80b-97f12a20511a\"",
+                        "etag": "W/\"50760075-e54b-4b84-8413-b1e9592bdfd4\"",
                         "properties": {
                             "provisioningState": "Succeeded",
-                            "privateIPAddress": "10.0.0.4",
+                            "privateIPAddress": "10.0.0.5",
                             "privateIPAllocationMethod": "Dynamic",
-                            "publicIPAddress": {
-                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_myPublicIP_name'))]"
-                            },
                             "subnet": {
-                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_MyVNET_name'), parameters('subnets_Subnet_name'))]"
+                                "id": "[parameters('networkInterfaces_cctestnic_id')]"
                             },
                             "primary": true,
                             "privateIPAddressVersion": "IPv4"
@@ -36,12 +42,10 @@
                 "dnsSettings": {
                     "dnsServers": [],
                     "appliedDnsServers": [],
-                    "internalDomainNameSuffix": "c0kub5kiz0puzdeurylovnowqd.jx.internal.cloudapp.net"
+                    "internalDomainNameSuffix": "pyaqi3tihpfebl4dor1nvahhyg.bx.internal.cloudapp.net"
                 },
-                "macAddress": "00-0D-3A-75-38-66",
                 "enableAcceleratedNetworking": false,
-                "enableIPForwarding": false,
-                "primary": true
+                "enableIPForwarding": false
             },
             "dependsOn": []
         }
