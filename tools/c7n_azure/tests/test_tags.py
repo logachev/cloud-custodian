@@ -363,6 +363,8 @@ class TagsTest(BaseTest):
     @patch('c7n_azure.actions.utcnow', return_value=TEST_DATE)
     def test_auto_tag_add_creator_tag(self, utcnow):
         """Adds CreatorEmail to a resource group.
+           IMPORTANT: If this test is failing, you might need to update
+                      TEST_DATE and capture new cassette.
         """
         p = self.load_policy({
             'name': 'test-azure-tag',
@@ -389,6 +391,8 @@ class TagsTest(BaseTest):
     @patch('c7n_azure.actions.utcnow', return_value=TEST_DATE)
     def test_auto_tag_update_false_noop_for_existing_tag(self, utcnow):
         """Adds CreatorEmail to a resource group
+           IMPORTANT: If this test is failing, you might need to update
+                      TEST_DATE and capture new cassette.
         """
 
         # setup by adding an existing CreatorEmail tag
@@ -722,6 +726,9 @@ class TagsTest(BaseTest):
     @arm_template('vm.json')
     @patch('c7n_azure.utils.now', return_value=TEST_DATE)
     def test_mark_for_op(self, date_mock):
+        """IMPORTANT: If this test is failing, you might need to update
+                      TEST_DATE and capture new cassette.
+        """
         with patch('c7n_azure.utils.now') as MockClass:
             MockClass.return_value = TEST_DATE
             policy = {
