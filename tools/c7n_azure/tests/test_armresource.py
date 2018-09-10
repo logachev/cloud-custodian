@@ -13,16 +13,12 @@
 # limitations under the License.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from datetime import datetime
-
-from azure_common import BaseTest, arm_template
+from azure_common import BaseTest, arm_template, TEST_DATE
 from jsonschema.exceptions import ValidationError
 from mock import patch
 
 
 class ArmResourceTest(BaseTest):
-
-    TEST_DATE = datetime(2018, 9, 7, 0, 0, 0)
 
     def setUp(self):
         super(ArmResourceTest, self).setUp()

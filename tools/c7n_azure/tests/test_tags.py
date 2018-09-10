@@ -17,7 +17,7 @@ import datetime
 import logging
 import re
 
-from azure_common import BaseTest, arm_template
+from azure_common import BaseTest, arm_template, TEST_DATE
 from c7n_azure.session import Session
 from mock import patch
 
@@ -25,10 +25,6 @@ from c7n.filters import FilterValidationError
 
 
 class TagsTest(BaseTest):
-
-    # latest VCR recording date that tag tests
-    # If tests need to be re-recorded, update to current date
-    TEST_DATE = datetime.datetime(2018, 9, 7, 0, 0, 0)
 
     # regex for identifying valid email addresses
     EMAIL_REGEX = "[^@]+@[^@]+\.[^@]+"
@@ -668,10 +664,10 @@ class TagsTest(BaseTest):
                  'op': 'eq',
                  'value_type': 'normalize',
                  'value': 'cctestvm'}],
-            'actions':[
-                { 'type': 'tag',
-                  'tag': 'Pythontest',
-                  'value': 'ItWorks'}],
+            'actions': [
+                {'type': 'tag',
+                 'tag': 'Pythontest',
+                 'value': 'ItWorks'}],
         }
         p = self.load_policy(policy)
         resources = p.run()
@@ -727,7 +723,7 @@ class TagsTest(BaseTest):
     @patch('c7n_azure.utils.now', return_value=TEST_DATE)
     def test_mark_for_op(self, date_mock):
         with patch('c7n_azure.utils.now') as MockClass:
-            MockClass.return_value = self.TEST_DATE
+            MockClass.return_value = TEST_DATE
             policy = {
                 'name': 'test-mark-for-op',
                 'resource': 'azure.vm',
@@ -763,7 +759,7 @@ class TagsTest(BaseTest):
             resources = p.run()
             self.assertEqual(len(resources), 0)
 
-            MockClass.return_value = self.TEST_DATE + datetime.timedelta(days=self.DAYS)
+            MockClass.return_value = TEST_DATE + datetime.timedelta(days=self.DAYS)
             policy = {
                 'name': 'test-mark-for-op',
                 'resource': 'azure.vm',

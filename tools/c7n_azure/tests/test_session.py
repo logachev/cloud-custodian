@@ -27,4 +27,5 @@ class SessionTest(BaseTest):
         s = Session()
         client = s.client('azure.mgmt.resource.ResourceManagementClient')
         resource = next(client.resources.list())
-        self.assertTrue(re.match('\\d{4}-\\d{2}-\\d{2}', s.resource_api_version(resource.id)) is not None)
+        self.assertTrue(re.match('\\d{4}-\\d{2}-\\d{2}',
+                                 s.resource_api_version(resource.id)) is not None)
