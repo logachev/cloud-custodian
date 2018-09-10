@@ -23,4 +23,8 @@ done
 
 # Destroy ACS resource
 rgName=test_containerservice
-az group delete --name $rgName --yes
+if [ $# -eq 0 ] || [[ "$@" =~ "containerservice" ]]; then
+  az group delete --name $rgName --yes
+else
+  echo "Skipping $rgName"
+fi

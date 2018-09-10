@@ -23,5 +23,9 @@ done
 
 # Deploy ACS resource
 rgName=test_containerservice
-az group create --name $rgName --location $resourceLocation
-az acs create -n cctestacs -d cctestacsdns -g $rgName --generate-ssh-keys --orchestrator-type kubernetes
+if [ $# -eq 0 ] || [[ "$@" =~ "containerservice" ]]; then
+  az group create --name $rgName --location $resourceLocation
+  az acs create -n cctestacs -d cctestacsdns -g $rgName --generate-ssh-keys --orchestrator-type kubernetes
+else
+  echo "Skipping $rgName"
+fi
