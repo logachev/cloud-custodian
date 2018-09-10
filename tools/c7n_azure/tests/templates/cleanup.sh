@@ -22,5 +22,5 @@ for file in "$templateDirectory"/*.json; do
 done
 
 # Destroy ACS resource
-rgname=test_containerservice
+rgName=test_containerservice
 az group delete --name $rgName --yes

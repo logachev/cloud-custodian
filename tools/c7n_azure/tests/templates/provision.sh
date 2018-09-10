@@ -22,6 +22,6 @@ for file in "$templateDirectory"/*.json; do
 done
 
 # Deploy ACS resource
-rgname=test_containerservice
+rgName=test_containerservice
 az group create --name $rgName --location $resourceLocation
 az acs create -n cctestacs -d cctestacsdns -g $rgName --generate-ssh-keys --orchestrator-type kubernetes
