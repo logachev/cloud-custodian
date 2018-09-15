@@ -41,6 +41,7 @@ import c7n_azure.resources.redis
 import c7n_azure.resources.vmss
 import c7n_azure.resources.batch
 import c7n_azure.resources.appserviceplan  # noqa: F401
+import c7n_azure.resources.policy_assignments
 
 
 def initialize_azure():
