@@ -1,7 +1,7 @@
 .. _azure_policyassignments:
 
 Policy assignments
-=====
+==================
 
 Filters
 -------
