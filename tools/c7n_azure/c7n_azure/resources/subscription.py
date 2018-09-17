@@ -50,8 +50,7 @@ class Subscription(ResourceManager):
         session = local_session(session_factory)
         client = SubscriptionClient(session.get_credentials())
         details = client.subscriptions.get(subscription_id=session.subscription_id)
-        return {'subscriptionId': session.subscription_id,
-                'displayName': details.display_name}
+        return details.serialize(True)
 
 
 @Subscription.action_registry.register('add-policy')
