@@ -53,6 +53,7 @@ class Subscription(ResourceManager):
         details = client.subscriptions.get(subscription_id=session.subscription_id)
         return details.serialize(True)
 
+
 Subscription.filter_registry.register('missing', Missing)
 
 
