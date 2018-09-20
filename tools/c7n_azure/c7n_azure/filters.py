@@ -253,8 +253,9 @@ class PolicyCompliantFilter(Filter):
 
     You can specify if you want to filter compliant or non-compiant resources.
 
-    You can provide a list of Azure Policy definitions display names to limit amount of
-    non-compliant resources. By default it returns a list of all non-compliant resources.
+    You can provide a list of Azure Policy definitions display names or names to limit
+    amount of non-compliant resources. By default it returns a list of all non-compliant
+    resources.
 
     .. code-block :: yaml
 
@@ -285,7 +286,9 @@ class PolicyCompliantFilter(Filter):
         policyClient = s.client("azure.mgmt.resource.policy.PolicyClient")
         definitions = [d for d in policyClient.policy_definitions.list()]
         definition_ids = [d.id.lower() for d in definitions
-                          if self.definitions is None or d.display_name in self.definitions]
+                          if self.definitions is None or
+                          d.display_name in self.definitions or
+                          d.name in self.definitions]
 
         # Find non-compliant resources
         client = PolicyInsightsClient(s.get_credentials())

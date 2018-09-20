@@ -30,7 +30,7 @@ class PolicyCompliance(BaseTest):
                  'value_type': 'normalize',
                  'value': 'cctestvm'},
                 {'type': 'policy-compliant',
-                 'compliant': True,}]
+                 'compliant': True}]
         })
         resources = p.run()
 
@@ -45,7 +45,7 @@ class PolicyCompliance(BaseTest):
                  'value_type': 'normalize',
                  'value': 'cctestvm'},
                 {'type': 'policy-compliant',
-                 'compliant': False,}]
+                 'compliant': False}]
         })
         resources = p.run()
         self.assertEqual(len(resources), 0)
