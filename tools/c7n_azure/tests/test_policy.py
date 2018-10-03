@@ -37,10 +37,10 @@ class AzurePolicyModeTest(BaseTest):
 
         function_mode = AzureFunctionMode(p)
         self.assertEqual(function_mode.policy_name, p.data['name'])
-        self.assertEqual(function_mode.webapp_name, function_mode.parameters['name']['value'])
-        self.assertEqual(function_mode.parameters['storageName']['value'], 'testcloudcustodian')
-        self.assertEqual(function_mode.group_name,
-                         p.data['mode']['provision-options']['servicePlanName'])
+        self.assertEqual(function_mode.storage_name, 'custodianstorageaccount')
+        self.assertEqual(function_mode.group_name, "cloud-custodian")
+        self.assertEqual(function_mode.webapp_name,
+                         function_mode.service_plan_name + '-' + function_mode.policy_name)
 
     def test_init_azure_function_mode_no_service_plan_name(self):
         p = self.load_policy({
@@ -53,10 +53,10 @@ class AzurePolicyModeTest(BaseTest):
 
         function_mode = AzureFunctionMode(p)
         self.assertEqual(function_mode.policy_name, p.data['name'])
-        self.assertEqual(function_mode.webapp_name, function_mode.parameters['name']['value'])
-        self.assertEqual(function_mode.group_name,
-                         function_mode.parameters['servicePlanName']['value'])
-        self.assertEqual(function_mode.parameters['servicePlanName']['value'], 'cloud-custodian')
+        self.assertEqual(function_mode.group_name, "cloud-custodian")
+        self.assertEqual(function_mode.service_plan_name, 'cloud-custodian-plan')
+        self.assertEqual(function_mode.webapp_name,
+                         function_mode.service_plan_name + '-' + function_mode.policy_name)
 
     def test_event_mode_is_subscribed_to_event_true(self):
         p = self.load_policy({

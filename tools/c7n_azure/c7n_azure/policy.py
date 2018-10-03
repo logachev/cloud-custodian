@@ -20,18 +20,17 @@ import requests
 from azure.mgmt.eventgrid.models import (EventSubscription, EventSubscriptionFilter,
                                          WebHookEventSubscriptionDestination)
 from c7n_azure.azure_events import AzureEvents
-from c7n_azure.constants import (CONST_DOCKER_VERSION, CONST_FUNCTIONS_EXT_VERSION,
-                                 CONST_AZURE_EVENT_TRIGGER_MODE, CONST_AZURE_TIME_TRIGGER_MODE,
+from c7n_azure.constants import (CONST_AZURE_EVENT_TRIGGER_MODE, CONST_AZURE_TIME_TRIGGER_MODE,
                                  CONST_AZURE_FUNCTION_KEY_URL)
 from c7n_azure.function_package import FunctionPackage
 from c7n_azure.functionapp_utils import FunctionAppUtilities
-from c7n_azure.template_utils import TemplateUtilities
 from msrestazure.azure_exceptions import CloudError
 
 from c7n import utils
 from c7n.actions import EventAction
 from c7n.policy import ServerlessExecutionMode, PullMode, execution
 from c7n.utils import local_session
+from azure.mgmt.web.models import AppServicePlan, SkuDescription
 
 
 class AzureFunctionMode(ServerlessExecutionMode):
@@ -44,11 +43,11 @@ class AzureFunctionMode(ServerlessExecutionMode):
             'provision-options': {
                 'type': 'object',
                 'location': 'string',
-                'appInsightsLocation': 'string',
                 'servicePlanName': 'string',
-                'sku': 'string',
-                'workerSize': 'number',
-                'skuCode': 'string'
+                'storageName': 'string',
+                'resourceGroup': 'string',
+                'skuName': 'string',
+                'skuTier': 'string'
             },
             'execution-options': {'type': 'object'}
         }
@@ -60,40 +59,27 @@ class AzureFunctionMode(ServerlessExecutionMode):
         self.policy = policy
         self.log = logging.getLogger('custodian.azure.AzureFunctionMode')
         self.session = local_session(self.policy.session_factory)
-        self.client = self.session.client('azure.mgmt.web.WebSiteManagementClient')
+        self.web_client = self.session.client('azure.mgmt.web.WebSiteManagementClient')
 
-        self.template_util = TemplateUtilities()
-        self.parameters = self._get_parameters(self.template_util)
-        self.group_name = self.parameters['servicePlanName']['value']
-        self.webapp_name = self.parameters['name']['value']
         self.policy_name = self.policy.data['name'].replace(' ', '-').lower()
+
+        provision_options = self.policy.data['mode'].get('provision-options', {})
+        self.group_name = provision_options.get('resourceGroup', 'cloud-custodian')
+        self.storage_name = provision_options.get('storageName', 'custodianstorageaccount')
+        self.location = provision_options.get('location', 'westus2')
+        self.service_plan_name = provision_options.get('servicePlanName', 'cloud-custodian-plan')
+        self.sku_name = provision_options.get('skuName', 'B1')
+        self.sku_tier = provision_options.get('skuTier', 'Standard')
+
+        self.webapp_name = self.service_plan_name + "-" + self.policy_name
 
     def run(self, event=None, lambda_context=None):
         """Run the actual policy."""
         raise NotImplementedError("subclass responsibility")
 
     def provision(self):
-        """Provision any resources needed for the policy."""
-        existing_service_plan = self.client.app_service_plans.get(
-            self.group_name, self.parameters['servicePlanName']['value'])
-
-        if not existing_service_plan:
-            self.template_util.create_resource_group(
-                self.group_name, {'location': self.parameters['location']['value']})
-
-            self.template_util.deploy_resource_template(
-                self.group_name, 'dedicated_functionapp.json', self.parameters).wait()
-
-        else:
-            existing_webapp = self.client.web_apps.get(self.group_name, self.webapp_name)
-            if not existing_webapp:
-                functionapp_util = FunctionAppUtilities()
-                functionapp_util.deploy_webapp(self.webapp_name,
-                                               self.group_name, existing_service_plan,
-                                               self.parameters['storageName']['value'])
-            else:
-                self.log.info("Found existing App %s (%s) in group %s" %
-                              (self.webapp_name, existing_webapp.location, self.group_name))
+        self.deploy_infrastructure()
+        self.deploy_web_app()
 
         self.log.info("Building function package for %s" % self.webapp_name)
 
@@ -108,34 +94,72 @@ class AzureFunctionMode(ServerlessExecutionMode):
         else:
             self.log.error("Aborted deployment, ensure Application Service is healthy.")
 
-    def _get_parameters(self, template_util):
-        parameters = template_util.get_default_parameters(
-            'dedicated_functionapp.parameters.json')
+    def deploy_infrastructure(self):
+        # Check if RG exists
+        rg_client = self.session.client('azure.mgmt.resource.ResourceManagementClient')
+        if not rg_client.resource_groups.check_existence(self.group_name):
+            rg_client.resource_groups.create_or_update(self.group_name, {'location': self.location})
 
-        data = self.policy.data
+        # Storage account create function is async, wait for completion after
+        # other resources provisioned.
+        sm_client = self.session.client('azure.mgmt.storage.StorageManagementClient')
+        accounts = sm_client.storage_accounts.list_by_resource_group(self.group_name)
+        found = self.storage_name in [a.name for a in accounts]
+        account = None
+        if not found:
+            params = {'sku': {'name': 'Standard_LRS'},
+                      'kind': 'Storage',
+                      'location': self.location}
+            account = sm_client.storage_accounts.create(self.group_name, self.storage_name, params)
 
-        updated_parameters = {
-            'dockerVersion': CONST_DOCKER_VERSION,
-            'functionsExtVersion': CONST_FUNCTIONS_EXT_VERSION,
-            'machineDecryptionKey': FunctionAppUtilities.generate_machine_decryption_key()
-        }
+        # Deploy app insights if needed
+        ai_client = \
+            self.session.client(
+                'azure.mgmt.applicationinsights.ApplicationInsightsManagementClient')
+        try:
+            ai_client.get(self.group_name, self.service_plan_name)
+        except Exception:
+            params = {
+                'location': self.location,
+                'application_type': self.webapp_name,
+                'request_source': 'IbizaWebAppExtensionCreate',
+                'kind': 'web'
+            }
+            ai_client.components.create_or_update(self.group_name, self.service_plan_name, params)
 
-        if 'mode' in data:
-            if 'provision-options' in data['mode']:
-                updated_parameters.update(data['mode']['provision-options'])
-                if 'servicePlanName' in data['mode']['provision-options']:
-                    updated_parameters['name'] = (
-                        data['mode']['provision-options']['servicePlanName'] +
-                        '-' + data['name']
-                    ).replace(' ', '-').lower()
+        # Deploy App Service Plan
+        self.service_plan = \
+            self.web_client.app_service_plans.get(self.group_name, self.service_plan_name)
+        if not self.service_plan:
+            plan = AppServicePlan(
+                app_service_plan_name=self.service_plan_name,
+                location=self.location,
+                sku=SkuDescription(
+                    name=self.sku_name,
+                    capacity=1,
+                    tier=self.sku_tier),
+                kind='linux')
 
-                    updated_parameters['storageName'] = (
-                        data['mode']['provision-options']['servicePlanName']
-                    ).replace('-', '').lower()
+            self.service_plan = \
+                self.web_client.app_service_plans.create_or_update(self.group_name,
+                                                                   self.service_plan_name,
+                                                                   plan).result()
+     #       self.service_plan = self.web_client.app_service_plans.get(self.group_name, self.service_plan_name)
 
-        parameters = template_util.update_parameters(parameters, updated_parameters)
+        # Wait until SA is provisioned
+        if account:
+            account.result()
 
-        return parameters
+    def deploy_web_app(self):
+        existing_webapp = self.web_client.web_apps.get(self.group_name, self.webapp_name)
+        if not existing_webapp:
+            functionapp_util = FunctionAppUtilities()
+            functionapp_util.deploy_webapp(self.webapp_name,
+                                           self.group_name, self.service_plan,
+                                           self.storage_name)
+        else:
+            self.log.info("Found existing App %s (%s) in group %s" %
+                          (self.webapp_name, existing_webapp.location, self.group_name))
 
     def get_logs(self, start, end):
         """Retrieve logs for the policy"""
