@@ -138,13 +138,14 @@ class AzureFunctionMode(ServerlessExecutionMode):
                     name=self.sku_name,
                     capacity=1,
                     tier=self.sku_tier),
-                kind='linux')
+                kind='linux',
+                target_worker_size_id=0,
+                reserved=True)
 
             self.service_plan = \
                 self.web_client.app_service_plans.create_or_update(self.group_name,
                                                                    self.service_plan_name,
                                                                    plan).result()
-     #       self.service_plan = self.web_client.app_service_plans.get(self.group_name, self.service_plan_name)
 
         # Wait until SA is provisioned
         if account:
