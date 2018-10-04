@@ -36,12 +36,13 @@ Execution in Azure functions comes with a default set of configurations for the 
 resources. To override these settings you must set 'provision-options' with one of the following
 keys:
 
+- groupName (default: cloud-custodian)
 - location (default: West US 2)
 - appInsightsLocation (default: West US 2)
-- servicePlanName (default: cloud-custodian)
-- sku (default: Basic)
-- skuCode (default: B1)
-- workerSize (default: 0)
+- servicePlanName (default: cloud-custodian-plan)
+- skuTier (default: Basic)
+- skuName (default: B1)
+- storageName (default: custodianstorageaccount)
 
 The location allows you to choose the region to deploy the resource group and resources that will be
 provisioned. Application Insights has six available locations and thus can not always be in the same
@@ -81,8 +82,8 @@ An example on how to set size and location as well:
               servicePlanName: functionshost
               location: East US
               appInsightsLocation: East US
-              sku: Standard
-              skuCode: S1
+              skuTier: Standard
+              skuName: S1
          resource: azure.vm
          filters:
           - type: instance-view

@@ -23,10 +23,9 @@ from c7n.utils import local_session
 try:
     from c7n_azure.function_package import FunctionPackage
     from c7n_azure.functionapp_utils import FunctionAppUtilities
-    from c7n_azure.template_utils import TemplateUtilities
     from c7n_azure.constants import CONST_DOCKER_VERSION, CONST_FUNCTIONS_EXT_VERSION
 except ImportError:
-    FunctionPackage = TemplateUtilities = None
+    FunctionPackage = None
     CONST_DOCKER_VERSION = CONST_FUNCTIONS_EXT_VERSION = None
     pass
 
@@ -44,11 +43,12 @@ def provision(config):
 
     app_parameters = FunctionAppUtilities.FunctionAppInfrastructureParameters(
         group_name=group_name,
-        location=config.get('function_location'),
+        location=config.get('function_location', 'West US2'),
+        app_insights_location=config.get('function_appInsightsLocation', 'West US2'),
         storage_name=storage_name,
         service_plan_name=service_plan_name,
         sku_name=config.get('function_skuCode', 'B1'),
-        sku_tier=config.get('function_sku', 'Standard'),
+        sku_tier=config.get('function_sku', 'Basic'),
         webapp_name=webapp_name)
 
     functionapp_util = FunctionAppUtilities()

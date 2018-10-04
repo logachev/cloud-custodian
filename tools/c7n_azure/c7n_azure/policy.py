@@ -66,9 +66,10 @@ class AzureFunctionMode(ServerlessExecutionMode):
         self.group_name = provision_options.get('resourceGroup', 'cloud-custodian')
         self.storage_name = provision_options.get('storageName', 'custodianstorageaccount')
         self.location = provision_options.get('location', 'westus2')
+        self.app_insights_location = provision_options.get('appInsightsLocation', 'westus2')
         self.service_plan_name = provision_options.get('servicePlanName', 'cloud-custodian-plan')
         self.sku_name = provision_options.get('skuName', 'B1')
-        self.sku_tier = provision_options.get('skuTier', 'Standard')
+        self.sku_tier = provision_options.get('skuTier', 'Basic')
 
         self.webapp_name = self.service_plan_name + "-" + self.policy_name
 
@@ -81,6 +82,7 @@ class AzureFunctionMode(ServerlessExecutionMode):
         params = FunctionAppUtilities.FunctionAppInfrastructureParameters(
             group_name=self.group_name,
             location=self.location,
+            app_insights_location=self.app_insights_location,
             storage_name=self.storage_name,
             service_plan_name=self.service_plan_name,
             sku_name=self.sku_name,

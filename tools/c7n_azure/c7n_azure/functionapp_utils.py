@@ -36,10 +36,11 @@ class FunctionAppUtilities(object):
         return str(hexlify(os.urandom(32)).decode()).upper()
 
     class FunctionAppInfrastructureParameters:
-        def __init__(self, group_name, location, storage_name,
+        def __init__(self, group_name, location, app_insights_location, storage_name,
                      service_plan_name, sku_name, sku_tier, webapp_name):
             self.group_name = group_name
             self.location = location
+            self.app_insights_location = app_insights_location
             self.storage_name = storage_name
             self.service_plan_name = service_plan_name
             self.sku_name = sku_name
@@ -88,7 +89,7 @@ class FunctionAppUtilities(object):
             self.log.info("Deploying app insights %s in %s resource group" %
                           (parameters.service_plan_name, parameters.group_name))
             params = {
-                'location': parameters.location,
+                'location': parameters.app_insights_location,
                 'application_type': parameters.webapp_name,
                 'request_source': 'IbizaWebAppExtensionCreate',
                 'kind': 'web'
