@@ -39,7 +39,7 @@ def provision(config):
     service_plan_name = config.get('function_servicePlanName', 'cloudcustodian')
     storage_name = config.get('function_servicePlanName', 'cloudcustodian')
     webapp_name = (service_plan_name + '-' + function_name).replace(' ', '-').lower()
-    schedule=config.get('function_schedule', '0 */10 * * * *')
+    schedule = config.get('function_schedule', '0 */10 * * * *')
 
     app_parameters = FunctionAppUtilities.FunctionAppInfrastructureParameters(
         group_name=group_name,

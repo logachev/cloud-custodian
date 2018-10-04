@@ -124,7 +124,6 @@ class FunctionAppUtilities(object):
             self.log.info("Found app service plan %s in %s resource group" %
                 (parameters.service_plan_name, parameters.group_name))
 
-
         # Wait until SA is provisioned
         if account:
             self.log.info("Waiting for %s storage account" %
