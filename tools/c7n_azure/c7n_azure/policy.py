@@ -42,6 +42,7 @@ class AzureFunctionMode(ServerlessExecutionMode):
             'provision-options': {
                 'type': 'object',
                 'location': 'string',
+                'appInsightsLocation': 'string',
                 'servicePlanName': 'string',
                 'storageName': 'string',
                 'resourceGroup': 'string',
