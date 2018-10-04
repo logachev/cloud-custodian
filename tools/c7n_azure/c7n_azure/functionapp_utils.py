@@ -22,6 +22,8 @@ from c7n_azure.constants import CONST_DOCKER_VERSION, CONST_FUNCTIONS_EXT_VERSIO
 
 from c7n.utils import local_session
 
+from azure.mgmt.web.models import AppServicePlan, SkuDescription
+
 
 class FunctionAppUtilities(object):
     def __init__(self):
@@ -32,6 +34,102 @@ class FunctionAppUtilities(object):
     def generate_machine_decryption_key():
         # randomly generated decryption key for Functions key
         return str(hexlify(os.urandom(32)).decode()).upper()
+
+    class FunctionAppInfrastructureParameters:
+        def __init__(self, group_name, location, storage_name,
+                     service_plan_name, sku_name, sku_tier, webapp_name):
+            self.group_name = group_name
+            self.location = location
+            self.storage_name = storage_name
+            self.service_plan_name = service_plan_name
+            self.sku_name = sku_name
+            self.sku_tier = sku_tier
+            self.webapp_name = webapp_name
+
+    def deploy_infrastructure(self, parameters):
+        # Check if RG exists
+        session = self.local_session
+        rg_client = session.client('azure.mgmt.resource.ResourceManagementClient')
+        if not rg_client.resource_groups.check_existence(parameters.group_name):
+            self.log.info("Deploying resource group %s" % (parameters.group_name))
+            rg_client.resource_groups.create_or_update(parameters.group_name,
+                                                       {'location': parameters.location})
+        else:
+            self.log.info("Found resource group %s" % (parameters.group_name))
+
+        # Storage account create function is async, wait for completion after
+        # other resources provisioned.
+        sm_client = session.client('azure.mgmt.storage.StorageManagementClient')
+        accounts = sm_client.storage_accounts.list_by_resource_group(parameters.group_name)
+        found = parameters.storage_name in [a.name for a in accounts]
+        account = None
+        if not found:
+            self.log.info("Deploying storage account %s in %s resource group" %
+                          (parameters.storage_name, parameters.group_name))
+            params = {'sku': {'name': 'Standard_LRS'},
+                      'kind': 'Storage',
+                      'location': parameters.location}
+            account = sm_client.storage_accounts.create(parameters.group_name,
+                                                        parameters.storage_name,
+                                                        params)
+        else:
+            self.log.info("Found storage account %s in %s resource group" %
+                          (parameters.storage_name, parameters.group_name))
+
+        # Deploy app insights if needed
+        ai_client = \
+            session.client(
+                'azure.mgmt.applicationinsights.ApplicationInsightsManagementClient')
+        try:
+            ai_client.get(parameters.group_name, parameters.service_plan_name)
+            self.log.info("Found app insights %s in %s resource group" %
+                          (parameters.service_plan_name, parameters.group_name))
+        except Exception:
+            self.log.info("Deploying app insights %s in %s resource group" %
+                          (parameters.service_plan_name, parameters.group_name))
+            params = {
+                'location': parameters.location,
+                'application_type': parameters.webapp_name,
+                'request_source': 'IbizaWebAppExtensionCreate',
+                'kind': 'web'
+            }
+            ai_client.components.create_or_update(parameters.group_name,
+                                                  parameters.service_plan_name,
+                                                  params)
+
+        # Deploy App Service Plan
+        web_client = session.client('azure.mgmt.web.WebSiteManagementClient')
+        service_plan = \
+            web_client.app_service_plans.get(parameters.group_name, parameters.service_plan_name)
+        if not service_plan:
+            self.log.info("Deploying app service plan %s in %s resource group" %
+                (parameters.service_plan_name, parameters.group_name))
+            plan = AppServicePlan(
+                app_service_plan_name=parameters.service_plan_name,
+                location=parameters.location,
+                sku=SkuDescription(
+                    name=parameters.sku_name,
+                    capacity=1,
+                    tier=parameters.sku_tier),
+                kind='linux',
+                target_worker_size_id=0,
+                reserved=True)
+
+            service_plan = \
+                web_client.app_service_plans.create_or_update(parameters.group_name,
+                                                              parameters.service_plan_name,
+                                                              plan).result()
+        else:
+            self.log.info("Found app service plan %s in %s resource group" %
+                (parameters.service_plan_name, parameters.group_name))
+
+
+        # Wait until SA is provisioned
+        if account:
+            self.log.info("Waiting for %s storage account" %
+                (parameters.service_plan_name))
+            account.result()
+        return service_plan
 
     def deploy_webapp(self, app_name, group_name, service_plan, storage_account_name):
         self.log.info("Deploying Function App %s (%s) in group %s" %

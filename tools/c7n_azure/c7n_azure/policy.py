@@ -30,7 +30,6 @@ from c7n import utils
 from c7n.actions import EventAction
 from c7n.policy import ServerlessExecutionMode, PullMode, execution
 from c7n.utils import local_session
-from azure.mgmt.web.models import AppServicePlan, SkuDescription
 
 
 class AzureFunctionMode(ServerlessExecutionMode):
@@ -78,8 +77,17 @@ class AzureFunctionMode(ServerlessExecutionMode):
         raise NotImplementedError("subclass responsibility")
 
     def provision(self):
-        self.deploy_infrastructure()
-        self.deploy_web_app()
+        self.functionapp_util = FunctionAppUtilities()
+        params = FunctionAppUtilities.FunctionAppInfrastructureParameters(
+            group_name=self.group_name,
+            location=self.location,
+            storage_name=self.storage_name,
+            service_plan_name=self.service_plan_name,
+            sku_name=self.sku_name,
+            sku_tier=self.sku_tier,
+            webapp_name=self.webapp_name)
+        service_plan = self.functionapp_util.deploy_infrastructure(params)
+        self.deploy_web_app(service_plan)
 
         self.log.info("Building function package for %s" % self.webapp_name)
 
@@ -94,70 +102,12 @@ class AzureFunctionMode(ServerlessExecutionMode):
         else:
             self.log.error("Aborted deployment, ensure Application Service is healthy.")
 
-    def deploy_infrastructure(self):
-        # Check if RG exists
-        rg_client = self.session.client('azure.mgmt.resource.ResourceManagementClient')
-        if not rg_client.resource_groups.check_existence(self.group_name):
-            rg_client.resource_groups.create_or_update(self.group_name, {'location': self.location})
-
-        # Storage account create function is async, wait for completion after
-        # other resources provisioned.
-        sm_client = self.session.client('azure.mgmt.storage.StorageManagementClient')
-        accounts = sm_client.storage_accounts.list_by_resource_group(self.group_name)
-        found = self.storage_name in [a.name for a in accounts]
-        account = None
-        if not found:
-            params = {'sku': {'name': 'Standard_LRS'},
-                      'kind': 'Storage',
-                      'location': self.location}
-            account = sm_client.storage_accounts.create(self.group_name, self.storage_name, params)
-
-        # Deploy app insights if needed
-        ai_client = \
-            self.session.client(
-                'azure.mgmt.applicationinsights.ApplicationInsightsManagementClient')
-        try:
-            ai_client.get(self.group_name, self.service_plan_name)
-        except Exception:
-            params = {
-                'location': self.location,
-                'application_type': self.webapp_name,
-                'request_source': 'IbizaWebAppExtensionCreate',
-                'kind': 'web'
-            }
-            ai_client.components.create_or_update(self.group_name, self.service_plan_name, params)
-
-        # Deploy App Service Plan
-        self.service_plan = \
-            self.web_client.app_service_plans.get(self.group_name, self.service_plan_name)
-        if not self.service_plan:
-            plan = AppServicePlan(
-                app_service_plan_name=self.service_plan_name,
-                location=self.location,
-                sku=SkuDescription(
-                    name=self.sku_name,
-                    capacity=1,
-                    tier=self.sku_tier),
-                kind='linux',
-                target_worker_size_id=0,
-                reserved=True)
-
-            self.service_plan = \
-                self.web_client.app_service_plans.create_or_update(self.group_name,
-                                                                   self.service_plan_name,
-                                                                   plan).result()
-
-        # Wait until SA is provisioned
-        if account:
-            account.result()
-
-    def deploy_web_app(self):
+    def deploy_web_app(self, service_plan):
         existing_webapp = self.web_client.web_apps.get(self.group_name, self.webapp_name)
         if not existing_webapp:
-            functionapp_util = FunctionAppUtilities()
-            functionapp_util.deploy_webapp(self.webapp_name,
-                                           self.group_name, self.service_plan,
-                                           self.storage_name)
+            self.functionapp_util.deploy_webapp(self.webapp_name,
+                                                self.group_name, service_plan,
+                                                self.storage_name)
         else:
             self.log.info("Found existing App %s (%s) in group %s" %
                           (self.webapp_name, existing_webapp.location, self.group_name))

@@ -17,6 +17,9 @@ import json
 import os
 import logging
 
+from c7n_azure.session import Session
+from c7n.utils import local_session
+
 try:
     from c7n_azure.function_package import FunctionPackage
     from c7n_azure.functionapp_utils import FunctionAppUtilities
@@ -29,35 +32,37 @@ except ImportError:
 
 
 def provision(config):
+    session = local_session(Session)
     log = logging.getLogger('c7n_mailer.azure.deploy')
 
     function_name = config.get('function_name', 'mailer')
+    group_name = config.get('function_servicePlanName', 'cloudcustodian')
+    service_plan_name = config.get('function_servicePlanName', 'cloudcustodian')
+    storage_name = config.get('function_servicePlanName', 'cloudcustodian')
+    webapp_name = (service_plan_name + '-' + function_name).replace(' ', '-').lower()
+    schedule=config.get('function_schedule', '0 */10 * * * *')
 
-    func_config = dict(
-        name=function_name,
-        servicePlanName=config.get('function_servicePlanName', 'cloudcustodian'),
+    app_parameters = FunctionAppUtilities.FunctionAppInfrastructureParameters(
+        group_name=group_name,
         location=config.get('function_location'),
-        appInsightsLocation=config.get('function_appInsightsLocation'),
-        schedule=config.get('function_schedule', '0 */10 * * * *'),
-        skuCode=config.get('function_skuCode'),
-        sku=config.get('function_sku'))
+        storage_name=storage_name,
+        service_plan_name=service_plan_name,
+        sku_name=config.get('function_skuCode', 'B1'),
+        sku_tier=config.get('function_sku', 'Standard'),
+        webapp_name=webapp_name)
 
-    template_util = TemplateUtilities()
-
-    parameters = _get_parameters(template_util, func_config)
-    group_name = parameters['servicePlanName']['value']
-    webapp_name = parameters['name']['value']
+    functionapp_util = FunctionAppUtilities()
+    service_plan = functionapp_util.deploy_infrastructure(app_parameters)
 
     # Check if already existing
-    existing_webapp = template_util.resource_exist(group_name, webapp_name)
+    web_client = session.client('azure.mgmt.web.WebSiteManagementClient')
+    existing_webapp = web_client.web_apps.get(group_name, webapp_name)
 
     # Deploy
     if not existing_webapp:
-        template_util.create_resource_group(
-            group_name, {'location': parameters['location']['value']})
-
-        template_util.deploy_resource_template(
-            group_name, 'dedicated_functionapp.json', parameters).wait()
+        functionapp_util.deploy_webapp(webapp_name,
+                                       group_name, service_plan,
+                                       storage_name)
     else:
         log.info("Found existing App %s (%s) in group %s" %
                  (webapp_name, existing_webapp.location, group_name))
@@ -81,7 +86,7 @@ def provision(config):
         function_name + '/function.json',
         contents=packager.get_function_config({'mode':
                                               {'type': 'azure-periodic',
-                                               'schedule': func_config['schedule']}}))
+                                               'schedule': schedule}}))
     # Add mail templates
     template_dir = os.path.abspath(
         os.path.join(os.path.dirname(__file__), '../..', 'msg-templates'))
@@ -96,20 +101,3 @@ def provision(config):
         packager.publish(webapp_name)
     else:
         log.error("Aborted deployment, ensure Application Service is healthy.")
-
-
-def _get_parameters(template_util, func_config):
-    parameters = template_util.get_default_parameters(
-        'dedicated_functionapp.parameters.json')
-
-    func_config['name'] = (func_config['servicePlanName'] + '-' +
-                           func_config['name']).replace(' ', '-').lower()
-
-    func_config['storageName'] = (func_config['servicePlanName']).replace('-', '')
-    func_config['dockerVersion'] = CONST_DOCKER_VERSION
-    func_config['functionsExtVersion'] = CONST_FUNCTIONS_EXT_VERSION
-    func_config['machineDecryptionKey'] = FunctionAppUtilities.generate_machine_decryption_key()
-
-    parameters = template_util.update_parameters(parameters, func_config)
-
-    return parameters
