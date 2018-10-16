@@ -1,13 +1,14 @@
 import logging
 from c7n.utils import local_session
 from c7n_azure.session import Session
-from c7n_azure.utils import ResourceIdParser
+
 
 class DeploymentUnit(object):
-    
-    def __init__(self):
+
+    def __init__(self, client):
         self.type = ""
         self.session = local_session(Session)
+        self.client = self.session.client(client)
         self.log = logging.getLogger('custodian.azure.function_app_utils')
 
     def get(self, params):

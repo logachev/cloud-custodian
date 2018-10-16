@@ -1,21 +1,16 @@
-from c7n_azure.provisioning.deployment_unit import DeploymentUnit
-from azure.mgmt.web.models import (AppServicePlan, NameValuePair, Site,
-                                   SiteConfig, SkuDescription)
-
-from c7n_azure.constants import (CONST_DOCKER_VERSION,
-                                 CONST_FUNCTIONS_EXT_VERSION)
-
-from c7n_azure.provisioning.app_service_plan import AppServicePlanUnit
-from c7n_azure.provisioning.app_insights import AppInsightsUnit
-from c7n_azure.provisioning.storage_account import StorageAccountUnit
-from binascii import hexlify
 import os
+from binascii import hexlify
+
+from azure.mgmt.web.models import (NameValuePair, Site, SiteConfig)
+
+from c7n_azure.provisioning.deployment_unit import DeploymentUnit
+from c7n_azure.constants import (CONST_DOCKER_VERSION, CONST_FUNCTIONS_EXT_VERSION)
+
 
 class WebAppDeploymentUnit(DeploymentUnit):
-    
+
     def __init__(self):
-        super().__init__()
-        self.client = self.session.client('azure.mgmt.web.WebSiteManagementClient')
+        super().__init__('azure.mgmt.web.WebSiteManagementClient')
         self.type = "Web Application"
 
     def _get(self, params):

@@ -1,10 +1,12 @@
+from msrestazure.azure_exceptions import CloudError
+
 from c7n_azure.provisioning.deployment_unit import DeploymentUnit
+
 
 class ResourceGroupUnit(DeploymentUnit):
 
     def __init__(self):
-        super().__init__()
-        self.client = self.session.client('azure.mgmt.resource.ResourceManagementClient')
+        super().__init__('azure.mgmt.resource.ResourceManagementClient')
         self.type = "Resource Group"
 
     def verify_params(self, params):
@@ -14,7 +16,7 @@ class ResourceGroupUnit(DeploymentUnit):
     def get(self, params):
         try:
             return self.client.resource_groups.get(params['name'])
-        except:
+        except CloudError:
             return None
 
     def _provision(self, params):

@@ -2,15 +2,12 @@ from azure.mgmt.web.models import AppServicePlan, SkuDescription
 from c7n_azure.provisioning.deployment_unit import DeploymentUnit
 from c7n_azure.provisioning.resource_group import ResourceGroupUnit
 
+
 class AppServicePlanUnit(DeploymentUnit):
 
     def __init__(self):
-        super().__init__()
-        self.client = self.session.client('azure.mgmt.web.WebSiteManagementClient')
+        super().__init__('azure.mgmt.web.WebSiteManagementClient')
         self.type = "Application Service Plan"
-
-    def verify_params(self, params):
-        return set(params.keys()) == set({'name', 'location', 'resource_group_name', 'sku_name', 'sku_tier'})
 
     def _get(self, params):
         return self.client.app_service_plans.get(params['resource_group_name'],

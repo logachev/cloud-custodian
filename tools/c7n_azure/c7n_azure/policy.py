@@ -49,9 +49,9 @@ class AzureFunctionMode(ServerlessExecutionMode):
                         {'type': 'string'},
                         {'type': 'object',
                          'properties': {
-                            'name': 'string',
-                            'location': 'string',
-                            'resourceGroupName': 'string'}
+                             'name': 'string',
+                             'location': 'string',
+                             'resourceGroupName': 'string'}
                          }
                     ]
                 },
@@ -61,9 +61,9 @@ class AzureFunctionMode(ServerlessExecutionMode):
                         {'type': 'string'},
                         {'type': 'object',
                          'properties': {
-                            'name': 'string',
-                            'location': 'string',
-                            'resourceGroupName': 'string'}
+                             'name': 'string',
+                             'location': 'string',
+                             'resourceGroupName': 'string'}
                          }
                     ]
                 },
@@ -78,7 +78,7 @@ class AzureFunctionMode(ServerlessExecutionMode):
                              'resourceGroupName': 'string',
                              'skuTier': 'string',
                              'skuName': 'string'}
-                        }
+                         }
                     ]
                 },
             },
@@ -97,44 +97,44 @@ class AzureFunctionMode(ServerlessExecutionMode):
         self.policy_name = self.policy.data['name'].replace(' ', '-').lower()
 
         provision_options = self.policy.data['mode'].get('provision-options', {})
-        self.group_name = provision_options.get('resourceGroup', 'cloud-custodian')
+        self.storage_account = self._extract_properties(provision_options,
+                                                        'storageAccount',
+                                                        {'name': 'custodianstorageaccount',
+                                                         'location': 'westus2',
+                                                         'resource_group_name': 'cloud-custodian'})
 
-        storage_account = provision_options.get('storageAccount', {})
-        self.storage_account = {}
-        if type(storage_account) is str:
-            self.storage_account['id'] = storage_account
-            self.storage_account['name'] = ResourceIdParser.get_resource_name(storage_account)
-            self.storage_account['resource_group_name'] = ResourceIdParser.get_resource_group(storage_account)
+        self.service_plan = self._extract_properties(provision_options,
+                                                     'servicePlan',
+                                                     {'name': 'cloud-custodian',
+                                                      'location': 'westus2',
+                                                      'resource_group_name': 'cloud-custodian',
+                                                      'sku_name': 'B1',
+                                                      'sku_tier': 'Basic'})
+
+        self.app_insights = self._extract_properties(provision_options,
+                                                     'appInsights',
+                                                     {'name': 'cloud-custodian',
+                                                      'location': 'westus2',
+                                                      'resource_group_name': 'cloud-custodian'})
+
+        self.functionapp_name = self.service_plan['name'] + "-" + self.policy_name
+
+    def _snake_to_camel(self, string):
+        components = string.split('_')
+        return components[0] + ''.join(x.title() for x in components[1:])
+
+    def _extract_properties(self, options, name, properties):
+        settings = options.get(name, {})
+        result = {}
+        if type(settings) is str:
+            result['id'] = settings
+            result['name'] = ResourceIdParser.get_resource_name(settings)
+            result['resource_group_name'] = ResourceIdParser.get_resource_group(settings)
         else:
-            self.storage_account['name'] = storage_account.get('name', 'custodianstorageaccount')
-            self.storage_account['location'] = storage_account.get('location', 'westus2')
-            self.storage_account['resource_group_name'] = storage_account.get('resourceGroupName', 'cloud-custodian')
+            for key in properties.keys():
+                result[key] = settings.get(self._snake_to_camel(key), properties[key])
 
-        service_plan = provision_options.get('servicePlan', {})
-        self.service_plan = {}
-        if type(service_plan) is str:
-            self.service_plan['id'] = service_plan
-            self.service_plan['name'] = ResourceIdParser.get_resource_name(service_plan)
-            self.service_plan['resource_group_name'] = ResourceIdParser.get_resource_group(service_plan)
-        else:
-            self.service_plan['name'] = service_plan.get('name', 'cloud-custodian-plan')
-            self.service_plan['location'] = service_plan.get('location', 'westus2')
-            self.service_plan['resource_group_name'] = service_plan.get('resourceGroupName', 'cloud-custodian')
-            self.service_plan['sku_name'] = service_plan.get('skuName', 'B1')
-            self.service_plan['sku_tier'] = service_plan.get('skuTier', 'Basic')
-
-        app_insights = provision_options.get('appInsights', {})
-        self.app_insights = {}
-        if type(app_insights) is str:
-            self.app_insights['id'] = app_insights
-            self.app_insights['name'] = ResourceIdParser.get_resource_name(app_insights)
-            self.app_insights['resource_group_name'] = ResourceIdParser.get_resource_group(app_insights)
-        else:
-            self.app_insights['name'] = app_insights.get('name', 'cloud-custodian-plan')
-            self.app_insights['location'] = app_insights.get('location', 'westus2')
-            self.app_insights['resource_group_name'] = app_insights.get('resourceGroupName', 'cloud-custodian')
-
-        self.webapp_name = self.service_plan['name'] + "-" + self.policy_name
+        return result
 
     def run(self, event=None, lambda_context=None):
         """Run the actual policy."""
@@ -145,11 +145,11 @@ class AzureFunctionMode(ServerlessExecutionMode):
             appInsights=self.app_insights,
             servicePlan=self.service_plan,
             storageAccount=self.storage_account,
-            webapp_name=self.webapp_name)
+            functionapp_name=self.functionapp_name)
 
-        FunctionAppUtilities().deploy_webapp(params)
+        FunctionAppUtilities().deploy_dedicated_function_app(params)
 
-        self.log.info("Building function package for %s" % self.webapp_name)
+        self.log.info("Building function package for %s" % self.functionapp_name)
 
         archive = FunctionPackage(self.policy_name)
         archive.build(self.policy.data)
@@ -157,8 +157,8 @@ class AzureFunctionMode(ServerlessExecutionMode):
 
         self.log.info("Function package built, size is %dMB" % (archive.pkg.size / (1024 * 1024)))
 
-        if archive.wait_for_status(self.webapp_name):
-            archive.publish(self.webapp_name)
+        if archive.wait_for_status(self.functionapp_name):
+            archive.publish(self.functionapp_name)
         else:
             self.log.error("Aborted deployment, ensure Application Service is healthy.")
 
@@ -208,7 +208,7 @@ class AzureEventGridMode(AzureFunctionMode):
     def provision(self):
         super(AzureEventGridMode, self).provision()
         key = self._get_webhook_key()
-        webhook_url = 'https://%s.azurewebsites.net/api/%s?code=%s' % (self.webapp_name,
+        webhook_url = 'https://%s.azurewebsites.net/api/%s?code=%s' % (self.functionapp_name,
                                                                        self.policy_name, key)
         destination = WebHookEventSubscriptionDestination(
             endpoint_url=webhook_url
@@ -226,7 +226,7 @@ class AzureEventGridMode(AzureFunctionMode):
         while not status_success:
             try:
                 event_subscription = eventgrid_client.event_subscriptions.create_or_update(
-                    scope, self.webapp_name, event_info)
+                    scope, self.functionapp_name, event_info)
 
                 event_subscription.result()
                 self.log.info('Event Grid subscription creation succeeded')
@@ -248,7 +248,7 @@ class AzureEventGridMode(AzureFunctionMode):
             'providers/Microsoft.Web/sites/{2}/{3}').format(
             self.session.subscription_id,
             self.group_name,
-            self.webapp_name,
+            self.functionapp_name,
             CONST_AZURE_FUNCTION_KEY_URL)
 
         retrieved_key = False
