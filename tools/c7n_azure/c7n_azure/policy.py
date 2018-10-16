@@ -31,6 +31,8 @@ from c7n.actions import EventAction
 from c7n.policy import ServerlessExecutionMode, PullMode, execution
 from c7n.utils import local_session
 
+from c7n_azure.utils import ResourceIdParser
+
 
 class AzureFunctionMode(ServerlessExecutionMode):
     """A policy that runs/executes in azure functions."""
@@ -41,13 +43,44 @@ class AzureFunctionMode(ServerlessExecutionMode):
         'properties': {
             'provision-options': {
                 'type': 'object',
-                'location': 'string',
-                'appInsightsLocation': 'string',
-                'servicePlanName': 'string',
-                'storageName': 'string',
-                'resourceGroup': 'string',
-                'skuName': 'string',
-                'skuTier': 'string'
+                'appInsights': {
+                    'type': 'object',
+                    'oneOf': [
+                        {'type': 'string'},
+                        {'type': 'object',
+                         'properties': {
+                            'name': 'string',
+                            'location': 'string',
+                            'resourceGroupName': 'string'}
+                         }
+                    ]
+                },
+                'storageAccount': {
+                    'type': 'object',
+                    'oneOf': [
+                        {'type': 'string'},
+                        {'type': 'object',
+                         'properties': {
+                            'name': 'string',
+                            'location': 'string',
+                            'resourceGroupName': 'string'}
+                         }
+                    ]
+                },
+                'servicePlan': {
+                    'type': 'object',
+                    'oneOf': [
+                        {'type': 'string'},
+                        {'type': 'object',
+                         'properties': {
+                             'name': 'string',
+                             'location': 'string',
+                             'resourceGroupName': 'string',
+                             'skuTier': 'string',
+                             'skuName': 'string'}
+                        }
+                    ]
+                },
             },
             'execution-options': {'type': 'object'}
         }
@@ -65,32 +98,56 @@ class AzureFunctionMode(ServerlessExecutionMode):
 
         provision_options = self.policy.data['mode'].get('provision-options', {})
         self.group_name = provision_options.get('resourceGroup', 'cloud-custodian')
-        self.storage_name = provision_options.get('storageName', 'custodianstorageaccount')
-        self.location = provision_options.get('location', 'westus2')
-        self.app_insights_location = provision_options.get('appInsightsLocation', 'westus2')
-        self.service_plan_name = provision_options.get('servicePlanName', 'cloud-custodian-plan')
-        self.sku_name = provision_options.get('skuName', 'B1')
-        self.sku_tier = provision_options.get('skuTier', 'Basic')
 
-        self.webapp_name = self.service_plan_name + "-" + self.policy_name
+        storage_account = provision_options.get('storageAccount', {})
+        self.storage_account = {}
+        if type(storage_account) is str:
+            self.storage_account['id'] = storage_account
+            self.storage_account['name'] = ResourceIdParser.get_resource_name(storage_account)
+            self.storage_account['resource_group_name'] = ResourceIdParser.get_resource_group(storage_account)
+        else:
+            self.storage_account['name'] = storage_account.get('name', 'custodianstorageaccount')
+            self.storage_account['location'] = storage_account.get('location', 'westus2')
+            self.storage_account['resource_group_name'] = storage_account.get('resourceGroupName', 'cloud-custodian')
+
+        service_plan = provision_options.get('servicePlan', {})
+        self.service_plan = {}
+        if type(service_plan) is str:
+            self.service_plan['id'] = service_plan
+            self.service_plan['name'] = ResourceIdParser.get_resource_name(service_plan)
+            self.service_plan['resource_group_name'] = ResourceIdParser.get_resource_group(service_plan)
+        else:
+            self.service_plan['name'] = service_plan.get('name', 'cloud-custodian-plan')
+            self.service_plan['location'] = service_plan.get('location', 'westus2')
+            self.service_plan['resource_group_name'] = service_plan.get('resourceGroupName', 'cloud-custodian')
+            self.service_plan['sku_name'] = service_plan.get('skuName', 'B1')
+            self.service_plan['sku_tier'] = service_plan.get('skuTier', 'Basic')
+
+        app_insights = provision_options.get('appInsights', {})
+        self.app_insights = {}
+        if type(app_insights) is str:
+            self.app_insights['id'] = app_insights
+            self.app_insights['name'] = ResourceIdParser.get_resource_name(app_insights)
+            self.app_insights['resource_group_name'] = ResourceIdParser.get_resource_group(app_insights)
+        else:
+            self.app_insights['name'] = app_insights.get('name', 'cloud-custodian-plan')
+            self.app_insights['location'] = app_insights.get('location', 'westus2')
+            self.app_insights['resource_group_name'] = app_insights.get('resourceGroupName', 'cloud-custodian')
+
+        self.webapp_name = self.service_plan['name'] + "-" + self.policy_name
 
     def run(self, event=None, lambda_context=None):
         """Run the actual policy."""
         raise NotImplementedError("subclass responsibility")
 
     def provision(self):
-        self.functionapp_util = FunctionAppUtilities()
         params = FunctionAppUtilities.FunctionAppInfrastructureParameters(
-            group_name=self.group_name,
-            location=self.location,
-            app_insights_location=self.app_insights_location,
-            storage_name=self.storage_name,
-            service_plan_name=self.service_plan_name,
-            sku_name=self.sku_name,
-            sku_tier=self.sku_tier,
+            appInsights=self.app_insights,
+            servicePlan=self.service_plan,
+            storageAccount=self.storage_account,
             webapp_name=self.webapp_name)
-        service_plan = self.functionapp_util.deploy_infrastructure(params)
-        self.deploy_web_app(service_plan)
+
+        FunctionAppUtilities().deploy_webapp(params)
 
         self.log.info("Building function package for %s" % self.webapp_name)
 
@@ -104,16 +161,6 @@ class AzureFunctionMode(ServerlessExecutionMode):
             archive.publish(self.webapp_name)
         else:
             self.log.error("Aborted deployment, ensure Application Service is healthy.")
-
-    def deploy_web_app(self, service_plan):
-        existing_webapp = self.web_client.web_apps.get(self.group_name, self.webapp_name)
-        if not existing_webapp:
-            self.functionapp_util.deploy_webapp(self.webapp_name,
-                                                self.group_name, service_plan,
-                                                self.storage_name)
-        else:
-            self.log.info("Found existing App %s (%s) in group %s" %
-                          (self.webapp_name, existing_webapp.location, self.group_name))
 
     def get_logs(self, start, end):
         """Retrieve logs for the policy"""
