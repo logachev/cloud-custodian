@@ -20,7 +20,7 @@ yet supported.
 Provision Options
 #################
 
-When deploying an Azure function the following ARM resources are required and created on demand:
+When deploying an Azure function the following ARM resources are required and created on demand if necessary:
 
 - Storage (shared across functions)
 - Application Insights (shared across functions)
@@ -36,18 +36,36 @@ Execution in Azure functions comes with a default set of configurations for the 
 resources. To override these settings you must set 'provision-options' with one of the following
 keys:
 
-- groupName (default: cloud-custodian)
-- location (default: West US 2)
-- appInsightsLocation (default: West US 2)
-- servicePlanName (default: cloud-custodian-plan)
-- skuTier (default: Basic)
-- skuName (default: B1)
-- storageName (default: custodianstorageaccount)
+- storageAccount
+  - name (default: custodianstorageaccount)
+  - location (default: West US 2)
+  - resourceGroupName (default: cloud-custodian)
+- servicePlan
+  - name (default: cloud-custodian)
+  - location (default: West US 2)
+  - resourceGroupName (default: cloud-custodian)
+  - skuTier (default: Basic)
+  - skuName (default: B1)
+- appInsights
+  - name (default: cloud-custodian)
+  - location (default: West US 2)
+  - resourceGroupName (default: cloud-custodian)
 
 The location allows you to choose the region to deploy the resource group and resources that will be
 provisioned. Application Insights has six available locations and thus can not always be in the same
 region as the other resources: West US 2, East US, North Europe, South Central US, Southeast Asia, and
 West Europe. The sku, skuCode, and workerSize correlate to scaling up the App Service Plan.
+
+If specified resources already exist in the subscription (discoverable by resource group name and resource name), Cloud Custodian won't make any changes (location, sku)
+and will use existing resources as-is. If resource doesn't exist, it will be provisioned using provided configuration.
+
+If you have existing infrastructure, you can specify resource ids for the following itesm (instead of applying previous schema):
+
+- storageAccount
+- servicePlan
+- appInsights
+
+If you provide resource ids, Cloud Custodian verifies that resource exists before function app provisioning. It returns an error if resource is missing.
 
 An example on how to set the servicePlanName and accept defaults for the other values:
 
@@ -59,7 +77,8 @@ An example on how to set the servicePlanName and accept defaults for the other v
             type: azure-periodic
             schedule: '0 0 * * * *'
             provision-options:
-              servicePlanName: functionshost
+              servicePlan: 
+                name: functionshost
          resource: azure.vm
          filters:
           - type: instance-view
@@ -79,11 +98,16 @@ An example on how to set size and location as well:
             type: azure-periodic
             schedule: '0 0 * * * *'
             provision-options:
-              servicePlanName: functionshost
-              location: East US
-              appInsightsLocation: East US
-              skuTier: Standard
-              skuName: S1
+              servicePlan:
+                name: functionshost
+                location: East US
+                skuTier: Standard
+                skuName: S1
+              appInsights:
+                location: East US
+              storageAccount:
+                name: sampleaccount
+                location: East US
          resource: azure.vm
          filters:
           - type: instance-view
@@ -92,6 +116,27 @@ An example on how to set size and location as well:
             value_type: swap
             value: "PowerState/running"
 
+
+An example on how to use existing infrastructure:
+
+.. code-block:: yaml
+
+    policies:
+      - name: stopped-vm
+        mode:
+            type: azure-periodic
+            schedule: '0 0 * * * *'
+            provision-options:
+              servicePlan: /subscriptions/<subscription_id>/resourceGroups/cloud-custodian/providers/Microsoft.Web/serverFarms/existingResource
+              appInsights: /subscriptions/<subscription_id>/resourceGroups/cloud-custodian/providers/microsoft.insights/components/existingResource
+              storageAccount: /subscriptions/<subscription_id>/resourceGroups/cloud-custodian/providers/Microsoft.Storage/storageAccounts/existingResource
+         resource: azure.vm
+         filters:
+          - type: instance-view
+            key: statuses[].code
+            op: not-in
+            value_type: swap
+            value: "PowerState/running"
 
 Execution Options
 #################
@@ -115,7 +160,8 @@ Output directory defaults to `/tmp/<random_uuid>` but you can point it to a Azur
             type: azure-periodic
             schedule: '0 0 * * * *'
             provision-options:
-              servicePlanName: functionshost
+              servicePlan:
+                name: functionshost
             execution-options:
               output_dir: azure://yourstorageaccount.blob.core.windows.net/custodian
          resource: azure.vm
