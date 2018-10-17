@@ -108,13 +108,11 @@ class AzureFunctionMode(ServerlessExecutionMode):
 
         location = self.service_plan.get('location', 'westus2')
         rg_name = self.service_plan['resource_group_name']
-        print(self.service_plan)
         self.storage_account = self._extract_properties(provision_options,
                                                         'storageAccount',
                                                         {'name': 'custodianstorageaccount',
                                                          'location': location,
                                                          'resource_group_name': rg_name})
-        print(self.storage_account)
 
         self.app_insights = self._extract_properties(provision_options,
                                                      'appInsights',
