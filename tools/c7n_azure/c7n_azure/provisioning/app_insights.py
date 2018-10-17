@@ -7,7 +7,8 @@ from c7n_azure.provisioning.resource_group import ResourceGroupUnit
 class AppInsightsUnit(DeploymentUnit):
 
     def __init__(self):
-        super().__init__('azure.mgmt.applicationinsights.ApplicationInsightsManagementClient')
+        super(AppInsightsUnit, self).__init__(
+            'azure.mgmt.applicationinsights.ApplicationInsightsManagementClient')
         self.type = "Application Insights"
 
     def _get(self, params):

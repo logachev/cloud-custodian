@@ -63,6 +63,11 @@ class StringUtils(object):
 
         return False
 
+    @staticmethod
+    def snake_to_camel(string):
+        components = string.split('_')
+        return components[0] + ''.join(x.title() for x in components[1:])
+
 
 def utcnow():
     """The datetime object for the current time in UTC

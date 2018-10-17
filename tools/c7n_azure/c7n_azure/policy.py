@@ -31,7 +31,7 @@ from c7n.actions import EventAction
 from c7n.policy import ServerlessExecutionMode, PullMode, execution
 from c7n.utils import local_session
 
-from c7n_azure.utils import ResourceIdParser
+from c7n_azure.utils import ResourceIdParser, StringUtils
 
 
 class AzureFunctionMode(ServerlessExecutionMode):
@@ -122,10 +122,6 @@ class AzureFunctionMode(ServerlessExecutionMode):
 
         self.functionapp_name = self.service_plan['name'] + "-" + self.policy_name
 
-    def _snake_to_camel(self, string):
-        components = string.split('_')
-        return components[0] + ''.join(x.title() for x in components[1:])
-
     def _extract_properties(self, options, name, properties):
         settings = options.get(name, {})
         result = {}
@@ -135,7 +131,7 @@ class AzureFunctionMode(ServerlessExecutionMode):
             result['resource_group_name'] = ResourceIdParser.get_resource_group(settings)
         else:
             for key in properties.keys():
-                result[key] = settings.get(self._snake_to_camel(key), properties[key])
+                result[key] = settings.get(StringUtils.snake_to_camel(key), properties[key])
 
         return result
 

@@ -40,7 +40,7 @@ class DeploymentUnit(object):
         return result
 
     def _get(self, params):
-        raise Exception("Not implemented")
+        raise NotImplementedError()
 
     def _provision(self, params):
-        raise Exception("Not implemented")
+        raise NotImplementedError()

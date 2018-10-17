@@ -6,7 +6,8 @@ from c7n_azure.provisioning.resource_group import ResourceGroupUnit
 class AppServicePlanUnit(DeploymentUnit):
 
     def __init__(self):
-        super().__init__('azure.mgmt.web.WebSiteManagementClient')
+        super(AppServicePlanUnit, self).__init__(
+            'azure.mgmt.web.WebSiteManagementClient')
         self.type = "Application Service Plan"
 
     def _get(self, params):

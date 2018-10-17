@@ -18,6 +18,9 @@ from c7n_azure.functionapp_utils import FunctionAppUtilities
 
 from c7n_azure.provisioning.app_insights import AppInsightsUnit
 
+from c7n.utils import local_session
+from c7n_azure.session import Session
+
 CONST_GROUP_NAME = 'test_functionapp-reqs'
 
 
@@ -29,8 +32,8 @@ class FunctionAppUtilsTest(BaseTest):
     @arm_template('functionapp-reqs.json')
     def test_get_storage_connection_string(self):
         storage_name = 'cloudcustodiantest'
-        id = '/subscriptions/aa98974b-5d2a-4d98-a78a-382f3715d07e/resourceGroups/' \
-             'test_functionapp-reqs/providers/Microsoft.Storage/storageAccounts/cloudcustodiantest'
+        id = '/subscriptions/%s/resourceGroups/test_functionapp-reqs/providers/Microsoft.Storage' \
+             '/storageAccounts/cloudcustodiantest' % local_session(Session).subscription_id
         conn_string = FunctionAppUtilities.get_storage_account_connection_string(id)
         self.assertIn('AccountName=%s;' % storage_name, conn_string)
 

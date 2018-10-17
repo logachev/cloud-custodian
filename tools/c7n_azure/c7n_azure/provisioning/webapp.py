@@ -10,7 +10,8 @@ from c7n_azure.constants import (CONST_DOCKER_VERSION, CONST_FUNCTIONS_EXT_VERSI
 class WebAppDeploymentUnit(DeploymentUnit):
 
     def __init__(self):
-        super().__init__('azure.mgmt.web.WebSiteManagementClient')
+        super(WebAppDeploymentUnit, self).__init__(
+            'azure.mgmt.web.WebSiteManagementClient')
         self.type = "Web Application"
 
     def _get(self, params):
