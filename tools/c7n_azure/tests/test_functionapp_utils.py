@@ -17,6 +17,10 @@ from azure_common import BaseTest, arm_template
 from c7n_azure.functionapp_utils import FunctionAppUtilities
 from c7n_azure.session import Session
 
+from c7n_azure.provisioning.app_insights import AppInsightsUnit
+from c7n_azure.provisioning.storage_account import StorageAccountUnit
+from c7n_azure.provisioning.app_service_plan import AppServicePlanUnit
+
 CONST_GROUP_NAME = 'test_functionapp-reqs'
 
 
@@ -28,40 +32,38 @@ class FunctionAppUtilsTest(BaseTest):
     @arm_template('functionapp-reqs.json')
     def test_get_storage_connection_string(self):
         storage_name = 'cloudcustodiantest'
-        conn_string = self.functionapp_util.get_storage_connection_string(
-            CONST_GROUP_NAME, storage_name)
-
+        id = '/subscriptions/aa98974b-5d2a-4d98-a78a-382f3715d07e/resourceGroups/test_functionapp-reqs/providers/Microsoft.Storage/storageAccounts/cloudcustodiantest'
+        conn_string = FunctionAppUtilities.get_storage_account_connection_string(id)
         self.assertIn('AccountName=%s;' % storage_name, conn_string)
 
     @arm_template('functionapp-reqs.json')
     def test_get_application_insights_key_exists(self):
-        app_insights_name = 'cloud-custodian-test'
-        key = self.functionapp_util.get_application_insights_key(
-            CONST_GROUP_NAME, app_insights_name)
+        insights = AppInsightsUnit().get({'name': 'cloud-custodian-test',
+                                          'resource_group_name': CONST_GROUP_NAME})
 
-        self.assertIsNotNone(key)
-
-    @arm_template('functionapp-reqs.json')
-    def test_get_application_insights_key_not_exists(self):
-        app_insights_name = 'does-not-exist'
-        key = self.functionapp_util.get_application_insights_key(
-            CONST_GROUP_NAME, app_insights_name)
-
-        self.assertFalse(key)
+        self.assertIsNotNone(insights)
+        self.assertIsNotNone(insights.instrumentation_key)
 
     @arm_template('functionapp-reqs.json')
-    def test_deploy_webapp(self):
-        s = Session()
-        web_client = s.client('azure.mgmt.web.WebSiteManagementClient')
+    def test_deploy_function_app(self):
 
-        service_plan = web_client.app_service_plans.get(
-            CONST_GROUP_NAME, 'cloud-custodian-test')
-        self.assertIsNotNone(service_plan)
-        webapp_name = 'test-deploy-webapp'
-        self.functionapp_util.deploy_webapp(webapp_name,
-                                            CONST_GROUP_NAME,
-                                            service_plan,
-                                            'cloudcustodiantest')
+        parameters = FunctionAppUtilities.FunctionAppInfrastructureParameters(
+            appInsights={
+                'id': '',
+                'resource_group_name': CONST_GROUP_NAME,
+                'name': 'cloud-custodian-test'
+            },
+            storageAccount={
+                'id': '',
+                'resource_group_name': CONST_GROUP_NAME,
+                'name': 'cloudcustodiantest'
+            },
+            servicePlan={
+                'id': '',
+                'resource_group_name': CONST_GROUP_NAME,
+                'name': 'cloud-custodian-test'
+            },
+            functionapp_name='custodian-test-app')
 
-        wep_app = web_client.web_apps.get(CONST_GROUP_NAME, webapp_name)
-        self.assertIsNotNone(wep_app)
+        app = self.functionapp_util.deploy_dedicated_function_app(parameters)
+        self.assertIsNotNone(app)

@@ -97,12 +97,7 @@ class AzureFunctionMode(ServerlessExecutionMode):
         self.policy_name = self.policy.data['name'].replace(' ', '-').lower()
 
         provision_options = self.policy.data['mode'].get('provision-options', {})
-        self.storage_account = self._extract_properties(provision_options,
-                                                        'storageAccount',
-                                                        {'name': 'custodianstorageaccount',
-                                                         'location': 'westus2',
-                                                         'resource_group_name': 'cloud-custodian'})
-
+        # service plan is parse first, because its location might be shared with storage & insights
         self.service_plan = self._extract_properties(provision_options,
                                                      'servicePlan',
                                                      {'name': 'cloud-custodian',
@@ -111,11 +106,21 @@ class AzureFunctionMode(ServerlessExecutionMode):
                                                       'sku_name': 'B1',
                                                       'sku_tier': 'Basic'})
 
+        location = self.service_plan.get('location', 'westus2')
+        rg_name = self.service_plan['resource_group_name']
+        print(self.service_plan)
+        self.storage_account = self._extract_properties(provision_options,
+                                                        'storageAccount',
+                                                        {'name': 'custodianstorageaccount',
+                                                         'location': location,
+                                                         'resource_group_name': rg_name})
+        print(self.storage_account)
+
         self.app_insights = self._extract_properties(provision_options,
                                                      'appInsights',
-                                                     {'name': 'cloud-custodian',
-                                                      'location': 'westus2',
-                                                      'resource_group_name': 'cloud-custodian'})
+                                                     {'name': self.service_plan['name'],
+                                                      'location': location,
+                                                      'resource_group_name': rg_name})
 
         self.functionapp_name = self.service_plan['name'] + "-" + self.policy_name
 
