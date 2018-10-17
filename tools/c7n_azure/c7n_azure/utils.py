@@ -17,7 +17,7 @@ import logging
 import re
 import six
 
-from azure.graphrbac.models import GetObjectsParameters, AADObject
+from azure.graphrbac.models import GetObjectsParameters, DirectoryObject
 from msrestazure.azure_exceptions import CloudError
 from msrestazure.tools import parse_resource_id
 
@@ -103,7 +103,7 @@ class GraphHelper(object):
             include_directory_object_references=True,
             object_ids=object_ids)
 
-        principal_dics = {object_id: AADObject() for object_id in object_ids}
+        principal_dics = {object_id: DirectoryObject() for object_id in object_ids}
 
         aad_objects = graph_client.objects.get_objects_by_object_ids(object_params)
         try:
@@ -118,11 +118,13 @@ class GraphHelper(object):
 
     @staticmethod
     def get_principal_name(graph_object):
-        if graph_object.user_principal_name:
+        if hasattr(graph_object, 'user_principal_name'):
             return graph_object.user_principal_name
-        elif graph_object.service_principal_names:
+        elif hasattr(graph_object, 'service_principal_names'):
             return graph_object.service_principal_names[0]
-        return graph_object.display_name or ''
+        elif hasattr(graph_object, 'display_name'):
+            return graph_object.display_name
+        return ''
 
 
 class PortsRangeHelper(object):
