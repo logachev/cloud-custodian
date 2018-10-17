@@ -147,9 +147,9 @@ class AzureFunctionMode(ServerlessExecutionMode):
 
     def provision(self):
         params = FunctionAppUtilities.FunctionAppInfrastructureParameters(
-            appInsights=self.app_insights,
-            servicePlan=self.service_plan,
-            storageAccount=self.storage_account,
+            app_insights=self.app_insights,
+            service_plan=self.service_plan,
+            storage_account=self.storage_account,
             functionapp_name=self.functionapp_name)
 
         FunctionAppUtilities().deploy_dedicated_function_app(params)

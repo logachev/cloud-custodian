@@ -29,10 +29,10 @@ class FunctionAppUtilities(object):
         self.log = logging.getLogger('custodian.azure.function_app_utils')
 
     class FunctionAppInfrastructureParameters:
-        def __init__(self, appInsights, servicePlan, storageAccount, functionapp_name):
-            self.appInsights = appInsights
-            self.servicePlan = servicePlan
-            self.storageAccount = storageAccount
+        def __init__(self, app_insights, service_plan, storage_account, functionapp_name):
+            self.app_insights = app_insights
+            self.service_plan = service_plan
+            self.storage_account = storage_account
             self.functionapp_name = functionapp_name
 
     @staticmethod
@@ -53,19 +53,19 @@ class FunctionAppUtilities(object):
         function_app_unit = WebAppDeploymentUnit()
         function_app_params = \
             {'name': parameters.functionapp_name,
-             'resource_group_name': parameters.servicePlan['resource_group_name']}
+             'resource_group_name': parameters.service_plan['resource_group_name']}
         function_app = function_app_unit.get(function_app_params)
         if function_app:
             return function_app
 
         sp_unit = AppServicePlanUnit()
-        app_service_plan = sp_unit.provision_if_not_exists(parameters.servicePlan)
+        app_service_plan = sp_unit.provision_if_not_exists(parameters.service_plan)
 
         ai_unit = AppInsightsUnit()
-        app_insights = ai_unit.provision_if_not_exists(parameters.appInsights)
+        app_insights = ai_unit.provision_if_not_exists(parameters.app_insights)
 
         sa_unit = StorageAccountUnit()
-        storage_account_id = sa_unit.provision_if_not_exists(parameters.storageAccount).id
+        storage_account_id = sa_unit.provision_if_not_exists(parameters.storage_account).id
         con_string = FunctionAppUtilities.get_storage_account_connection_string(storage_account_id)
 
         function_app_params.update({'location': app_service_plan.location,

@@ -13,7 +13,7 @@
 # limitations under the License.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from azure_common import BaseTest, arm_template
+from azure_common import BaseTest
 
 from msrestazure.azure_exceptions import CloudError
 

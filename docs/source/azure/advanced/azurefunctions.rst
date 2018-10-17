@@ -36,20 +36,20 @@ Execution in Azure functions comes with a default set of configurations for the 
 resources. To override these settings you must set 'provision-options' with one of the following
 keys:
 
-- storageAccount
-  - name (default: custodianstorageaccount)
-  - location (default: West US 2)
-  - resourceGroupName (default: cloud-custodian)
 - servicePlan
   - name (default: cloud-custodian)
   - location (default: West US 2)
   - resourceGroupName (default: cloud-custodian)
   - skuTier (default: Basic)
   - skuName (default: B1)
+- storageAccount
+  - name (default: custodianstorageaccount)
+  - location (default: servicePlan location)
+  - resourceGroupName (default: servicePlan resource group)
 - appInsights
-  - name (default: cloud-custodian)
-  - location (default: West US 2)
-  - resourceGroupName (default: cloud-custodian)
+  - name (default: servicePlan resource group)
+  - location (default: servicePlan location)
+  - resourceGroupName (default: servicePlan name)
 
 The location allows you to choose the region to deploy the resource group and resources that will be
 provisioned. Application Insights has six available locations and thus can not always be in the same
