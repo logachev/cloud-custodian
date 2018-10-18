@@ -248,7 +248,7 @@ class AzureEventGridMode(AzureFunctionMode):
             '/subscriptions/{0}/resourceGroups/{1}/'
             'providers/Microsoft.Web/sites/{2}/{3}').format(
             session.subscription_id,
-            self.group_name,
+            self.service_plan['resource_group_name'],
             self.functionapp_name,
             CONST_AZURE_FUNCTION_KEY_URL)
 
