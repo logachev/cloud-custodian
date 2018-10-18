@@ -7,10 +7,10 @@ from c7n_azure.provisioning.deployment_unit import DeploymentUnit
 from c7n_azure.constants import (CONST_DOCKER_VERSION, CONST_FUNCTIONS_EXT_VERSION)
 
 
-class WebAppDeploymentUnit(DeploymentUnit):
+class FunctionAppDeploymentUnit(DeploymentUnit):
 
     def __init__(self):
-        super(WebAppDeploymentUnit, self).__init__(
+        super(FunctionAppDeploymentUnit, self).__init__(
             'azure.mgmt.web.WebSiteManagementClient')
         self.type = "Web Application"
 
@@ -40,7 +40,7 @@ class WebAppDeploymentUnit(DeploymentUnit):
         site_config.app_settings.append(NameValuePair('FUNCTIONS_WORKER_RUNTIME', 'python'))
         site_config.app_settings.append(
             NameValuePair('MACHINEKEY_DecryptionKey',
-                          WebAppDeploymentUnit.generate_machine_decryption_key()))
+                          FunctionAppDeploymentUnit.generate_machine_decryption_key()))
 
         return self.client.web_apps.create_or_update(params['resource_group_name'],
                                                      params['name'],

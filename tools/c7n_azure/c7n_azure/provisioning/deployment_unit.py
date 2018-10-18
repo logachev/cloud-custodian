@@ -1,9 +1,12 @@
 import logging
+
+from abc import ABCMeta, abstractmethod
+
 from c7n.utils import local_session
 from c7n_azure.session import Session
 
-
-class DeploymentUnit(object):
+class DeploymentUnit:
+    __metaclass__ = ABCMeta
 
     def __init__(self, client):
         self.type = ""
@@ -39,8 +42,10 @@ class DeploymentUnit(object):
             result = self.provision(params)
         return result
 
+    @abstractmethod
     def _get(self, params):
         raise NotImplementedError()
 
+    @abstractmethod
     def _provision(self, params):
         raise NotImplementedError()

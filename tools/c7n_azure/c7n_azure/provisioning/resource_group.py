@@ -13,8 +13,7 @@ class ResourceGroupUnit(DeploymentUnit):
     def verify_params(self, params):
         return set(params.keys()) == set({'name', 'location'})
 
-    # Override get() function to minimize logs
-    def get(self, params):
+    def _get(self, params):
         try:
             return self.client.resource_groups.get(params['name'])
         except CloudError:

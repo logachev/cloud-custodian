@@ -19,7 +19,7 @@ from c7n.utils import local_session
 from c7n_azure.provisioning.app_insights import AppInsightsUnit
 from c7n_azure.provisioning.app_service_plan import AppServicePlanUnit
 from c7n_azure.provisioning.storage_account import StorageAccountUnit
-from c7n_azure.provisioning.webapp import WebAppDeploymentUnit
+from c7n_azure.provisioning.function_app import FunctionAppDeploymentUnit
 from c7n_azure.session import Session
 from c7n_azure.utils import ResourceIdParser
 
@@ -50,7 +50,7 @@ class FunctionAppUtilities(object):
         return connection_string
 
     def deploy_dedicated_function_app(self, parameters):
-        function_app_unit = WebAppDeploymentUnit()
+        function_app_unit = FunctionAppDeploymentUnit()
         function_app_params = \
             {'name': parameters.functionapp_name,
              'resource_group_name': parameters.service_plan['resource_group_name']}

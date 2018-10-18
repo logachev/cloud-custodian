@@ -14,6 +14,7 @@
 
 import json
 import logging
+import six
 import time
 
 import requests
@@ -123,7 +124,8 @@ class AzureFunctionMode(ServerlessExecutionMode):
     def _extract_properties(self, options, name, properties):
         settings = options.get(name, {})
         result = {}
-        if type(settings) is str:
+        # str type implies settings is a resource id
+        if isinstance(settings, six.string_types):
             result['id'] = settings
             result['name'] = ResourceIdParser.get_resource_name(settings)
             result['resource_group_name'] = ResourceIdParser.get_resource_group(settings)
