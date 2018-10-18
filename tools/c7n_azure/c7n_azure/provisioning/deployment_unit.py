@@ -1,13 +1,13 @@
 import logging
+import six
 
 from abc import ABCMeta, abstractmethod
 
 from c7n.utils import local_session
 from c7n_azure.session import Session
 
-
+@six.add_metaclass(ABCMeta)
 class DeploymentUnit:
-    __metaclass__ = ABCMeta
 
     def __init__(self, client):
         self.type = ""
