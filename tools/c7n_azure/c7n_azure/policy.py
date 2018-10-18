@@ -97,7 +97,7 @@ class AzureFunctionMode(ServerlessExecutionMode):
 
         provision_options = self.policy.data['mode'].get('provision-options', {})
         # service plan is parse first, because its location might be shared with storage & insights
-        self.service_plan = self._extract_properties(provision_options,
+        self.service_plan = AzureFunctionMode.extract_properties(provision_options,
                                                      'servicePlan',
                                                      {'name': 'cloud-custodian',
                                                       'location': 'westus2',
@@ -107,13 +107,13 @@ class AzureFunctionMode(ServerlessExecutionMode):
 
         location = self.service_plan.get('location', 'westus2')
         rg_name = self.service_plan['resource_group_name']
-        self.storage_account = self._extract_properties(provision_options,
+        self.storage_account = AzureFunctionMode.extract_properties(provision_options,
                                                         'storageAccount',
                                                         {'name': 'custodianstorageaccount',
                                                          'location': location,
                                                          'resource_group_name': rg_name})
 
-        self.app_insights = self._extract_properties(provision_options,
+        self.app_insights = AzureFunctionMode.extract_properties(provision_options,
                                                      'appInsights',
                                                      {'name': self.service_plan['name'],
                                                       'location': location,
@@ -121,7 +121,8 @@ class AzureFunctionMode(ServerlessExecutionMode):
 
         self.functionapp_name = self.service_plan['name'] + "-" + self.policy_name
 
-    def _extract_properties(self, options, name, properties):
+    @staticmethod
+    def extract_properties(options, name, properties):
         settings = options.get(name, {})
         result = {}
         # str type implies settings is a resource id

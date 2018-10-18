@@ -5,6 +5,7 @@ from abc import ABCMeta, abstractmethod
 from c7n.utils import local_session
 from c7n_azure.session import Session
 
+
 class DeploymentUnit:
     __metaclass__ = ABCMeta
 
