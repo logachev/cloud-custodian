@@ -149,7 +149,8 @@ class AzureFunctionMode(ServerlessExecutionMode):
 
         # If storage account name is not provided, we'll try to make it unique using
         # resource group name & subscription id values.
-        # Can't be done in the constructor because local_session is not working with custodian validate.
+        # Can't be a part of constructor because local_session is not working with
+        # custodian validate.
         if self.storage_account['name'] == self.default_storage_name:
             rg_name = self.storage_account['resource_group_name']
             sub_id = local_session(self.policy.session_factory).get_subscription_id()
