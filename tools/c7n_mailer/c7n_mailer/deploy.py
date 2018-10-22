@@ -44,7 +44,7 @@ def get_archive(config):
         'redis', 'datadog', 'requests')
 
     template_dir = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), '..', 'msg-templates'))
+        os.path.join(os.path.dirname(__file__), 'msg-templates'))
 
     for t in os.listdir(template_dir):
         with open(os.path.join(template_dir, t)) as fh:
