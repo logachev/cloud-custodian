@@ -64,5 +64,5 @@ setup(
         ]
     },
     install_requires=requires,
-    package_data={'': ['msg-templates/*.j2'],},
+    package_data={str(''): [str('msg-templates/*.j2')],},
 )
