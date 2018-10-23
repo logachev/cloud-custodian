@@ -431,7 +431,7 @@ sendgrid_api_key: <key>
 function_properties:
   servicePlan:
     name: 'testmailer1'
-    resourceGroupName: 'custodianmailer1'
+    resourceGroupName: custodianmailer1
     skuTier: Basic
     skuName: B1
     location: WestUS2
