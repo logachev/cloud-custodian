@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import argparse
 import functools
 import logging
+import os
 
 import boto3
 import jsonschema
@@ -156,6 +157,8 @@ def get_c7n_mailer_parser():
     parser.add_argument('--debug', action='store_true', help=debug_help_msg)
     max_num_processes_help_msg = 'will run the mailer in parallel, integer of max processes allowed'
     parser.add_argument('--max-num-processes', type=int, help=max_num_processes_help_msg)
+    templates_folder_help_msg = 'message templates folder location'
+    parser.add_argument('-t', '--templates', help=templates_folder_help_msg)
     group = parser.add_mutually_exclusive_group(required=True)
     update_lambda_help_msg = 'packages your c7n_mailer, uploads the zip to aws lambda as a function'
     group.add_argument('--update-lambda', action='store_true', help=update_lambda_help_msg)
@@ -182,6 +185,18 @@ def main():
     mailer_config = get_and_validate_mailer_config(args)
     args_dict = vars(args)
     logger = get_logger(debug=args_dict.get('debug', False))
+
+    working_dir = os.getcwd()
+    module_dir = os.path.dirname(os.path.abspath(__file__))
+    default_templates = [os.path.abspath(os.path.join(module_dir, 'msg-templates')),
+                         os.path.abspath(os.path.join(module_dir, '../msg-templates')),
+                         os.path.abspath(module_dir)]
+
+    templates = args_dict.get('templates', None)
+    if templates:
+        default_templates.append(os.path.abspath(templates))
+
+    mailer_config['templates_folders'] = default_templates
 
     if args_dict.get('update_lambda'):
         if args_dict.get('debug'):

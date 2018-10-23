@@ -17,6 +17,8 @@ import json
 import os
 import logging
 
+import copy
+
 try:
     from c7n_azure.function_package import FunctionPackage
     from c7n_azure.functionapp_utils import FunctionAppUtilities
@@ -80,21 +82,23 @@ def provision(config):
                    extra_modules={'c7n_mailer', 'ruamel'})
 
     packager.pkg.add_contents(
-        function_name + '/config.json',
-        contents=json.dumps(config))
-
-    packager.pkg.add_contents(
         function_name + '/function.json',
         contents=packager.get_function_config({'mode':
                                               {'type': 'azure-periodic',
                                                'schedule': schedule}}))
     # Add mail templates
-    template_dir = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), '../', 'msg-templates'))
+    for d in config['templates_folders']:
+        if not os.path.exists(d):
+            continue
+        for t in [f for f in os.listdir(d) if os.path.splitext(f)[1] == '.j2']:
+            with open(os.path.join(d, t)) as fh:
+                packager.pkg.add_contents(function_name + '/msg-templates/%s' % t, fh.read())
 
-    for t in os.listdir(template_dir):
-        with open(os.path.join(template_dir, t)) as fh:
-            packager.pkg.add_contents('msg-templates/%s' % t, fh.read())
+    function_config = copy.deepcopy(config)
+    function_config['templates_folders'] = ['msg-templates/']
+    packager.pkg.add_contents(
+        function_name + '/config.json',
+        contents=json.dumps(function_config))
 
     packager.close()
 
