@@ -435,12 +435,6 @@ function_properties:
     skuTier: Basic
     skuName: B1
     location: WestUS2
-storageAccount:
-    name: 'testmaileraccount1'
-    resourceGroupName: 'custodianmailer1'
-  storageAccount:
-    name: 'testmaileraccount1'
-    resourceGroupName: 'custodianmailer1'
 ```
 
 ## Writing an email template
