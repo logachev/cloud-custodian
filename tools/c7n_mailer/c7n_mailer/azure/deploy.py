@@ -95,7 +95,7 @@ def provision(config):
                 packager.pkg.add_contents(function_name + '/msg-templates/%s' % t, fh.read())
 
     function_config = copy.deepcopy(config)
-    function_config['templates_folders'] = ['msg-templates/']
+    function_config['templates_folders'] = [function_name + '/msg-templates/']
     packager.pkg.add_contents(
         function_name + '/config.json',
         contents=json.dumps(function_config))

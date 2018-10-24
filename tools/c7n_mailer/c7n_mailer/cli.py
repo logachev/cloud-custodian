@@ -186,7 +186,6 @@ def main():
     args_dict = vars(args)
     logger = get_logger(debug=args_dict.get('debug', False))
 
-    working_dir = os.getcwd()
     module_dir = os.path.dirname(os.path.abspath(__file__))
     default_templates = [os.path.abspath(os.path.join(module_dir, 'msg-templates')),
                          os.path.abspath(os.path.join(module_dir, '../msg-templates')),
