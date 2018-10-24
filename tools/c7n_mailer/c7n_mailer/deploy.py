@@ -77,8 +77,7 @@ def provision(config, session_factory):
             CloudWatchEventSource(
                 {'type': 'periodic',
                  'schedule': config.get('lambda_schedule', 'rate(5 minutes)')},
-                session_factory,
-                prefix="")
+                session_factory)
         ])
 
     archive = get_archive(config)
