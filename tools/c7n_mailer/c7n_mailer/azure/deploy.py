@@ -13,12 +13,11 @@
 # limitations under the License.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import copy
 import hashlib
 import json
 import os
 import logging
-
-import copy
 
 try:
     from c7n_azure.function_package import FunctionPackage
