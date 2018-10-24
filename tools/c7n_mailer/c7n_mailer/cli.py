@@ -189,7 +189,7 @@ def main():
     module_dir = os.path.dirname(os.path.abspath(__file__))
     default_templates = [os.path.abspath(os.path.join(module_dir, 'msg-templates')),
                          os.path.abspath(os.path.join(module_dir, '../msg-templates')),
-                         os.path.abspath(module_dir)]
+                         os.path.abspath('/')]
 
     templates = args_dict.get('templates', None)
     if templates:

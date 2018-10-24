@@ -50,8 +50,8 @@ class EmailTest(unittest.TestCase):
         self.aws_session = boto3.Session()
         self.email_delivery = MockEmailDelivery(MAILER_CONFIG, self.aws_session, logger)
         self.email_delivery.ldap_lookup.uid_regex = ''
-        tests_dir = '/tools/c7n_mailer/tests/'
-        template_abs_filename = '%s%sexample.jinja' % (os.path.abspath(os.curdir), tests_dir)
+        template_abs_filename = os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                                             'example.jinja')
         SQS_MESSAGE_1['action']['template'] = template_abs_filename
 
     def test_valid_email(self):
