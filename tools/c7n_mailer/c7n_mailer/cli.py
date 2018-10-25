@@ -190,8 +190,6 @@ def main():
     default_templates = [path.abspath(path.join(module_dir, 'msg-templates')),
                          path.abspath(path.join(module_dir, '..', 'msg-templates')),
                          path.abspath('.')]
-    print(default_templates)
-    exit(1)
     templates = args_dict.get('templates', None)
     if templates:
         default_templates.append(path.abspath(path.expanduser(path.expandvars(templates))))
