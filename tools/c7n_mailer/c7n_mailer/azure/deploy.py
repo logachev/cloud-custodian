@@ -93,8 +93,9 @@ def provision(config):
         contents=packager.get_function_config({'mode':
                                               {'type': 'azure-periodic',
                                                'schedule': schedule}}))
+
     # Add mail templates
-    for d in config['templates_folders']:
+    for d in set(config['templates_folders']):
         if not os.path.exists(d):
             continue
         for t in [f for f in os.listdir(d) if os.path.splitext(f)[1] == '.j2']:

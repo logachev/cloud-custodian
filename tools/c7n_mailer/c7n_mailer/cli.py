@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import argparse
 import functools
 import logging
-import os
+from os import path
 
 import boto3
 import jsonschema
@@ -186,14 +186,14 @@ def main():
     args_dict = vars(args)
     logger = get_logger(debug=args_dict.get('debug', False))
 
-    module_dir = os.path.dirname(os.path.abspath(__file__))
-    default_templates = [os.path.abspath(os.path.join(module_dir, 'msg-templates')),
-                         os.path.abspath(os.path.join(module_dir, '../msg-templates')),
-                         os.path.abspath('/')]
+    module_dir = path.dirname(path.abspath(__file__))
+    default_templates = [path.abspath(path.join(module_dir, 'msg-templates')),
+                         path.abspath(path.join(module_dir, '../msg-templates')),
+                         path.abspath('.')]
 
     templates = args_dict.get('templates', None)
     if templates:
-        default_templates.append(os.path.abspath(templates))
+        default_templates.append(path.abspath(path.expanduser(path.expandvars(templates))))
 
     mailer_config['templates_folders'] = default_templates
 

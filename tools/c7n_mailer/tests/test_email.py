@@ -260,11 +260,11 @@ class EmailTest(unittest.TestCase):
             RESOURCE_2
         )
 
-        self.assertEquals(ldap_emails, ['milton@initech.com'])
+        self.assertEqual(ldap_emails, ['milton@initech.com'])
 
         ldap_emails = self.email_delivery.get_resource_owner_emails_from_resource(
             SQS_MESSAGE_1,
             RESOURCE_3
         )
 
-        self.assertEquals(ldap_emails, ['milton@initech.com'])
+        self.assertEqual(ldap_emails, ['milton@initech.com'])
