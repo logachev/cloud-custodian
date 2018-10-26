@@ -1,15 +1,16 @@
 {
+   "text": "Sample text",
    "attachments":[
       {
          "fallback":"Cloud Custodian Policy Violation",
          "title":"Custodian",
          "color":"danger",
          "fields":[
-            {
-               "title":"Resources",
-               "value":"{%- for resource in resources -%}
-                        {{ format_resource(resource, policy['resource']) }}
-                        {%- endfor -%}"
+#            {
+#               "title":"Resources",
+#               "value":"{%- for resource in resources -%}
+#                        {{ format_resource(resource, policy['resource']) }}
+#                        {%- endfor -%}"
             },
             {
                "title":"Account",
@@ -33,5 +34,5 @@
    {%- if not recipient.startswith('https://') %}
    "channel":"{{ recipient }}",
    {%- endif -%}
-   "username":"Custodian"
+   "username":"custodian"
 }
