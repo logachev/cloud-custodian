@@ -169,7 +169,7 @@ class MailerSqsQueueProcessor(object):
         if any(e.startswith('slack') or e.startswith('https')
                 for e in sqs_message.get('action', ()).get('to')):
             from .slack_delivery import SlackDelivery
-            slack_delivery = SlackDelivery(self.config, self.session, self.logger)
+            slack_delivery = SlackDelivery(self.config, self.session, self.logger, email_delivery)
             slack_messages = slack_delivery.get_to_addrs_slack_messages_map(sqs_message)
             try:
                 slack_delivery.slack_handler(sqs_message, slack_messages)
