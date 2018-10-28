@@ -83,10 +83,8 @@ class MailerAzureQueueProcessor(object):
                 for e in queue_message.get('action', ()).get('to')):
             from c7n_mailer.slack_delivery import SlackDelivery
             slack_delivery = SlackDelivery(self.config,
-                                           None,
                                            self.logger,
-                                           SendGridDelivery(self.config, self.logger),
-                                           False)
+                                           SendGridDelivery(self.config, self.logger))
             slack_messages = slack_delivery.get_to_addrs_slack_messages_map(queue_message)
             try:
                 slack_delivery.slack_handler(queue_message, slack_messages)

@@ -27,6 +27,8 @@ import six
 from .email_delivery import EmailDelivery
 from .sns_delivery import SnsDelivery
 
+from c7n_mailer.utils import kms_decrypt
+
 DATA_MESSAGE = "maidmsg/1.0"
 
 
@@ -169,7 +171,12 @@ class MailerSqsQueueProcessor(object):
         if any(e.startswith('slack') or e.startswith('https')
                 for e in sqs_message.get('action', ()).get('to')):
             from .slack_delivery import SlackDelivery
-            slack_delivery = SlackDelivery(self.config, self.session, self.logger, email_delivery)
+
+            if self.config.get('slack_token'):
+                self.config['slack_token'] = \
+                    kms_decrypt(self.config, self.logger, self.session, 'slack_token')
+
+            slack_delivery = SlackDelivery(self.config, self.logger, email_delivery)
             slack_messages = slack_delivery.get_to_addrs_slack_messages_map(sqs_message)
             try:
                 slack_delivery.slack_handler(sqs_message, slack_messages)

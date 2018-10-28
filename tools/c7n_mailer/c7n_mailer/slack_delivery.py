@@ -13,18 +13,16 @@
 # limitations under the License.
 import time
 
-from botocore.vendored import requests
+import requests
 import six
 from c7n_mailer.ldap_lookup import Redis
-from c7n_mailer.utils import kms_decrypt, get_rendered_jinja
+from c7n_mailer.utils import get_rendered_jinja
 from c7n_mailer.utils_email import is_email
 
 
 class SlackDelivery(object):
 
-    def __init__(self, config, session, logger, email_handler, decrypt=True):
-        if decrypt and config.get('slack_token'):
-            config['slack_token'] = kms_decrypt(config, logger, session, 'slack_token')
+    def __init__(self, config, logger, email_handler):
         self.caching = self.cache_factory(config, config.get('cache_engine', None))
         self.config = config
         self.logger = logger
