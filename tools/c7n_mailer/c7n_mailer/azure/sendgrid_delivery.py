@@ -59,9 +59,8 @@ class SendGridDelivery(object):
                     result = resource.get('tags', {}).get(tag_name, None)
                     if is_email(result):
                         resource_emails.append(result)
-                else:
-                    if is_email(target):
-                        resource_emails.append(target)
+                elif is_email(target):
+                    resource_emails.append(target)
 
             resource_emails = tuple(sorted(set(resource_emails)))
 
