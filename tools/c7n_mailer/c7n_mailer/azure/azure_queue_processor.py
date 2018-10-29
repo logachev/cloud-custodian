@@ -79,7 +79,7 @@ class MailerAzureQueueProcessor(object):
             queue_message['policy']['name'],
             ', '.join(queue_message['action'].get('to'))))
 
-        if any(e.startswith('slack') or e.startswith('https')
+        if any(e.startswith('slack') or e.startswith('https://hooks.slack.com/')
                 for e in queue_message.get('action', ()).get('to')):
             from c7n_mailer.slack_delivery import SlackDelivery
             slack_delivery = SlackDelivery(self.config,
