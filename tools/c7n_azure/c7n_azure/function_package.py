@@ -18,8 +18,11 @@ import os
 import re
 import sys
 import time
-from pip import main as pip_main
-# from pip._internal import main as _main
+
+try:
+    from pip import main as pip_main
+except Exception:
+    from pip._internal import main as pip_main
 
 import requests
 from c7n_azure.constants import ENV_CUSTODIAN_DISABLE_SSL_CERT_VERIFICATION, \
@@ -250,7 +253,7 @@ class FunctionPackage(object):
 
     @staticmethod
     def _prepare_wheels(packages, folder):
-        options = ['wheel', '-w', folder]
+        options = ['wheel', '-w', folder, '--no-binary=:all:']
         options.extend(packages)
         pip_main(options)
 
