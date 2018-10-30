@@ -15,9 +15,11 @@ import distutils.util
 import json
 import logging
 import os
+import sys
 import re
 import sys
 import time
+import subprocess
 
 try:
     from pip import main as pip_main
@@ -32,6 +34,15 @@ from c7n_azure.session import Session
 
 from c7n.mu import PythonPackageArchive
 from c7n.utils import local_session
+
+def run(cmd, verbose=False, **kwargs):
+    if verbose:
+        stdout = stderr = None
+    else:
+        stdout = stderr = subprocess.PIPE
+
+    print(' '.join(cmd))
+    return subprocess.run(cmd, stdout=stdout, stderr=stderr, **kwargs)
 
 class FunctionPackage(object):
 
@@ -137,8 +148,9 @@ class FunctionPackage(object):
 
     def build(self, policy, queue_name=None, entry_point=None, extra_modules=None):
 
-        wheels_folder = 'pip_wheels'
-        wheels_install_folder = 'pip_wheels_installed'
+        c7n_azure_root = os.path.dirname(__file__)
+        wheels_folder = os.path.join(c7n_azure_root, 'cache', 'wheels')
+        wheels_install_folder = os.path.join(c7n_azure_root, 'cache', 'dependencies')
 
         if not os.path.exists(wheels_install_folder):
             FunctionPackage._prepare_wheels(['pyyaml~=3.13',
@@ -205,7 +217,11 @@ class FunctionPackage(object):
 
         self.log.info("Publishing Function package from %s" % self.pkg.path)
 
-        zip_file = os.fdopen(os.open(self.pkg.path, os.O_RDWR | os.O_BINARY | os.O_TEMPORARY), 'rb').read()
+        # Windows requires TEMPORARY flag if you want to open files created by tempfile library
+        if os.name == 'nt':
+            zip_file = os.fdopen(os.open(self.pkg.path, os.O_RDWR | os.O_BINARY | os.O_TEMPORARY), 'rb').read()
+        else:
+            zip_file = open(self.pkg.path, 'rb').read()
 
         try:
             r = requests.post(zip_api_url, data=zip_file, timeout=300, verify=self.enable_ssl_cert)
@@ -220,43 +236,24 @@ class FunctionPackage(object):
         self.pkg.close()
 
     @staticmethod
-    def _get_site_packages():
-        """Returns a list containing all global site-packages directories
-        (and possibly site-python).
-        For each directory present in the global ``PREFIXES``, this function
-        will find its `site-packages` subdirectory depending on the system
-        environment, and will return a list of full paths.
-        """
-        site_packages = []
-        seen = set()
-        prefixes = [sys.prefix, sys.exec_prefix]
-
-        for prefix in prefixes:
-            if not prefix or prefix in seen:
-                continue
-            seen.add(prefix)
-
-            if sys.platform in ('os2emx', 'riscos'):
-                site_packages.append(os.path.join(prefix, "Lib", "site-packages"))
-            elif os.sep == '/':
-                site_packages.append(os.path.join(prefix, "lib",
-                                                  "python" + sys.version[:3],
-                                                  "site-packages"))
-                site_packages.append(os.path.join(prefix, "lib", "site-python"))
-            else:
-                site_packages.append(prefix)
-                site_packages.append(os.path.join(prefix, "lib", "site-packages"))
-        return site_packages
-
-    @staticmethod
     def _prepare_wheels(packages, folder):
-        options = ['wheel', '-w', folder, '--no-binary=:all:']
-        options.extend(packages)
-        pip_main(options)
+        cmd = ['pip', 'wheel', '-w', folder, '--no-binary=:all:']
+        cmd.extend(packages)
+        pip = run(cmd)
+
+        if pip.returncode != 0:
+            print('Failed to download wheels!')
+            sys.exit(1)
 
         pyyaml_name = next(f for f in os.listdir(folder) if 'PyYAML' in f)
         os.rename(os.path.join(folder, pyyaml_name),
                   os.path.join(folder, pyyaml_name[:12] + 'cp36-cp36m-manylinux1_x86_64.whl'))
+        futures_name = next(f for f in os.listdir(folder) if 'futures' in f)
+        os.rename(os.path.join(folder, futures_name),
+                  os.path.join(folder, futures_name[:14] + 'cp36-cp36m-manylinux1_x86_64.whl'))
+        tabulate_name = next(f for f in os.listdir(folder) if 'tabulate' in f)
+        os.rename(os.path.join(folder, tabulate_name),
+                  os.path.join(folder, tabulate_name[:15] + 'cp36-cp36m-manylinux1_x86_64.whl'))
 
     @staticmethod
     def _download_wheels(folder):
@@ -272,24 +269,28 @@ class FunctionPackage(object):
             packages.extend(install_requires[0].replace('"', '').split(','))
 
         if not os.path.exists(folder):
-            os.mkdir(folder)
+            os.makedirs(folder)
 
-        packages = [t for t in packages if t not in ['c7n', 'azure-cli-core<=2.0.40']]
+        packages = [t for t in packages if t not in ['c7n', 'azure-cli-core<=2.0.40', 'distlib']]
 
-        options = ['download', '--dest', folder, '--find-links', folder]
-        options.extend(packages)
-        options.extend(['--platform=manylinux1_x86_64',
+        cmd = ['pip', 'download', '--dest', folder, '--find-links', folder]
+        cmd.extend(packages)
+        cmd.extend(['--platform=manylinux1_x86_64',
                         '--python-version=36',
                         '--implementation=cp',
                         '--abi=cp36m',
                         '--only-binary=:all:'])
-        pip_main(options)
+        pip = run(cmd)
+
+        if pip.returncode != 0:
+            print('Failed to download wheels!')
+            sys.exit(1)
 
     @staticmethod
     def _install_wheels(wheels_folder, install_folder):
-        logging.getLogger('distlib').setLevel(logging.WARNING)
+        logging.getLogger('distlib').setLevel(logging.ERROR)
         if not os.path.exists(install_folder):
-            os.mkdir(install_folder)
+            os.makedirs(install_folder)
 
         from distlib.wheel import Wheel
         from distlib.scripts import ScriptMaker

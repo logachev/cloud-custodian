@@ -16,6 +16,8 @@ import logging
 import re
 
 import six
+import sys
+
 from azure.mgmt.eventgrid.models import StorageQueueEventSubscriptionDestination
 from c7n_azure.azure_events import AzureEventSubscription
 from c7n_azure.azure_events import AzureEvents
@@ -168,6 +170,11 @@ class AzureFunctionMode(ServerlessExecutionMode):
         raise NotImplementedError("subclass responsibility")
 
     def provision(self):
+        if sys.version_info[0] < 3:
+            self.log.error("Cloud Custodian doesn't support Python 2.7 with Azure Functions mode.")
+            self.log.error("Please consider using Python 3.6 or 3.7.")
+            sys.exit(1)
+
         self.function_params = self.get_function_app_params()
         FunctionAppUtilities().deploy_dedicated_function_app(self.function_params)
 
