@@ -256,7 +256,7 @@ class FunctionPackage(object):
 
         pyyaml_name = next(f for f in os.listdir(folder) if 'PyYAML' in f)
         os.rename(os.path.join(folder, pyyaml_name),
-                  os.path.join(folder, pyyaml_name[:23] + 'manylinux1_x86_64.whl'))
+                  os.path.join(folder, pyyaml_name[:12] + 'cp36-cp36m-manylinux1_x86_64.whl'))
 
     @staticmethod
     def _download_wheels(folder):
@@ -280,6 +280,8 @@ class FunctionPackage(object):
         options.extend(packages)
         options.extend(['--platform=manylinux1_x86_64',
                         '--python-version=36',
+                        '--implementation=cp',
+                        '--abi=cp36m',
                         '--only-binary=:all:'])
         pip_main(options)
 
