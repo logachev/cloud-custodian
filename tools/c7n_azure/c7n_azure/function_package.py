@@ -33,7 +33,6 @@ from c7n_azure.session import Session
 from c7n.mu import PythonPackageArchive
 from c7n.utils import local_session
 
-
 class FunctionPackage(object):
 
     def __init__(self, name, function_path=None):
@@ -141,12 +140,13 @@ class FunctionPackage(object):
         wheels_folder = 'pip_wheels'
         wheels_install_folder = 'pip_wheels_installed'
 
-        FunctionPackage._prepare_wheels(['pyyaml~=3.13',
-                                         'pycparser',
-                                         'futures>=3.1.1',
-                                         'tabulate>=0.8.2'], wheels_folder)
-        FunctionPackage._download_wheels(wheels_folder)
-        FunctionPackage._install_wheels(wheels_folder, wheels_install_folder)
+        if not os.path.exists(wheels_install_folder):
+            FunctionPackage._prepare_wheels(['pyyaml~=3.13',
+                                            'pycparser',
+                                            'futures>=3.1.1',
+                                            'tabulate>=0.8.2'], wheels_folder)
+            FunctionPackage._download_wheels(wheels_folder)
+            FunctionPackage._install_wheels(wheels_folder, wheels_install_folder)
 
         for root, _, files in os.walk(wheels_install_folder):
             arc_prefix = os.path.relpath(root, wheels_install_folder)
@@ -195,6 +195,7 @@ class FunctionPackage(object):
 
         return True
 
+
     def publish(self, deployment_creds):
         self.close()
 
@@ -204,7 +205,7 @@ class FunctionPackage(object):
 
         self.log.info("Publishing Function package from %s" % self.pkg.path)
 
-        zip_file = open(self.pkg.path, 'rb').read()
+        zip_file = os.fdopen(os.open(self.pkg.path, os.O_RDWR | os.O_BINARY | os.O_TEMPORARY), 'rb').read()
 
         try:
             r = requests.post(zip_api_url, data=zip_file, timeout=300, verify=self.enable_ssl_cert)
@@ -217,10 +218,6 @@ class FunctionPackage(object):
 
     def close(self):
         self.pkg.close()
-
-        with open('/custodian/mount/package.zip', 'wb+') as f:
-            with open(self.pkg.path, 'rb') as f2:
-                f.write(f2.read())
 
     @staticmethod
     def _get_site_packages():
@@ -277,7 +274,7 @@ class FunctionPackage(object):
         if not os.path.exists(folder):
             os.mkdir(folder)
 
-        packages = [t for t in packages if t not in ['c7n']]
+        packages = [t for t in packages if t not in ['c7n', 'azure-cli-core<=2.0.40']]
 
         options = ['download', '--dest', folder, '--find-links', folder]
         options.extend(packages)
@@ -288,12 +285,21 @@ class FunctionPackage(object):
 
     @staticmethod
     def _install_wheels(wheels_folder, install_folder):
-        files = os.listdir(wheels_folder)
-        options = ['install', '--target', install_folder, '--no-dependencies']
-        options.extend([os.path.join(wheels_folder, f) for f in files])
-        pip_main(options)
+        logging.getLogger('distlib').setLevel(logging.WARNING)
+        if not os.path.exists(install_folder):
+            os.mkdir(install_folder)
 
-        import shutil
-        for d in [os.path.join(install_folder, d) for d in os.listdir(install_folder)]:
-            if os.path.isdir(d) and 'dist-info' in d:
-                shutil.rmtree(d)
+        from distlib.wheel import Wheel
+        from distlib.scripts import ScriptMaker
+
+        paths = {
+            'prefix': '',
+            'purelib': install_folder,
+            'platlib': install_folder,
+            'scripts': '',
+            'headers': '',
+            'data': ''}
+        files = os.listdir(wheels_folder)
+        for f in [os.path.join(wheels_folder, f) for f in files]:
+            wheel = Wheel(f)
+            wheel.install(paths, ScriptMaker(None, None), lib_only=True)

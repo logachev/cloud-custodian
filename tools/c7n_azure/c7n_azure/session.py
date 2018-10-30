@@ -18,8 +18,12 @@ import logging
 import os
 
 import jwt
-from azure.cli.core._profile import Profile
-from azure.cli.core.cloud import AZURE_PUBLIC_CLOUD
+try:
+    from azure.cli.core._profile import Profile
+    from azure.cli.core.cloud import AZURE_PUBLIC_CLOUD
+except Exception:
+    Profile = None
+
 from azure.common.credentials import ServicePrincipalCredentials, BasicTokenAuthentication
 from c7n_azure import constants
 from c7n_azure.utils import ResourceIdParser, StringUtils
@@ -28,7 +32,7 @@ from c7n_azure.utils import ResourceIdParser, StringUtils
 class Session(object):
 
     def __init__(self, subscription_id=None, authorization_file=None,
-                 resource=AZURE_PUBLIC_CLOUD.endpoints.active_directory_resource_id):
+                 resource='https://management.core.windows.net/'):
         """
         :param subscription_id: If provided overrides environment variables.
 
