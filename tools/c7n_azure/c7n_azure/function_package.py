@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import distutils.util
-import fnmatch
 import json
 import logging
 import os
+import re
 import sys
 import time
+from pip import main as pip_main
+# from pip._internal import main as _main
 
 import requests
 from c7n_azure.constants import ENV_CUSTODIAN_DISABLE_SSL_CERT_VERIFICATION, \
@@ -128,55 +130,34 @@ class FunctionPackage(object):
     def _get_policy(self, policy):
         return json.dumps({'policies': [policy]}, indent=2)
 
-    def _add_cffi_module(self):
-        """CFFI native bits aren't discovered automatically
-        so for now we grab them manually from supported platforms"""
-
-        self.pkg.add_modules('cffi')
-
-        # Add native libraries that are missing
-        site_pkg = FunctionPackage._get_site_packages()[0]
-
-        # linux
-        platform = sys.platform
-        if platform == "linux" or platform == "linux2":
-            for so_file in os.listdir(site_pkg):
-                if fnmatch.fnmatch(so_file, '*ffi*.so*'):
-                    self.pkg.add_file(os.path.join(site_pkg, so_file))
-
-            self.pkg.add_directory(os.path.join(site_pkg, '.libs_cffi_backend'))
-
-        # MacOS
-        elif platform == "darwin":
-            raise NotImplementedError('Cannot package Azure Function in MacOS host OS, '
-                                      'please use linux.')
-        # Windows
-        elif platform == "win32":
-            raise NotImplementedError('Cannot package Azure Function in Windows host OS, '
-                                      'please use linux or WSL.')
-
     def _update_perms_package(self):
         os.chmod(self.pkg.path, 0o0644)
 
     def build(self, policy, queue_name=None, entry_point=None, extra_modules=None):
-        # Get dependencies for azure entry point
-        entry_point = entry_point or \
-            os.path.join(os.path.dirname(os.path.realpath(__file__)), 'entry.py')
-        modules, so_files = FunctionPackage._get_dependencies(entry_point)
 
-        # add all loaded modules
-        modules.discard('azure')
-        modules = modules.union({'c7n', 'c7n_azure', 'pkg_resources',
-                                 'knack', 'argcomplete', 'applicationinsights'})
-        if extra_modules:
-            modules = modules.union(extra_modules)
+        wheels_folder = 'pip_wheels'
+        wheels_install_folder = 'pip_wheels_installed'
 
+        FunctionPackage._prepare_wheels(['pyyaml~=3.13',
+                                         'pycparser',
+                                         'futures>=3.1.1',
+                                         'tabulate>=0.8.2'], wheels_folder)
+        FunctionPackage._download_wheels(wheels_folder)
+        FunctionPackage._install_wheels(wheels_folder, wheels_install_folder)
+
+        for root, _, files in os.walk(wheels_install_folder):
+            arc_prefix = os.path.relpath(root, wheels_install_folder)
+            for f in files:
+                dest_path = os.path.join(arc_prefix, f)
+
+                if f.endswith('.pyc') or f.endswith('.c'):
+                    continue
+                f_path = os.path.join(root, f)
+
+                self.pkg.add_file(f_path, dest_path)
+
+        modules = {'c7n', 'c7n_azure'}
         self.pkg.add_modules(None, *modules)
-
-        # adding azure manually
-        # we need to ignore the __init__.py of the azure namespace for packaging
-        # https://www.python.org/dev/peps/pep-0420/
-        self.pkg.add_modules(lambda f: f == 'azure/__init__.py', 'azure')
 
         # add config and policy
         self._add_functions_required_files(policy, queue_name)
@@ -184,9 +165,6 @@ class FunctionPackage(object):
         # generate and add auth
         s = local_session(Session)
         self.pkg.add_contents(dest=self.name + '/auth.json', contents=s.get_functions_auth_string())
-
-        # cffi module needs special handling
-        self._add_cffi_module()
 
     def wait_for_status(self, deployment_creds, retries=10, delay=15):
         for r in range(retries):
@@ -237,6 +215,10 @@ class FunctionPackage(object):
     def close(self):
         self.pkg.close()
 
+        with open('/custodian/mount/package.zip', 'wb+') as f:
+            with open(self.pkg.path, 'rb') as f2:
+                f.write(f2.read())
+
     @staticmethod
     def _get_site_packages():
         """Returns a list containing all global site-packages directories
@@ -267,21 +249,48 @@ class FunctionPackage(object):
         return site_packages
 
     @staticmethod
-    def _get_dependencies(entry_point):
-        # Dynamically find all imported modules
-        from modulefinder import ModuleFinder
-        finder = ModuleFinder()
-        finder.run_script(entry_point)
-        imports = list(set([v.__file__.split('site-packages/', 1)[-1].split('/')[0]
-                            for (k, v) in finder.modules.items()
-                            if v.__file__ is not None and "site-packages" in v.__file__]))
+    def _prepare_wheels(packages, folder):
+        options = ['wheel', '-w', folder]
+        options.extend(packages)
+        pip_main(options)
 
-        # Get just the modules, ignore the so and py now (maybe useful for calls to add_file)
-        modules = [i.split('.py')[0] for i in imports if ".so" not in i]
+        pyyaml_name = next(f for f in os.listdir(folder) if 'PyYAML' in f)
+        os.rename(os.path.join(folder, pyyaml_name),
+                  os.path.join(folder, pyyaml_name[:23] + 'manylinux1_x86_64.whl'))
 
-        so_files = list(set([v.__file__
-                             for (k, v) in finder.modules.items()
-                             if v.__file__ is not None and "site-packages" in
-                             v.__file__ and ".so" in v.__file__]))
+    @staticmethod
+    def _download_wheels(folder):
+        setup_files = [
+            os.path.join(os.path.dirname(__file__), '..', 'setup.py'),
+            os.path.join(os.path.dirname(__file__), '..', '..', '..', 'setup.py'),
+        ]
+        packages = []
+        for setup_file in setup_files:
+            with open(setup_file) as f:
+                s = ''.join(f.readlines()).replace('\n', '').replace(' ', '')
+            install_requires = re.findall("install_requires=\\[([^\\]]+)\\]", s)
+            packages.extend(install_requires[0].replace('"', '').split(','))
 
-        return set(modules), so_files
+        if not os.path.exists(folder):
+            os.mkdir(folder)
+
+        packages = [t for t in packages if t not in ['c7n']]
+
+        options = ['download', '--dest', folder, '--find-links', folder]
+        options.extend(packages)
+        options.extend(['--platform=manylinux1_x86_64',
+                        '--python-version=36',
+                        '--only-binary=:all:'])
+        pip_main(options)
+
+    @staticmethod
+    def _install_wheels(wheels_folder, install_folder):
+        files = os.listdir(wheels_folder)
+        options = ['install', '--target', install_folder, '--no-dependencies']
+        options.extend([os.path.join(wheels_folder, f) for f in files])
+        pip_main(options)
+
+        import shutil
+        for d in [os.path.join(install_folder, d) for d in os.listdir(install_folder)]:
+            if os.path.isdir(d) and 'dist-info' in d:
+                shutil.rmtree(d)
