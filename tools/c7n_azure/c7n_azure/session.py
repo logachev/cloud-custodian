@@ -20,7 +20,6 @@ import os
 import jwt
 try:
     from azure.cli.core._profile import Profile
-    from azure.cli.core.cloud import AZURE_PUBLIC_CLOUD
 except Exception:
     Profile = None
 

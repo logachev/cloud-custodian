@@ -15,16 +15,8 @@ import distutils.util
 import json
 import logging
 import os
-import sys
-import re
-import sys
 import time
-import subprocess
-
-try:
-    from pip import main as pip_main
-except Exception:
-    from pip._internal import main as pip_main
+import shutil
 
 import requests
 from c7n_azure.constants import ENV_CUSTODIAN_DISABLE_SSL_CERT_VERIFICATION, \
@@ -35,14 +27,8 @@ from c7n_azure.session import Session
 from c7n.mu import PythonPackageArchive
 from c7n.utils import local_session
 
-def run(cmd, verbose=False, **kwargs):
-    if verbose:
-        stdout = stderr = None
-    else:
-        stdout = stderr = subprocess.PIPE
+from c7n_azure.dependency_manager import DependencyManager
 
-    print(' '.join(cmd))
-    return subprocess.run(cmd, stdout=stdout, stderr=stderr, **kwargs)
 
 class FunctionPackage(object):
 
@@ -149,16 +135,34 @@ class FunctionPackage(object):
     def build(self, policy, queue_name=None, entry_point=None, extra_modules=None):
 
         c7n_azure_root = os.path.dirname(__file__)
-        wheels_folder = os.path.join(c7n_azure_root, 'cache', 'wheels')
-        wheels_install_folder = os.path.join(c7n_azure_root, 'cache', 'dependencies')
+        cache_folder = os.path.join(c7n_azure_root, 'cache')
+        wheels_folder = os.path.join(cache_folder, 'wheels')
+        wheels_install_folder = os.path.join(cache_folder, 'dependencies')
 
-        if not os.path.exists(wheels_install_folder):
-            FunctionPackage._prepare_wheels(['pyyaml~=3.13',
-                                            'pycparser',
-                                            'futures>=3.1.1',
-                                            'tabulate>=0.8.2'], wheels_folder)
-            FunctionPackage._download_wheels(wheels_folder)
-            FunctionPackage._install_wheels(wheels_folder, wheels_install_folder)
+        non_binary_packages = ['pyyaml~=3.13', 'pycparser', 'tabulate>=0.8.2']
+        excluded_packages = ['c7n', 'azure-cli-core', 'distlib', 'futures']
+
+        packages = \
+            DependencyManager.get_dependency_packages_list(['c7n', 'c7n-azure'], excluded_packages)
+
+        if not DependencyManager.check_cache(cache_folder, wheels_install_folder, packages):
+            self.log.info("Cached packages not found or requirements were changed.")
+            # If cache check fails, wipe all previous wheels, installations etc
+            if os.path.exists(cache_folder):
+                self.log.info("Removing cache folder...")
+                shutil.rmtree(cache_folder)
+
+            self.log.info("Preparing non binary wheels...")
+            DependencyManager.prepare_non_binary_wheels(non_binary_packages, wheels_folder)
+
+            self.log.info("Downloading wheels...")
+            DependencyManager.download_wheels(packages, wheels_folder)
+
+            self.log.info("Installing wheels...")
+            DependencyManager.install_wheels(wheels_folder, wheels_install_folder)
+
+            self.log.info("Updating metadata file...")
+            DependencyManager.create_cache_metadata(cache_folder, wheels_install_folder, packages)
 
         for root, _, files in os.walk(wheels_install_folder):
             arc_prefix = os.path.relpath(root, wheels_install_folder)
@@ -172,7 +176,7 @@ class FunctionPackage(object):
                 self.pkg.add_file(f_path, dest_path)
 
         modules = {'c7n', 'c7n_azure'}
-        self.pkg.add_modules(None, *modules)
+        self.pkg.add_modules(lambda f: ('\\cache\\' in f or '/cache/' in f), *modules)
 
         # add config and policy
         self._add_functions_required_files(policy, queue_name)
@@ -207,6 +211,9 @@ class FunctionPackage(object):
 
         return True
 
+    @staticmethod
+    def _temporary_opener(name, flag, mode=0o777):
+        return os.open(name, flag | os.O_TEMPORARY, mode)
 
     def publish(self, deployment_creds):
         self.close()
@@ -219,7 +226,7 @@ class FunctionPackage(object):
 
         # Windows requires TEMPORARY flag if you want to open files created by tempfile library
         if os.name == 'nt':
-            zip_file = os.fdopen(os.open(self.pkg.path, os.O_RDWR | os.O_BINARY | os.O_TEMPORARY), 'rb').read()
+            zip_file = open(self.pkg.path, 'rb', opener=FunctionPackage._temporary_opener).read()
         else:
             zip_file = open(self.pkg.path, 'rb').read()
 
@@ -234,75 +241,3 @@ class FunctionPackage(object):
 
     def close(self):
         self.pkg.close()
-
-    @staticmethod
-    def _prepare_wheels(packages, folder):
-        cmd = ['pip', 'wheel', '-w', folder, '--no-binary=:all:']
-        cmd.extend(packages)
-        pip = run(cmd)
-
-        if pip.returncode != 0:
-            print('Failed to download wheels!')
-            sys.exit(1)
-
-        pyyaml_name = next(f for f in os.listdir(folder) if 'PyYAML' in f)
-        os.rename(os.path.join(folder, pyyaml_name),
-                  os.path.join(folder, pyyaml_name[:12] + 'cp36-cp36m-manylinux1_x86_64.whl'))
-        futures_name = next(f for f in os.listdir(folder) if 'futures' in f)
-        os.rename(os.path.join(folder, futures_name),
-                  os.path.join(folder, futures_name[:14] + 'cp36-cp36m-manylinux1_x86_64.whl'))
-        tabulate_name = next(f for f in os.listdir(folder) if 'tabulate' in f)
-        os.rename(os.path.join(folder, tabulate_name),
-                  os.path.join(folder, tabulate_name[:15] + 'cp36-cp36m-manylinux1_x86_64.whl'))
-
-    @staticmethod
-    def _download_wheels(folder):
-        setup_files = [
-            os.path.join(os.path.dirname(__file__), '..', 'setup.py'),
-            os.path.join(os.path.dirname(__file__), '..', '..', '..', 'setup.py'),
-        ]
-        packages = []
-        for setup_file in setup_files:
-            with open(setup_file) as f:
-                s = ''.join(f.readlines()).replace('\n', '').replace(' ', '')
-            install_requires = re.findall("install_requires=\\[([^\\]]+)\\]", s)
-            packages.extend(install_requires[0].replace('"', '').split(','))
-
-        if not os.path.exists(folder):
-            os.makedirs(folder)
-
-        packages = [t for t in packages if t not in ['c7n', 'azure-cli-core<=2.0.40', 'distlib']]
-
-        cmd = ['pip', 'download', '--dest', folder, '--find-links', folder]
-        cmd.extend(packages)
-        cmd.extend(['--platform=manylinux1_x86_64',
-                        '--python-version=36',
-                        '--implementation=cp',
-                        '--abi=cp36m',
-                        '--only-binary=:all:'])
-        pip = run(cmd)
-
-        if pip.returncode != 0:
-            print('Failed to download wheels!')
-            sys.exit(1)
-
-    @staticmethod
-    def _install_wheels(wheels_folder, install_folder):
-        logging.getLogger('distlib').setLevel(logging.ERROR)
-        if not os.path.exists(install_folder):
-            os.makedirs(install_folder)
-
-        from distlib.wheel import Wheel
-        from distlib.scripts import ScriptMaker
-
-        paths = {
-            'prefix': '',
-            'purelib': install_folder,
-            'platlib': install_folder,
-            'scripts': '',
-            'headers': '',
-            'data': ''}
-        files = os.listdir(wheels_folder)
-        for f in [os.path.join(wheels_folder, f) for f in files]:
-            wheel = Wheel(f)
-            wheel.install(paths, ScriptMaker(None, None), lib_only=True)
