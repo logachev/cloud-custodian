@@ -75,7 +75,7 @@ def provision(config):
         function_app_resource_group_name=service_plan['resource_group_name'],
         function_app_name=function_app_name)
 
-    function_app = FunctionAppUtilities().deploy_dedicated_function_app(params)
+    FunctionAppUtilities().deploy_dedicated_function_app(params)
 
     log.info("Building function package for %s" % function_app_name)
 
@@ -112,7 +112,12 @@ def provision(config):
 
     log.info("Function package built, size is %dMB" % (packager.pkg.size / (1024 * 1024)))
 
-    if packager.wait_for_status(function_app):
-        packager.publish(function_app)
+    client = local_session(Session).client('azure.mgmt.web.WebSiteManagementClient')
+    publish_creds = client.web_apps.list_publishing_credentials(
+        service_plan['resource_group_name'],
+        function_app_name).result()
+
+    if packager.wait_for_status(publish_creds):
+        packager.publish(publish_creds)
     else:
         log.error("Aborted deployment, ensure Application Service is healthy.")
