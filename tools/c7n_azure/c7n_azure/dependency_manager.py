@@ -1,10 +1,10 @@
+import hashlib
 import json
 import logging
 import os
-import sys
-import subprocess
-import hashlib
 import re
+import subprocess
+import sys
 from builtins import bytes
 
 logger = logging.getLogger('c7n_azure.dependency_manager')
@@ -60,7 +60,6 @@ class DependencyManager(object):
 
     @staticmethod
     def download_wheels(packages, folder):
-
         if not os.path.exists(folder):
             os.makedirs(folder)
 

@@ -14,23 +14,23 @@
 
 import logging
 import re
-
-import six
 import sys
 
-from azure.mgmt.eventgrid.models import StorageQueueEventSubscriptionDestination
-from c7n_azure.azure_events import AzureEventSubscription
-from c7n_azure.azure_events import AzureEvents
-from c7n_azure.constants import (FUNCTION_EVENT_TRIGGER_MODE, FUNCTION_TIME_TRIGGER_MODE)
+import six
+from azure.mgmt.eventgrid.models import \
+    StorageQueueEventSubscriptionDestination
+
+from c7n import utils
+from c7n.actions import EventAction
+from c7n.policy import PullMode, ServerlessExecutionMode, execution
+from c7n.utils import local_session
+from c7n_azure.azure_events import AzureEvents, AzureEventSubscription
+from c7n_azure.constants import (FUNCTION_EVENT_TRIGGER_MODE,
+                                 FUNCTION_TIME_TRIGGER_MODE)
 from c7n_azure.function_package import FunctionPackage
 from c7n_azure.functionapp_utils import FunctionAppUtilities
 from c7n_azure.storage_utils import StorageUtilities
 from c7n_azure.utils import ResourceIdParser, StringUtils
-
-from c7n import utils
-from c7n.actions import EventAction
-from c7n.policy import ServerlessExecutionMode, PullMode, execution
-from c7n.utils import local_session
 
 
 class AzureFunctionMode(ServerlessExecutionMode):
@@ -171,8 +171,7 @@ class AzureFunctionMode(ServerlessExecutionMode):
 
     def provision(self):
         if sys.version_info[0] < 3:
-            self.log.error("Cloud Custodian doesn't support Python 2.7 with Azure Functions mode.")
-            self.log.error("Please consider using Python 3.6 or 3.7.")
+            self.log.error("Python 2.7 is not supported for deploying Azure Functions.")
             sys.exit(1)
 
         self.function_params = self.get_function_app_params()

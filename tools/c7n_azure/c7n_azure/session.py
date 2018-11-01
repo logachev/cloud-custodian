@@ -18,20 +18,23 @@ import logging
 import os
 
 import jwt
+from azure.common.credentials import (BasicTokenAuthentication,
+                                      ServicePrincipalCredentials)
+
+from c7n_azure import constants
+from c7n_azure.constants import RESOURCE_ACTIVE_DIRECTORY
+from c7n_azure.utils import ResourceIdParser, StringUtils
+
 try:
     from azure.cli.core._profile import Profile
 except Exception:
     Profile = None
 
-from azure.common.credentials import ServicePrincipalCredentials, BasicTokenAuthentication
-from c7n_azure import constants
-from c7n_azure.utils import ResourceIdParser, StringUtils
-
 
 class Session(object):
 
     def __init__(self, subscription_id=None, authorization_file=None,
-                 resource='https://management.core.windows.net/'):
+                 resource=RESOURCE_ACTIVE_DIRECTORY):
         """
         :param subscription_id: If provided overrides environment variables.
 

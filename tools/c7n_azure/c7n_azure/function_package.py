@@ -15,19 +15,18 @@ import distutils.util
 import json
 import logging
 import os
-import time
 import shutil
+import time
 
 import requests
-from c7n_azure.constants import ENV_CUSTODIAN_DISABLE_SSL_CERT_VERIFICATION, \
-    FUNCTION_EVENT_TRIGGER_MODE, FUNCTION_TIME_TRIGGER_MODE
-
-from c7n_azure.session import Session
 
 from c7n.mu import PythonPackageArchive
 from c7n.utils import local_session
-
+from c7n_azure.constants import (ENV_CUSTODIAN_DISABLE_SSL_CERT_VERIFICATION,
+                                 FUNCTION_EVENT_TRIGGER_MODE,
+                                 FUNCTION_TIME_TRIGGER_MODE)
 from c7n_azure.dependency_manager import DependencyManager
+from c7n_azure.session import Session
 
 
 class FunctionPackage(object):
@@ -177,7 +176,8 @@ class FunctionPackage(object):
 
                 self.pkg.add_file(f_path, dest_path)
 
-        self.pkg.add_modules(lambda f: ('\\cache\\' in f or '/cache/' in f),
+        exclude =  os.path.normpath('/cache/') + os.path.sep
+        self.pkg.add_modules(lambda f: (exclude in f),
                              *[m.replace('-', '_') for m in modules])
 
         # add config and policy
