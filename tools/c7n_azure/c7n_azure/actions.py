@@ -277,18 +277,17 @@ class TagTrim(BaseAction):
 
     def __init__(self, data=None, manager=None, log_dir=None):
         super(TagTrim, self).__init__(data, manager, log_dir)
+        self.preserve = set(self.data.get('preserve', {}))
+        self.space = self.data.get('space', 1)
 
     def validate(self):
-        if self.data.get('space') < 0 or self.data.get('space') > 15:
+        if self.space < 0 or self.space > 15:
             raise FilterValidationError("Space must be between 0 and 15")
 
         return self
 
     def process(self, resources):
         self.session = self.manager.get_session()
-        self.preserve = set(self.data.get('preserve', {}))
-        self.space = self.data.get('space', 1)
-
         with self.executor_factory(max_workers=3) as w:
             list(w.map(self.process_resource, resources))
 
@@ -353,10 +352,11 @@ class Notify(BaseNotify):
 
     def process(self, resources, event=None):
         session = utils.local_session(self.manager.session_factory)
+        subscription_id = session.get_subscription_id()
         message = {
             'event': event,
-            'account_id': session.subscription_id,
-            'account': session.subscription_id,
+            'account_id': subscription_id,
+            'account': subscription_id,
             'region': 'all',
             'policy': self.manager.data}
 
@@ -364,18 +364,18 @@ class Notify(BaseNotify):
 
         for batch in utils.chunks(resources, self.batch_size):
             message['resources'] = batch
-            receipt = self.send_data_message(message, session)
+            receipt = self.send_data_message(message)
             self.log.info("sent message:%s policy:%s template:%s count:%s" % (
                 receipt, self.manager.data['name'],
                 self.data.get('template', 'default'), len(batch)))
 
-    def send_data_message(self, message, session):
+    def send_data_message(self, message):
         if self.data['transport']['type'] == 'asq':
             queue_uri = self.data['transport']['queue']
-            return self.send_to_azure_queue(queue_uri, message, session)
+            return self.send_to_azure_queue(queue_uri, message)
 
-    def send_to_azure_queue(self, queue_uri, message, session):
-        queue_service, queue_name = StorageUtilities.get_queue_client_by_uri(queue_uri, session)
+    def send_to_azure_queue(self, queue_uri, message):
+        queue_service, queue_name = StorageUtilities.get_queue_client_by_uri(queue_uri)
         return StorageUtilities.put_queue_message(queue_service, queue_name, self.pack(message)).id
 
 
