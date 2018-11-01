@@ -35,11 +35,15 @@ class DependencyManager(object):
             res.extend([str(r) for r in next(d.requires() for d in dists if (p + ' ') in str(d))])
 
         res = [t for t in res if not any((e in t) for e in excluded_packages)]
+
+        # boto3 is a dependency for both c7n and c7n_mailer.. Remove the duplicate from the list
+        # because not all versions of pip can handle this.
+        res = [t for t in res if not any((e != t and t in e) for e in res)]
         return res
 
     @staticmethod
     def prepare_non_binary_wheels(packages, folder):
-        cmd = ['pip', 'wheel', '-w', folder, '--no-binary=:all:']
+        cmd = ['pip', 'wheel', '-w', folder, '--no-binary=:all:', '--no-dependencies']
         cmd.extend(packages)
         pip = DependencyManager._run(cmd)
 

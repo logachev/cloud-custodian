@@ -132,18 +132,20 @@ class FunctionPackage(object):
     def _update_perms_package(self):
         os.chmod(self.pkg.path, 0o0644)
 
-    def build(self, policy, queue_name=None, entry_point=None, extra_modules=None):
+    def build(self, policy, queue_name=None, extra_modules=[], extra_non_binary_packages=[]):
 
         c7n_azure_root = os.path.dirname(__file__)
         cache_folder = os.path.join(c7n_azure_root, 'cache')
         wheels_folder = os.path.join(cache_folder, 'wheels')
         wheels_install_folder = os.path.join(cache_folder, 'dependencies')
 
-        non_binary_packages = ['pyyaml~=3.13', 'pycparser', 'tabulate>=0.8.2']
-        excluded_packages = ['c7n', 'azure-cli-core', 'distlib', 'futures']
+        modules = ['c7n', 'c7n-azure'] + extra_modules
+        non_binary_packages = \
+            ['pyyaml~=3.13', 'pycparser', 'tabulate>=0.8.2'] + extra_non_binary_packages
+        excluded_packages = ['azure-cli-core', 'distlib', 'futures'] + modules
 
         packages = \
-            DependencyManager.get_dependency_packages_list(['c7n', 'c7n-azure'], excluded_packages)
+            DependencyManager.get_dependency_packages_list(modules, excluded_packages)
 
         if not DependencyManager.check_cache(cache_folder, wheels_install_folder, packages):
             self.log.info("Cached packages not found or requirements were changed.")
@@ -175,8 +177,8 @@ class FunctionPackage(object):
 
                 self.pkg.add_file(f_path, dest_path)
 
-        modules = {'c7n', 'c7n_azure'}
-        self.pkg.add_modules(lambda f: ('\\cache\\' in f or '/cache/' in f), *modules)
+        self.pkg.add_modules(lambda f: ('\\cache\\' in f or '/cache/' in f),
+                             *[m.replace('-', '_') for m in modules])
 
         # add config and policy
         self._add_functions_required_files(policy, queue_name)

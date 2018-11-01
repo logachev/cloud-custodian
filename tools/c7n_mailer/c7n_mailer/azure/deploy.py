@@ -84,8 +84,8 @@ def provision(config):
         os.path.join(os.path.dirname(__file__), 'function.py'))
 
     packager.build(None,
-                   entry_point=os.path.join(os.path.dirname(__file__), 'handle.py'),
-                   extra_modules={'c7n_mailer', 'ruamel'})
+                   extra_modules=['c7n-mailer'],
+                   extra_non_binary_packages=['datadog', 'MarkupSafe>=0.23', 'simplejson>=3.0.0'])
 
     packager.pkg.add_contents(
         function_name + '/config.json',
@@ -105,6 +105,8 @@ def provision(config):
             packager.pkg.add_contents('msg-templates/%s' % t, fh.read())
 
     packager.close()
+
+    log.info("Function package built, size is %dMB" % (packager.pkg.size / (1024 * 1024)))
 
     if packager.wait_for_status(function_app):
         packager.publish(function_app)
