@@ -14,11 +14,16 @@
 
 import base64
 import json
+import os
+import shutil
+import sys
 import unittest
 import zlib
 
+from c7n_azure.function_package import FunctionPackage
 from c7n_azure.storage_utils import StorageUtilities
 from c7n_mailer.azure.azure_queue_processor import MailerAzureQueueProcessor
+from c7n_mailer.azure.deploy import build_function_package
 from common import MAILER_CONFIG_AZURE, ASQ_MESSAGE, logger
 from mock import MagicMock, patch
 
@@ -75,3 +80,19 @@ class AzureTest(unittest.TestCase):
         self.assertEqual(2, mock_get_messages.call_count)
         self.assertEqual(1, mock_process.call_count)
         mock_delete.assert_called()
+
+    @patch('c7n_azure.dependency_manager.DependencyManager.install_wheels')
+    @patch('c7n_azure.dependency_manager.DependencyManager.check_cache', return_value=False)
+    @patch('c7n_azure.dependency_manager.DependencyManager.create_cache_metadata')
+    def test_package(self, install_mock, check_mock, create_mock):
+        if sys.version_info[0] < 3:
+            return
+
+        cache_folder = FunctionPackage('test').cache_folder
+        if os.path.exists(cache_folder):
+            shutil.rmtree(cache_folder)
+
+        build_function_package({'templates_folders': '.'}, 'test')
+
+        self.assertTrue(os.path.exists(cache_folder))
+        shutil.rmtree(cache_folder)

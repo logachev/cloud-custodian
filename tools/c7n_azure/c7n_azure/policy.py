@@ -184,14 +184,23 @@ class AzureFunctionMode(ServerlessExecutionMode):
     def validate(self):
         """Validate configuration settings for execution mode."""
 
+    def _build_functions_package(self, queue_name):
+        package = FunctionPackage(self.policy_name,
+                                  )
+        package.build(self.policy.data,
+                      modules=['c7n', 'c7n-azure'],
+                      non_binary_packages=['pyyaml~=3.13', 'pycparser', 'tabulate>=0.8.2'],
+                      excluded_packages=['azure-cli-core', 'distlib', 'futures'],
+                      queue_name=queue_name)
+        package.close()
+        return package
+
     def _publish_functions_package(self, queue_name=None):
         self.log.info("Building function package for %s" % self.function_params.function_app_name)
 
-        archive = FunctionPackage(self.policy_name)
-        archive.build(self.policy.data, queue_name=queue_name)
-        archive.close()
+        package = self._build_functions_package(queue_name)
 
-        self.log.info("Function package built, size is %dMB" % (archive.pkg.size / (1024 * 1024)))
+        self.log.info("Function package built, size is %dMB" % (package.pkg.size / (1024 * 1024)))
 
         client = local_session(self.policy.session_factory)\
             .client('azure.mgmt.web.WebSiteManagementClient')
@@ -199,8 +208,8 @@ class AzureFunctionMode(ServerlessExecutionMode):
             self.function_params.function_app_resource_group_name,
             self.function_params.function_app_name).result()
 
-        if archive.wait_for_status(publish_creds):
-            archive.publish(publish_creds)
+        if package.wait_for_status(publish_creds):
+            package.publish(publish_creds)
         else:
             self.log.error("Aborted deployment, ensure Application Service is healthy.")
 

@@ -34,7 +34,7 @@ class DependencyManager(object):
         for p in packages:
             res.extend([str(r) for r in next(d.requires() for d in dists if (p + ' ') in str(d))])
 
-        res = [t for t in res if not any((e in t) for e in excluded_packages)]
+        res = [t for t in res if not any((e in t) for e in excluded_packages + packages)]
 
         # boto3 is a dependency for both c7n and c7n_mailer.. Remove the duplicate from the list
         # because not all versions of pip can handle this.

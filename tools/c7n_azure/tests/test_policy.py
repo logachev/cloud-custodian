@@ -13,10 +13,17 @@
 # limitations under the License.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import os
+import sys
+import shutil 
+
 from azure_common import BaseTest
 from c7n_azure.azure_events import AzureEvents
 from c7n_azure.constants import FUNCTION_EVENT_TRIGGER_MODE, FUNCTION_TIME_TRIGGER_MODE
+from c7n_azure.function_package import FunctionPackage
 from c7n_azure.policy import AzureEventGridMode, AzureFunctionMode
+
+from mock import patch
 
 
 class AzurePolicyModeTest(BaseTest):
@@ -207,3 +214,27 @@ class AzurePolicyModeTest(BaseTest):
         }
         event_mode = AzureEventGridMode(p)
         self.assertFalse(event_mode._is_subscribed_to_event(event, subscribed_events))
+
+    @patch('c7n_azure.dependency_manager.DependencyManager.install_wheels')
+    @patch('c7n_azure.dependency_manager.DependencyManager.check_cache', return_value=False)
+    @patch('c7n_azure.dependency_manager.DependencyManager.create_cache_metadata')
+    def test_package(self, install_mock, check_mock, create_mock):
+        if sys.version_info[0] < 3:
+            return
+
+        p = self.load_policy({
+            'name': 'test-azure-event',
+            'resource': 'azure.vm',
+            'mode':
+                {'type': FUNCTION_EVENT_TRIGGER_MODE,
+                 'events': ['VmWrite']},
+        })
+
+        cache_folder = FunctionPackage('test').cache_folder
+
+        if os.path.exists(cache_folder):
+            shutil.rmtree(cache_folder)
+        AzureFunctionMode(p)._build_functions_package(None)
+
+        self.assertTrue(os.path.exists(cache_folder))
+        shutil.rmtree(cache_folder)

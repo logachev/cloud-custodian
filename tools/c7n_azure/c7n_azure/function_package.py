@@ -131,27 +131,25 @@ class FunctionPackage(object):
     def _update_perms_package(self):
         os.chmod(self.pkg.path, 0o0644)
 
-    def build(self, policy, queue_name=None, extra_modules=[], extra_non_binary_packages=[]):
-
+    @property
+    def cache_folder(self):
         c7n_azure_root = os.path.dirname(__file__)
-        cache_folder = os.path.join(c7n_azure_root, 'cache')
-        wheels_folder = os.path.join(cache_folder, 'wheels')
-        wheels_install_folder = os.path.join(cache_folder, 'dependencies')
+        return os.path.join(c7n_azure_root, 'cache')
 
-        modules = ['c7n', 'c7n-azure'] + extra_modules
-        non_binary_packages = \
-            ['pyyaml~=3.13', 'pycparser', 'tabulate>=0.8.2'] + extra_non_binary_packages
-        excluded_packages = ['azure-cli-core', 'distlib', 'futures'] + modules
+    def build(self, policy, modules, non_binary_packages, excluded_packages, queue_name=None,):
+
+        wheels_folder = os.path.join(self.cache_folder, 'wheels')
+        wheels_install_folder = os.path.join(self.cache_folder, 'dependencies')
 
         packages = \
             DependencyManager.get_dependency_packages_list(modules, excluded_packages)
 
-        if not DependencyManager.check_cache(cache_folder, wheels_install_folder, packages):
+        if not DependencyManager.check_cache(self.cache_folder, wheels_install_folder, packages):
             self.log.info("Cached packages not found or requirements were changed.")
             # If cache check fails, wipe all previous wheels, installations etc
-            if os.path.exists(cache_folder):
+            if os.path.exists(self.cache_folder):
                 self.log.info("Removing cache folder...")
-                shutil.rmtree(cache_folder)
+                shutil.rmtree(self.cache_folder)
 
             self.log.info("Preparing non binary wheels...")
             DependencyManager.prepare_non_binary_wheels(non_binary_packages, wheels_folder)
@@ -163,7 +161,9 @@ class FunctionPackage(object):
             DependencyManager.install_wheels(wheels_folder, wheels_install_folder)
 
             self.log.info("Updating metadata file...")
-            DependencyManager.create_cache_metadata(cache_folder, wheels_install_folder, packages)
+            DependencyManager.create_cache_metadata(self.cache_folder,
+                                                    wheels_install_folder,
+                                                    packages)
 
         for root, _, files in os.walk(wheels_install_folder):
             arc_prefix = os.path.relpath(root, wheels_install_folder)
