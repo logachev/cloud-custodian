@@ -30,6 +30,7 @@ except ImportError:
     FunctionPackage = None
     pass
 
+
 def build_function_package(config, function_name):
     schedule = config.get('function_schedule', '0 */10 * * * *')
 
@@ -66,6 +67,7 @@ def build_function_package(config, function_name):
 
     package.close()
     return package
+
 
 def provision(config):
     log = logging.getLogger('c7n_mailer.azure.deploy')

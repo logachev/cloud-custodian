@@ -176,7 +176,7 @@ class FunctionPackage(object):
 
                 self.pkg.add_file(f_path, dest_path)
 
-        exclude =  os.path.normpath('/cache/') + os.path.sep
+        exclude = os.path.normpath('/cache/') + os.path.sep
         self.pkg.add_modules(lambda f: (exclude in f),
                              *[m.replace('-', '_') for m in modules])
 

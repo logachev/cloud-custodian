@@ -15,7 +15,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import os
 import sys
-import shutil 
+import shutil
 
 from azure_common import BaseTest
 from c7n_azure.azure_events import AzureEvents
