@@ -23,13 +23,17 @@ class DependencyManager(object):
         return subprocess.run(cmd, stdout=stdout, stderr=stderr, **kwargs)
 
     @staticmethod
-    def get_dependency_packages_list(packages, excluded_packages):
+    def _get_installed_distributions():
         try:
             from pip._internal.utils.misc import get_installed_distributions
         except ImportError:
             from pip import get_installed_distributions
 
-        dists = get_installed_distributions()
+        return get_installed_distributions()
+
+    @staticmethod
+    def get_dependency_packages_list(packages, excluded_packages):
+        dists = DependencyManager._get_installed_distributions()
         res = []
         for p in packages:
             res.extend([str(r) for r in next(d.requires() for d in dists if (p + ' ') in str(d))])
@@ -43,6 +47,13 @@ class DependencyManager(object):
 
     @staticmethod
     def prepare_non_binary_wheels(packages, folder):
+        dists = DependencyManager._get_installed_distributions()
+
+        # Caller provides a list of packages, we augment it with currently installed package
+        # version from the environment.
+        packages = [str(d).replace(' ', '==') for d in dists
+                    if any(p.lower() in str(d).lower() for p in packages)]
+
         cmd = ['pip', 'wheel', '-w', folder, '--no-binary=:all:', '--no-dependencies']
         cmd.extend(packages)
         pip = DependencyManager._run(cmd)

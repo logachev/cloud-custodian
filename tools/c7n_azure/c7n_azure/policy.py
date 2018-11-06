@@ -189,7 +189,7 @@ class AzureFunctionMode(ServerlessExecutionMode):
                                   )
         package.build(self.policy.data,
                       modules=['c7n', 'c7n-azure'],
-                      non_binary_packages=['pyyaml~=3.13', 'pycparser', 'tabulate>=0.8.2'],
+                      non_binary_packages=['pyyaml', 'pycparser', 'tabulate'],
                       excluded_packages=['azure-cli-core', 'distlib', 'futures'],
                       queue_name=queue_name)
         package.close()
