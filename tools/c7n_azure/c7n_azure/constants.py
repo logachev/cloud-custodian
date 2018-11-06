@@ -39,3 +39,9 @@ Authentication Resource
 """
 RESOURCE_ACTIVE_DIRECTORY = 'https://management.core.windows.net/'
 RESOURCE_STORAGE = 'https://storage.azure.com/'
+
+"""
+Threading Variable
+"""
+DEFAULT_MAX_THREAD_WORKERS = 3
+DEFAULT_CHUNK_SIZE = 20
