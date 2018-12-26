@@ -140,7 +140,8 @@ class MetricFilter(Filter):
             filter=self.filter
         )
         if len(metrics_data.value) > 0 and len(metrics_data.value[0].timeseries) > 0:
-            m = [getattr(item, self.aggregation) for item in metrics_data.value[0].timeseries[0].data]
+            m = [getattr(item, self.aggregation)
+                 for item in metrics_data.value[0].timeseries[0].data]
         else:
             m = None
         return m
