@@ -20,8 +20,10 @@ import logging
 import os
 import shutil
 import tempfile
+import uuid
 
 from c7n_azure.storage_utils import StorageUtilities
+from c7n_azure.utils import AppInsightsHelper
 from c7n.output import (
     blob_outputs,
     log_outputs,
@@ -35,6 +37,10 @@ from c7n.utils import local_session
 from applicationinsights import TelemetryClient
 from applicationinsights.logging import LoggingHandler
 from azure.common import AzureHttpError
+
+
+# executionId is used to group logs\metrics from the same run together
+executionId = str(uuid.uuid4())
 
 
 @blob_outputs.register('azure')
@@ -112,7 +118,7 @@ class MetricsOutput(Metrics):
 
     def __init__(self, ctx, config=None):
         super(MetricsOutput, self).__init__(ctx, config)
-        self.instrumentation_key = self.config['url'].split('//')[1]
+        self.instrumentation_key = AppInsightsHelper.get_instrumentation_key(config['url'])
         self.namespace = self.ctx.policy.name
         self.subscription_id = local_session(self.ctx.policy.session_factory).get_subscription_id()
         self.tc = TelemetryClient(self.instrumentation_key)
@@ -125,6 +131,7 @@ class MetricsOutput(Metrics):
                 'Policy': self.ctx.policy.name,
                 'ResType': self.ctx.policy.resource_type,
                 'SubscriptionId': self.subscription_id,
+                'ExecutionId': executionId,
                 'Unit': unit
             }
         }
@@ -154,7 +161,8 @@ class AppInsightsLogHandler(LoggingHandler):
             'LineNumber': record.lineno,
             'Level': record.levelname,
             'Policy': self.policy,
-            'SubscriptionId': self.subscription_id
+            'SubscriptionId': self.subscription_id,
+            'ExecutionId': executionId
         }
 
         if record.exc_info:
@@ -172,7 +180,7 @@ class AppInsightsLogOutput(LogOutput):
 
     def __init__(self, ctx, config=None):
         super(AppInsightsLogOutput, self).__init__(ctx, config)
-        self.instrumentation_key = self.config['url'].split('//')[1]
+        self.instrumentation_key = AppInsightsHelper.get_instrumentation_key(config['url'])
         self.subscription_id = local_session(self.ctx.policy.session_factory).get_subscription_id()
 
     def get_handler(self):
