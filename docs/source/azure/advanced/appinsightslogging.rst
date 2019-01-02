@@ -31,7 +31,7 @@ Additionally some filters and actions may generate their own metrics.
 
 You can specify the instrumentation key or resource group and resource names, similar to Logs output.
 
-In order to enable metrics output, the boolean metrics flag needs to be specified when running Cloud Custodian:
+In order to enable metrics output, the metrics flag needs to be specified when running Cloud Custodian:
 
     .. code-block:: sh
 

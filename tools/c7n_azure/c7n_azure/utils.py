@@ -30,7 +30,6 @@ from msrestazure.tools import parse_resource_id
 from c7n.utils import chunks
 
 from c7n.utils import local_session
-from c7n_azure import session
 
 
 class ResourceIdParser(object):
@@ -324,7 +323,8 @@ class AppInsightsHelper(object):
 
     @staticmethod
     def _get_instrumentation_key(resource_group_name, resource_name):
-        s = local_session(session.Session)
+        from .session import Session
+        s = local_session(Session)
         client = s.client('azure.mgmt.applicationinsights.ApplicationInsightsManagementClient')
         try:
             insights = client.components.get(resource_group_name, resource_name)

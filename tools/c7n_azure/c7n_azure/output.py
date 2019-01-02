@@ -20,7 +20,6 @@ import logging
 import os
 import shutil
 import tempfile
-import uuid
 
 from c7n_azure.storage_utils import StorageUtilities
 from c7n_azure.utils import AppInsightsHelper
@@ -37,10 +36,6 @@ from c7n.utils import local_session
 from applicationinsights import TelemetryClient
 from applicationinsights.logging import LoggingHandler
 from azure.common import AzureHttpError
-
-
-# executionId is used to group logs\metrics from the same run together
-executionId = str(uuid.uuid4())
 
 
 @blob_outputs.register('azure')
@@ -118,12 +113,18 @@ class MetricsOutput(Metrics):
 
     def __init__(self, ctx, config=None):
         super(MetricsOutput, self).__init__(ctx, config)
-        self.instrumentation_key = AppInsightsHelper.get_instrumentation_key(config['url'])
         self.namespace = self.ctx.policy.name
-        self.subscription_id = local_session(self.ctx.policy.session_factory).get_subscription_id()
+        self.tc = None
+
+    def _initialize(self):
+        if self.tc is not None:
+            return
+        self.instrumentation_key = AppInsightsHelper.get_instrumentation_key(self.config['url'])
         self.tc = TelemetryClient(self.instrumentation_key)
+        self.subscription_id = local_session(self.ctx.policy.session_factory).get_subscription_id()
 
     def _format_metric(self, key, value, unit, dimensions):
+        self._initialize()
         d = {
             'Name': key,
             'Value': value,
@@ -131,7 +132,7 @@ class MetricsOutput(Metrics):
                 'Policy': self.ctx.policy.name,
                 'ResType': self.ctx.policy.resource_type,
                 'SubscriptionId': self.subscription_id,
-                'ExecutionId': executionId,
+                'ExecutionId': self.ctx.execution_id,
                 'Unit': unit
             }
         }
@@ -140,6 +141,7 @@ class MetricsOutput(Metrics):
         return d
 
     def _put_metrics(self, ns, metrics):
+        self._initialize()
         for m in metrics:
             self.tc.track_metric(name=m['Name'],
                                  value=m['Value'],
@@ -148,10 +150,11 @@ class MetricsOutput(Metrics):
 
 
 class AppInsightsLogHandler(LoggingHandler):
-    def __init__(self, instrumentation_key, policy, subscription_id):
+    def __init__(self, instrumentation_key, policy_name, subscription_id, execution_id):
         super(AppInsightsLogHandler, self).__init__(instrumentation_key)
-        self.policy = policy
+        self.policy_name = policy_name
         self.subscription_id = subscription_id
+        self.execution_id = execution_id
 
     def emit(self, record):
         properties = {
@@ -160,9 +163,9 @@ class AppInsightsLogHandler(LoggingHandler):
             'FileName': record.filename,
             'LineNumber': record.lineno,
             'Level': record.levelname,
-            'Policy': self.policy,
+            'Policy': self.policy_name,
             'SubscriptionId': self.subscription_id,
-            'ExecutionId': executionId
+            'ExecutionId': self.execution_id
         }
 
         if record.exc_info:
@@ -178,12 +181,10 @@ class AppInsightsLogOutput(LogOutput):
 
     log_format = '%(asctime)s - %(levelname)s - %(name)s - %(message)s'
 
-    def __init__(self, ctx, config=None):
-        super(AppInsightsLogOutput, self).__init__(ctx, config)
-        self.instrumentation_key = AppInsightsHelper.get_instrumentation_key(config['url'])
-        self.subscription_id = local_session(self.ctx.policy.session_factory).get_subscription_id()
-
     def get_handler(self):
+        self.instrumentation_key = AppInsightsHelper.get_instrumentation_key(self.config['url'])
+        self.subscription_id = local_session(self.ctx.policy.session_factory).get_subscription_id()
         return AppInsightsLogHandler(self.instrumentation_key,
                                      self.ctx.policy.name,
-                                     self.subscription_id)
+                                     self.subscription_id,
+                                     self.ctx.execution_id)
