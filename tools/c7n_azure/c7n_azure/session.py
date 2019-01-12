@@ -144,7 +144,6 @@ class Session(object):
             resource=resource)
 
     def client(self, client):
-        logging.getLogger('urllib3').setLevel(logging.DEBUG)
         self._initialize_session()
         service_name, client_name = client.rsplit('.', 1)
         svc_module = importlib.import_module(service_name)

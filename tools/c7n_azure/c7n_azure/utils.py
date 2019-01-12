@@ -16,6 +16,7 @@ import datetime
 import hashlib
 import logging
 import re
+import time
 import uuid
 from builtins import bytes
 from concurrent.futures import as_completed
@@ -94,18 +95,22 @@ def now(tz=None):
     """
     return datetime.datetime.now(tz=tz)
 
+
 def azure_name_value_pair(name, value):
     return NameValuePair(**{'name': name, 'value': value})
 
+
 send_logger = logging.getLogger('custodian.azure.utils.ServiceClient.send')
-def custodian_azure_send_override(self, request, headers=None, content=None, **kwargs):  
+
+
+def custodian_azure_send_override(self, request, headers=None, content=None, **kwargs):
     """ Overrides ServiceClient.send() function to implement retries & log headers
     """
     retries = 0
     max_retries = 3
     while retries < max_retries:
         response = self.old_send(request, headers, content, **kwargs)
-        
+
         send_logger.debug(response.status_code)
         for k, v in response.headers.items():
             if k.startswith('x-ms-ratelimit'):
@@ -122,7 +127,7 @@ def custodian_azure_send_override(self, request, headers=None, content=None, **k
                 time.sleep(retry_after)
                 retries += 1
             else:
-                send_logger.error("Received throttling error, retry time is %i" \
+                send_logger.error("Received throttling error, retry time is %i"
                                   "(retry only if < 30 seconds)." % (retry_after))
                 break
         else:
