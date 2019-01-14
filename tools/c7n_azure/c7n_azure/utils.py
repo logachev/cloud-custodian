@@ -123,7 +123,7 @@ def custodian_azure_send_override(self, request, headers=None, content=None, **k
                 if StringUtils.equal('retry-after', k):
                     retry_after = int(response.headers[k])
 
-            if retry_after and retry_after < 30:
+            if retry_after is not None and retry_after < 30:
                 time.sleep(retry_after)
                 retries += 1
             else:
