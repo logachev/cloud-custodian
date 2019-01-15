@@ -35,6 +35,10 @@ class SessionTest(BaseTest):
     def setUp(self):
         super(SessionTest, self).setUp()
 
+    def tearDown(self):
+        super(SessionTest, self).tearDown()
+        reload(sys.modules['c7n_azure.session'])
+
     def mock_init(self, client_id, secret, tenant, resource):
         pass
 
@@ -169,6 +173,6 @@ class SessionTest(BaseTest):
         s = Session()
         client = s.client('azure.mgmt.resource.ResourceManagementClient')
         self.assertFalse(client._client.config.retry_policy.policy.respect_retry_after_header)
-        self.assertIsNotNone(client._client.old_send)
+        self.assertIsNotNone(client._client.orig_send)
         client._client.send()
         self.assertTrue(mock.called)

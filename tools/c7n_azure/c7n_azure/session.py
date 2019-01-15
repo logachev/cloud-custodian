@@ -152,7 +152,7 @@ class Session(object):
 
         # Override send() method to log request limits & custom retries
         service_client = client._client
-        service_client.old_send = service_client.send
+        service_client.orig_send = service_client.send
         service_client.send = types.MethodType(custodian_azure_send_override, service_client)
 
         # Don't respect retry_after_header to implement custom retries

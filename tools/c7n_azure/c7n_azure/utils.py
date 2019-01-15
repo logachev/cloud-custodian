@@ -109,7 +109,7 @@ def custodian_azure_send_override(self, request, headers=None, content=None, **k
     retries = 0
     max_retries = 3
     while retries < max_retries:
-        response = self.old_send(request, headers, content, **kwargs)
+        response = self.orig_send(request, headers, content, **kwargs)
 
         send_logger.debug(response.status_code)
         for k, v in response.headers.items():
@@ -123,12 +123,13 @@ def custodian_azure_send_override(self, request, headers=None, content=None, **k
                 if StringUtils.equal('retry-after', k):
                     retry_after = int(response.headers[k])
 
-            if retry_after is not None and retry_after < 30:
+            if retry_after is not None and retry_after < constants.DEFAULT_MAX_RETRY_AFTER:
                 time.sleep(retry_after)
                 retries += 1
             else:
                 send_logger.error("Received throttling error, retry time is %i"
-                                  "(retry only if < 30 seconds)." % (retry_after))
+                                  "(retry only if < %i seconds)."
+                                  % (retry_after, constants.DEFAULT_MAX_RETRY_AFTER))
                 break
         else:
             break

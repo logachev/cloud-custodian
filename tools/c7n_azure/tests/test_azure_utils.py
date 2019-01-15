@@ -190,10 +190,10 @@ class UtilsTest(BaseTest):
             'headers': {'x-ms-ratelimit-remaining-subscription-reads': '12000'},
             'status_code': 200
         }
-        mock.old_send.return_value = type(str('response'), (), response_dict)
+        mock.orig_send.return_value = type(str('response'), (), response_dict)
         mock.send('')
 
-        self.assertEqual(mock.old_send.call_count, 1)
+        self.assertEqual(mock.orig_send.call_count, 1)
         self.assertEqual(logger.call_count, 2)
 
     @patch('c7n_azure.utils.send_logger.debug')
@@ -205,10 +205,10 @@ class UtilsTest(BaseTest):
             'headers': {'Retry-After': 0},
             'status_code': 429
         }
-        mock.old_send.return_value = type(str('response'), (), response_dict)
+        mock.orig_send.return_value = type(str('response'), (), response_dict)
         mock.send('')
 
-        self.assertEqual(mock.old_send.call_count, 3)
+        self.assertEqual(mock.orig_send.call_count, 3)
         self.assertEqual(logger.call_count, 3)
 
     @patch('c7n_azure.utils.send_logger.error')
@@ -220,8 +220,8 @@ class UtilsTest(BaseTest):
             'headers': {'Retry-After': 60},
             'status_code': 429
         }
-        mock.old_send.return_value = type(str('response'), (), response_dict)
+        mock.orig_send.return_value = type(str('response'), (), response_dict)
         mock.send('')
 
-        self.assertEqual(mock.old_send.call_count, 1)
+        self.assertEqual(mock.orig_send.call_count, 1)
         self.assertEqual(logger.call_count, 1)
