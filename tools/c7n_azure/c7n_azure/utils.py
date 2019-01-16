@@ -124,6 +124,8 @@ def custodian_azure_send_override(self, request, headers=None, content=None, **k
                     retry_after = int(response.headers[k])
 
             if retry_after is not None and retry_after < constants.DEFAULT_MAX_RETRY_AFTER:
+                send_logger.warning('Received retriable error code %i. Retry-After: %i'
+                                    % (response.status_code, retry_after))
                 time.sleep(retry_after)
                 retries += 1
             else:

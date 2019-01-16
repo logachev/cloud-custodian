@@ -197,7 +197,8 @@ class UtilsTest(BaseTest):
         self.assertEqual(logger.call_count, 2)
 
     @patch('c7n_azure.utils.send_logger.debug')
-    def test_custodian_azure_send_override_429(self, logger):
+    @patch('c7n_azure.utils.send_logger.warning')
+    def test_custodian_azure_send_override_429(self, logger_debug, logger_warning):
         mock = Mock()
         mock.send = types.MethodType(custodian_azure_send_override, mock)
 
@@ -209,7 +210,8 @@ class UtilsTest(BaseTest):
         mock.send('')
 
         self.assertEqual(mock.orig_send.call_count, 3)
-        self.assertEqual(logger.call_count, 3)
+        self.assertEqual(logger_debug.call_count, 3)
+        self.assertEqual(logger_warning.call_count, 3)
 
     @patch('c7n_azure.utils.send_logger.error')
     def test_custodian_azure_send_override_429_long_retry(self, logger):
