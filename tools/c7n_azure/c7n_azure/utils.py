@@ -104,7 +104,7 @@ class ThreadHelper:
     disable_multi_threading = False
 
     @staticmethod
-    def execute_in_parallel(resources, execution_method, executor_factory, log,
+    def execute_in_parallel(resources, event, execution_method, executor_factory, log,
                             max_workers=constants.DEFAULT_MAX_THREAD_WORKERS,
                             chunk_size=constants.DEFAULT_CHUNK_SIZE):
         futures = []
@@ -115,14 +115,13 @@ class ThreadHelper:
 
         with executor_factory(max_workers=max_num_workers) as w:
             for resource_set in chunks(resources, chunk_size):
-                futures.append(w.submit(execution_method, resource_set))
+                futures.append(w.submit(execution_method, resource_set, event))
 
             for f in as_completed(futures):
                 if f.exception():
                     log.error(
                         "Execution failed with error: %s" % f.exception())
                     exceptions.append(f.exception())
-                    continue
                 else:
                     result = f.result()
                     if result:
