@@ -60,7 +60,7 @@ class AzureVCRBaseTest(VCRTestCase):
     def _get_vcr(self, **kwargs):
         myvcr = super(VCRTestCase, self)._get_vcr(**kwargs)
         myvcr.register_matcher('azurematcher', self.azure_matcher)
-        myvcr.match_on = ['azurematcher']
+        myvcr.match_on = ['azurematcher', 'method']
 
         # Block recording when using fake token (tox runs)
         if os.environ.get(constants.ENV_ACCESS_TOKEN) == "fake_token":
@@ -70,6 +70,7 @@ class AzureVCRBaseTest(VCRTestCase):
 
     def azure_matcher(self, r1, r2):
         """Replace all subscription ID's and ignore api-version"""
+
         if [k for k in set(r1.query) if k[0] != 'api-version'] != [
                 k for k in set(r2.query) if k[0] != 'api-version']:
             return False
