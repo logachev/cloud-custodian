@@ -19,7 +19,6 @@ import datetime
 import logging
 from email.utils import parseaddr
 
-from concurrent.futures import as_completed
 from datetime import timedelta
 
 import jmespath
@@ -37,7 +36,7 @@ from c7n.filters import FilterValidationError
 from c7n.filters.core import PolicyValidationError
 from c7n.filters.offhours import Time
 from c7n.resolver import ValuesFrom
-from c7n.utils import type_schema, chunks
+from c7n.utils import type_schema
 
 
 @six.add_metaclass(abc.ABCMeta)
