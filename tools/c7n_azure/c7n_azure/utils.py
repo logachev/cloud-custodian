@@ -111,23 +111,30 @@ class ThreadHelper:
         results = []
         exceptions = []
 
-        max_num_workers = 1 if ThreadHelper.disable_multi_threading else max_workers
+        if ThreadHelper.disable_multi_threading:
+            try:
+                result = execution_method(resources, event)
+                if result:
+                    results.extend(result)
+            except Exception as e:
+                print(e)
+                exceptions.append(e)
+        else:
+            with executor_factory(max_workers=max_num_workers) as w:
+                for resource_set in chunks(resources, chunk_size):
+                    futures.append(w.submit(execution_method, resource_set, event))
 
-        with executor_factory(max_workers=max_num_workers) as w:
-            for resource_set in chunks(resources, chunk_size):
-                futures.append(w.submit(execution_method, resource_set, event))
+                for f in as_completed(futures):
+                    if f.exception():
+                        log.error(
+                            "Execution failed with error: %s" % f.exception())
+                        exceptions.append(f.exception())
+                    else:
+                        result = f.result()
+                        if result:
+                            results.extend(result)
 
-            for f in as_completed(futures):
-                if f.exception():
-                    log.error(
-                        "Execution failed with error: %s" % f.exception())
-                    exceptions.append(f.exception())
-                else:
-                    result = f.result()
-                    if result:
-                        results.extend(result)
-
-            return results, list(set(exceptions))
+        return results, list(set(exceptions))
 
 
 class Math(object):
