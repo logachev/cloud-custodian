@@ -44,6 +44,7 @@ class AzureBaseAction(BaseAction):
     session = None
     max_workers = constants.DEFAULT_MAX_THREAD_WORKERS
     chunk_size = constants.DEFAULT_CHUNK_SIZE
+    log = logging.getLogger('custodian.azure.AzureBaseAction')
 
     def process(self, resources, event=None):
         self.session = self.manager.get_session()
@@ -77,10 +78,10 @@ class AzureBaseAction(BaseAction):
             try:
                 self._process_resource(r)
             except CloudError as e:
-                TagHelper.log.error("Failed to process resource.\n"
-                                    "Type: {0}.\n"
-                                    "Name: {1}.\n"
-                                    "Error: {2}".format(r['type'], r['name'], e))
+                self.log.error("Failed to process resource.\n"
+                               "Type: {0}.\n"
+                               "Name: {1}.\n"
+                               "Error: {2}".format(r['type'], r['name'], e))
 
     def _prepare_processing(self):
         pass
@@ -101,10 +102,10 @@ class AzureEventAction(EventAction, AzureBaseAction):
             try:
                 self._process_resource(r, event)
             except CloudError as e:
-                TagHelper.log.error("Failed to process resource.\n"
-                                    "Type: {0}.\n"
-                                    "Name: {1}.\n"
-                                    "Error: {2}".format(r['type'], r['name'], e))
+                self.log.error("Failed to process resource.\n"
+                               "Type: {0}.\n"
+                               "Name: {1}.\n"
+                               "Error: {2}".format(r['type'], r['name'], e))
 
     @abc.abstractmethod
     def _process_resource(self, resource, event):
