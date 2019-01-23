@@ -83,7 +83,6 @@ class AzureBaseAction(BaseAction):
                                     "Name: {1}.\n"
                                     "Error: {2}".format(r['type'], r['name'], e))
 
-    @abc.abstractmethod
     def _prepare_processing(self):
         pass
 
