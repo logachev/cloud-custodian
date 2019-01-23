@@ -119,7 +119,7 @@ class ThreadHelper:
             except Exception as e:
                 exceptions.append(e)
         else:
-            with executor_factory(max_workers=max_num_workers) as w:
+            with executor_factory(max_workers=max_workers) as w:
                 for resource_set in chunks(resources, chunk_size):
                     futures.append(w.submit(execution_method, resource_set, event))
 
