@@ -117,7 +117,6 @@ class ThreadHelper:
                 if result:
                     results.extend(result)
             except Exception as e:
-                print(e)
                 exceptions.append(e)
         else:
             with executor_factory(max_workers=max_num_workers) as w:
