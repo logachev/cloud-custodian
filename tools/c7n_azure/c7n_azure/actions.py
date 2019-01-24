@@ -89,7 +89,7 @@ class AzureBaseAction(BaseAction):
     @abc.abstractmethod
     def _process_resource(self, resource):
         raise NotImplementedError(
-            "Base action class does not implement behavior")
+            "Base action class does not implement this behavior")
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -110,7 +110,7 @@ class AzureEventAction(EventAction, AzureBaseAction):
     @abc.abstractmethod
     def _process_resource(self, resource, event):
         raise NotImplementedError(
-            "Base action class does not implement behavior")
+            "Base action class does not implement this behavior")
 
 
 class Tag(AzureBaseAction):
