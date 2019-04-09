@@ -22,11 +22,15 @@ requires = [
     "Jinja2",
     "boto3",
     "jsonschema",
-    "ruamel.yaml==0.15.42",
+    "simplejson",  # datadog packaging dep
+    "python-dateutil>=2.8",
+    "ruamel.yaml==0.15.88",
     "datadog",
-    "slackclient",
     "sendgrid",
-    "ldap3"]
+    "ldap3",
+    "c7n",
+    "redis"]
+
 
 try:
     from concurrent import futures  # noqa F401
@@ -45,7 +49,7 @@ if path.exists(readme):
 
 setup(
     name="c7n_mailer",
-    version='0.3.2',
+    version='0.4.2',
     description="Cloud Custodian - Reference Mailer",
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -63,4 +67,5 @@ setup(
         ]
     },
     install_requires=requires,
+    package_data={str(''): [str('msg-templates/*.j2')]},
 )

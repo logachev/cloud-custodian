@@ -59,6 +59,14 @@ def regex_match(value, regex):
     return bool(re.match(regex, value, flags=re.IGNORECASE))
 
 
+def regex_case_sensitive_match(value, regex):
+    if not isinstance(value, six.string_types):
+        return False
+    # Note python 2.5+ internally cache regex
+    # would be nice to use re2
+    return bool(re.match(regex, value))
+
+
 def operator_in(x, y):
     return x in y
 
@@ -90,6 +98,7 @@ OPERATORS = {
     'less-than': operator.lt,
     'glob': glob_match,
     'regex': regex_match,
+    'regex-case': regex_case_sensitive_match,
     'in': operator_in,
     'ni': operator_ni,
     'not-in': operator_ni,
@@ -130,7 +139,7 @@ class FilterRegistry(PluginRegistry):
                 return And(data, self, manager)
             elif op == 'not':
                 return Not(data, self, manager)
-            return ValueFilter(data, manager).validate()
+            return ValueFilter(data, manager)
         if isinstance(data, six.string_types):
             filter_type = data
             data = {'type': data}
@@ -161,6 +170,9 @@ class Filter(object):
     metrics = ()
     permissions = ()
     schema = {'type': 'object'}
+    # schema aliases get hoisted into a jsonschema definition
+    # location, and then referenced inline.
+    schema_alias = None
 
     def __init__(self, data, manager=None):
         self.data = data
@@ -177,14 +189,63 @@ class Filter(object):
         """ Bulk process resources and return filtered set."""
         return list(filter(self, resources))
 
+    def get_block_operator(self):
+        """Determine the immediate parent boolean operator for a filter"""
+        # Top level operator is `and`
+        block_stack = ['and']
+        for f in self.manager.iter_filters(block_end=True):
+            if f is None:
+                block_stack.pop()
+                continue
+            if f.type in ('and', 'or', 'not'):
+                block_stack.append(f.type)
+            if f == self:
+                break
+        return block_stack[-1]
 
-class Or(Filter):
+    def merge_annotation(self, r, annotation_key, values):
+        block_op = self.get_block_operator()
+        if block_op in ('and', 'not'):
+            r[self.matched_annotation_key] = intersect_list(
+                values,
+                r.get(self.matched_annotation_key))
+
+        if not values and block_op != 'or':
+            return
+
+        r_matched = r.setdefault(self.matched_annotation_key, [])
+        for k in values:
+            if k not in r_matched:
+                r_matched.append(k)
+
+
+def intersect_list(a, b):
+    if b is None:
+        return a
+    elif a is None:
+        return b
+    res = []
+    for x in a:
+        if x in b:
+            res.append(x)
+    return res
+
+
+class BooleanGroupFilter(Filter):
 
     def __init__(self, data, registry, manager):
-        super(Or, self).__init__(data)
+        super(BooleanGroupFilter, self).__init__(data)
         self.registry = registry
         self.filters = registry.parse(list(self.data.values())[0], manager)
         self.manager = manager
+
+    def validate(self):
+        for f in self.filters:
+            f.validate()
+        return self
+
+
+class Or(BooleanGroupFilter):
 
     def process(self, resources, event=None):
         if self.manager:
@@ -208,13 +269,7 @@ class Or(Filter):
         return [resource_map[r_id] for r_id in results]
 
 
-class And(Filter):
-
-    def __init__(self, data, registry, manager):
-        super(And, self).__init__(data)
-        self.registry = registry
-        self.filters = registry.parse(list(self.data.values())[0], manager)
-        self.manager = manager
+class And(BooleanGroupFilter):
 
     def process(self, resources, events=None):
         if self.manager:
@@ -222,6 +277,8 @@ class And(Filter):
 
         for f in self.filters:
             resources = f.process(resources, events)
+            if not resources:
+                break
 
         if self.manager:
             sweeper.sweep(resources)
@@ -229,13 +286,7 @@ class And(Filter):
         return resources
 
 
-class Not(Filter):
-
-    def __init__(self, data, registry, manager):
-        super(Not, self).__init__(data)
-        self.registry = registry
-        self.filters = registry.parse(list(self.data.values())[0], manager)
-        self.manager = manager
+class Not(BooleanGroupFilter):
 
     def process(self, resources, event=None):
         if self.manager:
@@ -259,6 +310,8 @@ class Not(Filter):
 
         for f in self.filters:
             resources = f.process(resources, event)
+            if not resources:
+                break
 
         before = set(resource_map.keys())
         after = set([r[resource_type.id] for r in resources])
@@ -325,6 +378,7 @@ class ValueFilter(Filter):
             'op': {'enum': list(OPERATORS.keys())}}}
 
     annotate = True
+    required_keys = set(('value', 'key'))
 
     def __init__(self, data, manager=None):
         super(ValueFilter, self).__init__(data, manager)
@@ -350,7 +404,7 @@ class ValueFilter(Filter):
                 "`value` must be an integer in resource_count filter %s" % self.data)
 
         # I don't see how to support regex for this?
-        if self.data['op'] not in OPERATORS or self.data['op'] == 'regex':
+        if self.data['op'] not in OPERATORS or self.data['op'] in {'regex', 'regex-case'}:
             raise PolicyValidationError(
                 "Invalid operator in value filter %s" % self.data)
 
@@ -365,17 +419,19 @@ class ValueFilter(Filter):
         if self.data.get('value_type') == 'resource_count':
             return self._validate_resource_count()
 
-        if 'key' not in self.data:
+        if 'key' not in self.data and 'key' in self.required_keys:
             raise PolicyValidationError(
                 "Missing 'key' in value filter %s" % self.data)
-        if 'value' not in self.data and 'value_from' not in self.data:
+        if ('value' not in self.data and
+                'value_from' not in self.data and
+                'value' in self.required_keys):
             raise PolicyValidationError(
                 "Missing 'value' in value filter %s" % self.data)
         if 'op' in self.data:
             if not self.data['op'] in OPERATORS:
                 raise PolicyValidationError(
                     "Invalid operator in value filter %s" % self.data)
-            if self.data['op'] == 'regex':
+            if self.data['op'] in {'regex', 'regex-case'}:
                 # Sanity check that we can compile
                 try:
                     re.compile(self.data['value'])
@@ -412,6 +468,11 @@ class ValueFilter(Filter):
                     if t.get('Key') == tk:
                         r = t.get('Value')
                         break
+            # GCP schema: 'labels': {'key': 'value'}
+            elif 'labels' in i:
+                r = i.get('labels', {}).get(tk, None)
+            # GCP has a secondary form of labels called tags
+            # as labels without values.
             # Azure schema: 'tags': {'key': 'value'}
             elif 'tags' in i:
                 r = i.get('tags', {}).get(tk, None)
@@ -482,7 +543,7 @@ class ValueFilter(Filter):
 
         elif self.vtype == 'integer':
             try:
-                value = int(value.strip())
+                value = int(str(value).strip())
             except ValueError:
                 value = 0
         elif self.vtype == 'size':
