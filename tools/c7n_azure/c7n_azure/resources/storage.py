@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from azure.mgmt.storage import StorageManagementClient
-from azure.mgmt.storage.models import IPRule, NetworkRuleSet, StorageAccountUpdateParameters, VirtualNetworkRule
+from azure.mgmt.storage.models import IPRule, \
+    NetworkRuleSet, StorageAccountUpdateParameters, VirtualNetworkRule
 from c7n.filters.core import type_schema
 from c7n_azure.actions import AzureBaseAction
 from c7n_azure.provider import resources
@@ -28,6 +28,7 @@ class Storage(ArmResourceManager):
         client = 'StorageManagementClient'
         enum_spec = ('storage_accounts', 'list', None)
         diagnostic_settings_enabled = False
+
 
 @Storage.action_registry.register('setNetworkRules')
 class StorageSetNetworkRulesAction(AzureBaseAction):
@@ -61,8 +62,10 @@ class StorageSetNetworkRulesAction(AzureBaseAction):
                 for r in self.data['ipRules']]
 
         if 'virtualNetworkRules' in self.data:
-            ruleSet.virtual_network_rules=[
-                VirtualNetworkRule(virtual_network_resource_id=r['virtualNetworkResourceId'], action='Allow')
+            ruleSet.virtual_network_rules = [
+                VirtualNetworkRule(
+                    virtual_network_resource_id=r['virtualNetworkResourceId'],
+                    action='Allow')
                 for r in self.data['virtualNetworkRules']]
 
         if 'bypass' in self.data:
