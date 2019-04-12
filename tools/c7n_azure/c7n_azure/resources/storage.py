@@ -30,22 +30,22 @@ class Storage(ArmResourceManager):
         diagnostic_settings_enabled = False
 
 
-@Storage.action_registry.register('setNetworkRules')
+@Storage.action_registry.register('set-network-rules')
 class StorageSetNetworkRulesAction(AzureBaseAction):
 
     schema = type_schema(
-        'setNetworkRules',
-        required=['defaultAction'],
+        'set-network-rules',
+        required=['default-action'],
         **{
-            'defaultAction': {'enum': ['Allow', 'Deny']},
+            'default-action': {'enum': ['Allow', 'Deny']},
             'bypass': {'type': 'string'},
-            'ipRules': {
+            'ip-rules': {
                 'type': 'array',
-                'items': {'ipAddressOrRange': {'type': 'string'}}
+                'items': {'ip-address-or-range': {'type': 'string'}}
             },
-            'virtualNetworkRules': {
+            'virtual-network-rules': {
                 'type': 'array',
-                'items': {'virtualNetworkResourceId': {'type': 'string'}}
+                'items': {'virtual-network-resource-id': {'type': 'string'}}
             }
         }
     )
@@ -54,19 +54,19 @@ class StorageSetNetworkRulesAction(AzureBaseAction):
         self.client = self.manager.get_client()
 
     def _process_resource(self, resource):
-        ruleSet = NetworkRuleSet(default_action=self.data['defaultAction'])
+        ruleSet = NetworkRuleSet(default_action=self.data['default-action'])
 
-        if 'ipRules' in self.data:
+        if 'ip-rules' in self.data:
             ruleSet.ip_rules = [
-                IPRule(ip_address_or_range=r['ipAddressOrRange'], action='Allow')
-                for r in self.data['ipRules']]
+                IPRule(ip_address_or_range=r['ip-address-or-range'], action='Allow')
+                for r in self.data['ip-rules']]
 
-        if 'virtualNetworkRules' in self.data:
+        if 'virtual-network-rules' in self.data:
             ruleSet.virtual_network_rules = [
                 VirtualNetworkRule(
-                    virtual_network_resource_id=r['virtualNetworkResourceId'],
+                    virtual_network_resource_id=r['virtual-network-resource-id'],
                     action='Allow')
-                for r in self.data['virtualNetworkRules']]
+                for r in self.data['virtual-network-rules']]
 
         if 'bypass' in self.data:
             ruleSet.bypass = self.data['bypass']
