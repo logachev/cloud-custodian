@@ -58,5 +58,5 @@ def main(input):
 
 # Need to manually initialize c7n_azure
 entry.initialize_azure()
-main(None)
+
 # flake8: noqa

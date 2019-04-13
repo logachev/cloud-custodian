@@ -20,6 +20,7 @@ import uuid
 from azure.common import AzureHttpError
 from msrestazure.azure_exceptions import CloudError
 
+from c7n.utils import reset_session_cache
 from c7n.config import Config
 from c7n.policy import PolicyCollection
 from c7n.resources import load_resources
@@ -58,8 +59,6 @@ def run(event, context, subscription_id = None):
 
     options = Azure().initialize(options)
 
-    print("SubscriptionId:", options['account_id'])
-
     policies = PolicyCollection.from_data(policy_config, options)
     if policies:
         for p in policies:
@@ -67,6 +66,8 @@ def run(event, context, subscription_id = None):
                 p.push(event, context)
             except (CloudError, AzureHttpError) as error:
                 log.error("Unable to process policy: %s :: %s" % (p.name, error))
+
+    reset_session_cache()
     return True
 
 
