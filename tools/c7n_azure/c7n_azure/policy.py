@@ -81,7 +81,9 @@ class AzureFunctionMode(ServerlessExecutionMode):
                     ]
                 },
             },
-            'execution-options': {'type': 'object'}
+            'execution-options': {'type': 'object'},
+            'target-subscription-ids': {'type': 'array',
+                                        'items': {'type': 'string'}}
         }
     }
 
@@ -94,6 +96,7 @@ class AzureFunctionMode(ServerlessExecutionMode):
         self.policy = policy
         self.log = logging.getLogger('custodian.azure.AzureFunctionMode')
         self.policy_name = self.policy.data['name'].replace(' ', '-').lower()
+        self.target_subscription_ids = self.policy.data['mode'].get('target-subscription-ids', None)
         self.function_params = None
         self.function_app = None
 
@@ -175,7 +178,7 @@ class AzureFunctionMode(ServerlessExecutionMode):
     def provision(self):
         # Make sure we have auth data for function provisioning
         session = local_session(self.policy.session_factory)
-        session.get_functions_auth_string()
+        session.get_functions_auth_string(self.target_subscription_ids)
 
         if sys.version_info[0] < 3:
             self.log.error("Python 2.7 is not supported for deploying Azure Functions.")
@@ -191,7 +194,7 @@ class AzureFunctionMode(ServerlessExecutionMode):
     def build_functions_package(self, queue_name=None):
         self.log.info("Building function package for %s" % self.function_params.function_app_name)
 
-        package = FunctionPackage(self.policy_name)
+        package = FunctionPackage(self.policy_name, target_subscription_ids=self.target_subscription_ids)
         package.build(self.policy.data,
                       modules=['c7n', 'c7n-azure', 'applicationinsights'],
                       non_binary_packages=['pyyaml', 'pycparser', 'tabulate', 'pyrsistent'],

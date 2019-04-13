@@ -29,7 +29,7 @@ from c7n_azure.provider import Azure
 log = logging.getLogger('custodian.azure.functions')
 
 
-def run(event, context):
+def run(event, context, subscription_id = None):
     # policies file should always be valid in functions so do loading naively
     with open(context['config_file']) as f:
         policy_config = json.load(f)
@@ -51,9 +51,14 @@ def run(event, context):
     # merge all our options in
     options = Config.empty(**options_overrides)
 
+    if subscription_id is not None:
+        options['account_id'] = subscription_id
+
     load_resources()
 
     options = Azure().initialize(options)
+
+    print("SubscriptionId:", options['account_id'])
 
     policies = PolicyCollection.from_data(policy_config, options)
     if policies:

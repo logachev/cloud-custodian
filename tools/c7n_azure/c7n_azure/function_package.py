@@ -31,7 +31,7 @@ from c7n_azure.session import Session
 
 class FunctionPackage(object):
 
-    def __init__(self, name, function_path=None):
+    def __init__(self, name, function_path=None, target_subscription_ids=None):
         self.log = logging.getLogger('custodian.azure.function_package')
         self.pkg = PythonPackageArchive()
         self.name = name
@@ -39,6 +39,7 @@ class FunctionPackage(object):
             os.path.dirname(os.path.realpath(__file__)), 'function.py')
         self.enable_ssl_cert = not distutils.util.strtobool(
             os.environ.get(ENV_CUSTODIAN_DISABLE_SSL_CERT_VERIFICATION, 'no'))
+        self.target_subscription_ids = target_subscription_ids
 
         if not self.enable_ssl_cert:
             self.log.warning('SSL Certificate Validation is disabled')
@@ -185,7 +186,7 @@ class FunctionPackage(object):
 
         # generate and add auth
         s = local_session(Session)
-        self.pkg.add_contents(dest=self.name + '/auth.json', contents=s.get_functions_auth_string())
+        self.pkg.add_contents(dest=self.name + '/auth.json', contents=s.get_functions_auth_string(self.target_subscription_ids))
 
     def wait_for_status(self, deployment_creds, retries=10, delay=15):
         for r in range(retries):

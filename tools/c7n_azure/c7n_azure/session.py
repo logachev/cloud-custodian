@@ -217,9 +217,9 @@ class Session(object):
                 secret=data['credentials']['secret'],
                 tenant=data['credentials']['tenant'],
                 resource=self.resource_namespace
-            ), data['subscription'])
+            ), data.get('subscription', None))
 
-    def get_functions_auth_string(self):
+    def get_functions_auth_string(self, target_subscription_ids=None):
         """
         Build auth json string for deploying
         Azure Functions.  Look for dedicated
@@ -237,7 +237,9 @@ class Session(object):
             constants.ENV_FUNCTION_CLIENT_SECRET
         ]
 
-        function_subscription_id = self.get_function_target_subscription_id()
+        function_subscription_ids = [self.get_function_target_subscription_id()]
+        if target_subscription_ids is not None:
+            function_subscription_ids = target_subscription_ids
 
         # Use dedicated function env vars if available
         if all(k in os.environ for k in function_auth_variables):
@@ -248,7 +250,7 @@ class Session(object):
                         'secret': os.environ[constants.ENV_FUNCTION_CLIENT_SECRET],
                         'tenant': os.environ[constants.ENV_FUNCTION_TENANT_ID]
                     },
-                'subscription': function_subscription_id
+                'subscriptions': function_subscription_ids
             }
 
         elif type(self.credentials) is ServicePrincipalCredentials:
@@ -259,7 +261,7 @@ class Session(object):
                         'secret': os.environ[constants.ENV_CLIENT_SECRET],
                         'tenant': os.environ[constants.ENV_TENANT_ID]
                     },
-                'subscription': function_subscription_id
+                'subscriptions': function_subscription_ids
             }
 
         else:
