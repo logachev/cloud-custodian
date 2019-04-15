@@ -19,6 +19,23 @@ from azure_common import BaseTest, arm_template
 class StorageTest(BaseTest):
     def setUp(self):
         super(StorageTest, self).setUp()
+        self.cleanup_policy = self.load_policy({
+            'name': 'test-azure-storage-cleanup',
+            'resource': 'azure.storage',
+            'filters': [
+                {'type': 'value',
+                 'key': 'name',
+                 'op': 'glob',
+                 'value_type': 'normalize',
+                 'value': 'cctstorage*'}],
+            'actions':[
+                {'type': 'set-network-rules',
+                 'default-action': 'Deny',
+                 'bypass': 'Logging, Metrics',
+                 'ip-rules': [],
+                 'virtual-network-resource-id': []}
+            ]
+        })
 
     def test_storage_schema_validate(self):
         with self.sign_out_patch():
@@ -42,3 +59,51 @@ class StorageTest(BaseTest):
         })
         resources = p.run()
         self.assertEqual(len(resources), 1)
+
+    @arm_template('storage.json')
+    def test_network_ip_rules_action(self):
+        self.cleanup_policy.run()
+
+        p_add = self.load_policy({
+            'name': 'test-azure-storage-add-ips',
+            'resource': 'azure.storage',
+            'filters': [
+                {'type': 'value',
+                 'key': 'name',
+                 'op': 'glob',
+                 'value_type': 'normalize',
+                 'value': 'cctstorage*'}],
+            'actions': [
+                {'type': 'set-network-rules',
+                 'default-action': 'Deny',
+                 'bypass': 'Logging, Metrics',
+                 'ip-rules': [{'ip-address-or-range': '11.12.13.14'}, {'ip-address-or-range': '21.22.23.24'}]}
+            ]
+        })
+
+        p_add.run()
+
+        p_get = self.load_policy({
+            'name': 'test-azure-storage-enum',
+            'resource': 'azure.storage',
+            'filters': [
+                {'type': 'value',
+                 'key': 'name',
+                 'op': 'glob',
+                 'value_type': 'normalize',
+                 'value': 'cctstorage*'}],
+        })
+
+        resources = p_get.run()
+        self.assertEqual(len(resources), 1)
+        ip_rules = resources[0]['properties']['networkAcls']['ipRules']
+        self.assertEqual(len(ip_rules), 2)
+        self.assertEqual(ip_rules[0]['value'], '11.12.13.14')
+        self.assertEqual(ip_rules[1]['value'], '21.22.23.24')
+        self.assertEqual(ip_rules[0]['action'], 'Allow')
+        self.assertEqual(ip_rules[1]['action'], 'Allow')
+
+        self.cleanup_policy.run()
+        resources = p_get.run()
+        ip_rules = resources[0]['properties']['networkAcls']['ipRules']
+        self.assertEqual(len(ip_rules), 0)
