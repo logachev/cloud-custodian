@@ -41,19 +41,15 @@ def main(input):
     }
 
     event = None
-    subscription_ids = []
+    subscription_id = None
 
     if type(input) is QueueMessage:
         if input.dequeue_count > max_dequeue_count:
             return
         event = input.get_json()
-        subscription_ids.append("")
-    else:
-        with open(context['auth_file']) as json_file:
-           subscription_ids = json.load(json_file)['subscriptions']
+        subscription_id = ""
 
-    for subscription_id in subscription_ids:
-        handler.run(event, context, subscription_id)
+    handler.run(event, context, subscription_id)
 
 
 # Need to manually initialize c7n_azure
