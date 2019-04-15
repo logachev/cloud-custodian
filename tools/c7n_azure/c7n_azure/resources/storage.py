@@ -60,14 +60,14 @@ class StorageSetNetworkRulesAction(AzureBaseAction):
             rule_set.ip_rules = [
                 IPRule(
                     ip_address_or_range=r['ip-address-or-range'],
-                    action='Allow') #'Allow' is the only allowed action
+                    action='Allow')  # 'Allow' is the only allowed action
                 for r in self.data['ip-rules']]
 
         if 'virtual-network-rules' in self.data:
             rule_set.virtual_network_rules = [
                 VirtualNetworkRule(
                     virtual_network_resource_id=r['virtual-network-resource-id'],
-                    action='Allow') #'Allow' is the only allowed action
+                    action='Allow')  # 'Allow' is the only allowed action
                 for r in self.data['virtual-network-rules']]
 
         if 'bypass' in self.data:
