@@ -30,10 +30,9 @@ class StorageTest(BaseTest):
                  'value': 'cctstorage*'}],
             'actions':[
                 {'type': 'set-network-rules',
-                 'default-action': 'Deny',
-                 'bypass': 'Logging, Metrics',
+                 'default-action': 'Allow',
                  'ip-rules': [],
-                 'virtual-network-resource-id': []}
+                 'virtual-network-rules': []}
             ]
         })
 
@@ -107,3 +106,70 @@ class StorageTest(BaseTest):
         resources = p_get.run()
         ip_rules = resources[0]['properties']['networkAcls']['ipRules']
         self.assertEqual(len(ip_rules), 0)
+
+    @arm_template('storage.json')
+    def test_virtual_network_rules_action(self):
+        resources = self.cleanup_policy.run()
+
+        p_vnet_get = self.load_policy({
+            'name': 'test-azure-storage-enum',
+            'resource': 'azure.vnet',
+            'filters': [
+                {'type': 'value',
+                 'key': 'name',
+                 'op': 'glob',
+                 'value_type': 'normalize',
+                 'value': 'cctstoragevnet*'}],
+        })
+
+        vnets = p_vnet_get.run()
+
+        id1 = vnets[0]['properties']['subnets'][0]['id']
+        id2 = vnets[1]['properties']['subnets'][0]['id']
+
+        p_add = self.load_policy({
+            'name': 'test-azure-storage-add-ips',
+            'resource': 'azure.storage',
+            'filters': [
+                {'type': 'value',
+                 'key': 'name',
+                 'op': 'glob',
+                 'value_type': 'normalize',
+                 'value': 'cctstorage*'}],
+            'actions': [
+                {'type': 'set-network-rules',
+                 'default-action': 'Deny',
+                 'bypass': 'Logging, Metrics',
+                 'virtual-network-rules': [
+                     {'virtual-network-resource-id': id1},
+                     {'virtual-network-resource-id': id2}
+             ]}
+            ]
+        })
+
+        p_add.run()
+
+        p_get = self.load_policy({
+            'name': 'test-azure-storage-enum',
+            'resource': 'azure.storage',
+            'filters': [
+                {'type': 'value',
+                 'key': 'name',
+                 'op': 'glob',
+                 'value_type': 'normalize',
+                 'value': 'cctstorage*'}],
+        })
+
+        resources = p_get.run()
+        self.assertEqual(len(resources), 1)
+        rules = resources[0]['properties']['networkAcls']['virtualNetworkRules']
+        self.assertEqual(len(rules), 2)
+        self.assertEqual(rules[0]['id'], id1)
+        self.assertEqual(rules[1]['id'], id2)
+        self.assertEqual(rules[0]['action'], 'Allow')
+        self.assertEqual(rules[1]['action'], 'Allow')
+
+        self.cleanup_policy.run()
+        resources = p_get.run()
+        rules = resources[0]['properties']['networkAcls']['virtualNetworkRules']
+        self.assertEqual(len(rules), 0)
