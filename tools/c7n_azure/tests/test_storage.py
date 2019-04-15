@@ -28,7 +28,7 @@ class StorageTest(BaseTest):
                  'op': 'glob',
                  'value_type': 'normalize',
                  'value': 'cctstorage*'}],
-            'actions':[
+            'actions': [
                 {'type': 'set-network-rules',
                  'default-action': 'Allow',
                  'ip-rules': [],
@@ -76,7 +76,10 @@ class StorageTest(BaseTest):
                 {'type': 'set-network-rules',
                  'default-action': 'Deny',
                  'bypass': 'Logging, Metrics',
-                 'ip-rules': [{'ip-address-or-range': '11.12.13.14'}, {'ip-address-or-range': '21.22.23.24'}]}
+                 'ip-rules': [
+                     {'ip-address-or-range': '11.12.13.14'},
+                     {'ip-address-or-range': '21.22.23.24'}
+                 ]}
             ]
         })
 
@@ -143,7 +146,7 @@ class StorageTest(BaseTest):
                  'virtual-network-rules': [
                      {'virtual-network-resource-id': id1},
                      {'virtual-network-resource-id': id2}
-             ]}
+                 ]}
             ]
         })
 
