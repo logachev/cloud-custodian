@@ -54,24 +54,26 @@ class StorageSetNetworkRulesAction(AzureBaseAction):
         self.client = self.manager.get_client()
 
     def _process_resource(self, resource):
-        ruleSet = NetworkRuleSet(default_action=self.data['default-action'])
+        rule_set = NetworkRuleSet(default_action=self.data['default-action'])
 
         if 'ip-rules' in self.data:
-            ruleSet.ip_rules = [
-                IPRule(ip_address_or_range=r['ip-address-or-range'], action='Allow')
+            rule_set.ip_rules = [
+                IPRule(
+                    ip_address_or_range=r['ip-address-or-range'],
+                    action='Allow') #'Allow' is the only allowed action
                 for r in self.data['ip-rules']]
 
         if 'virtual-network-rules' in self.data:
-            ruleSet.virtual_network_rules = [
+            rule_set.virtual_network_rules = [
                 VirtualNetworkRule(
                     virtual_network_resource_id=r['virtual-network-resource-id'],
-                    action='Allow')
+                    action='Allow') #'Allow' is the only allowed action
                 for r in self.data['virtual-network-rules']]
 
         if 'bypass' in self.data:
-            ruleSet.bypass = self.data['bypass']
+            rule_set.bypass = self.data['bypass']
 
         self.client.storage_accounts.update(
             resource['resourceGroup'],
             resource['name'],
-            StorageAccountUpdateParameters(network_rule_set=ruleSet))
+            StorageAccountUpdateParameters(network_rule_set=rule_set))
