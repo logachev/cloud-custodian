@@ -39,30 +39,41 @@ class FunctionPackage(object):
             os.path.dirname(os.path.realpath(__file__)), 'function.py')
         self.enable_ssl_cert = not distutils.util.strtobool(
             os.environ.get(ENV_CUSTODIAN_DISABLE_SSL_CERT_VERIFICATION, 'no'))
-        self.target_subscription_ids = target_subscription_ids
+
+        if target_subscription_ids is not None:
+            self.target_subscription_ids = target_subscription_ids
+        else:
+            self.target_subscription_ids = [None]
 
         if not self.enable_ssl_cert:
             self.log.warning('SSL Certificate Validation is disabled')
 
     def _add_functions_required_files(self, policy, queue_name=None):
-        self.pkg.add_file(self.function_path,
-                          dest=self.name + '/function.py')
+        s = local_session(Session)
 
-        self.pkg.add_contents(dest=self.name + '/__init__.py', contents='')
+        for target_subscription_id in self.target_subscription_ids:
+            name = self.name + ("_" + target_subscription_id if target_subscription_id else "")
+            # generate and add auth
+            self.pkg.add_contents(dest=name + '/auth.json', contents=s.get_functions_auth_string(target_subscription_id))
+
+            self.pkg.add_file(self.function_path,
+                              dest=name + '/function.py')
+
+            self.pkg.add_contents(dest=name + '/__init__.py', contents='')
+
+            if policy:
+                config_contents = self.get_function_config(policy, queue_name)
+                policy_contents = self._get_policy(policy)
+                self.pkg.add_contents(dest=name + '/function.json',
+                                      contents=config_contents)
+
+                self.pkg.add_contents(dest=name + '/config.json',
+                                      contents=policy_contents)
+
+                if policy['mode']['type'] == FUNCTION_EVENT_TRIGGER_MODE:
+                    self._add_queue_binding_extensions()
 
         self._add_host_config()
-
-        if policy:
-            config_contents = self.get_function_config(policy, queue_name)
-            policy_contents = self._get_policy(policy)
-            self.pkg.add_contents(dest=self.name + '/function.json',
-                                  contents=config_contents)
-
-            self.pkg.add_contents(dest=self.name + '/config.json',
-                                  contents=policy_contents)
-
-            if policy['mode']['type'] == FUNCTION_EVENT_TRIGGER_MODE:
-                self._add_queue_binding_extensions()
 
     def _add_host_config(self):
         config = \
@@ -183,10 +194,6 @@ class FunctionPackage(object):
 
         # add config and policy
         self._add_functions_required_files(policy, queue_name)
-
-        # generate and add auth
-        s = local_session(Session)
-        self.pkg.add_contents(dest=self.name + '/auth.json', contents=s.get_functions_auth_string(self.target_subscription_ids))
 
     def wait_for_status(self, deployment_creds, retries=10, delay=15):
         for r in range(retries):

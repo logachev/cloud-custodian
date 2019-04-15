@@ -219,7 +219,7 @@ class Session(object):
                 resource=self.resource_namespace
             ), data.get('subscription', None))
 
-    def get_functions_auth_string(self, target_subscription_ids=None):
+    def get_functions_auth_string(self, target_subscription_id=None):
         """
         Build auth json string for deploying
         Azure Functions.  Look for dedicated
@@ -237,9 +237,9 @@ class Session(object):
             constants.ENV_FUNCTION_CLIENT_SECRET
         ]
 
-        function_subscription_ids = [self.get_function_target_subscription_id()]
-        if target_subscription_ids is not None:
-            function_subscription_ids = target_subscription_ids
+        function_subscription_id = self.get_function_target_subscription_id()
+        if target_subscription_id is not None:
+            function_subscription_id = target_subscription_id
 
         # Use dedicated function env vars if available
         if all(k in os.environ for k in function_auth_variables):
@@ -250,7 +250,7 @@ class Session(object):
                         'secret': os.environ[constants.ENV_FUNCTION_CLIENT_SECRET],
                         'tenant': os.environ[constants.ENV_FUNCTION_TENANT_ID]
                     },
-                'subscriptions': function_subscription_ids
+                'subscription': function_subscription_id
             }
 
         elif type(self.credentials) is ServicePrincipalCredentials:
@@ -261,8 +261,9 @@ class Session(object):
                         'secret': os.environ[constants.ENV_CLIENT_SECRET],
                         'tenant': os.environ[constants.ENV_TENANT_ID]
                     },
-                'subscriptions': function_subscription_ids
+                'subscription': function_subscription_id
             }
+
 
         else:
             raise NotImplementedError(
