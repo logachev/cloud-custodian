@@ -15,6 +15,7 @@
 import logging
 import re
 import sys
+import os
 
 import six
 from azure.mgmt.eventgrid.models import \
@@ -26,11 +27,12 @@ from c7n.policy import PullMode, ServerlessExecutionMode, execution
 from c7n.utils import local_session
 from c7n_azure.azure_events import AzureEvents, AzureEventSubscription
 from c7n_azure.constants import (FUNCTION_EVENT_TRIGGER_MODE,
-                                 FUNCTION_TIME_TRIGGER_MODE)
+                                 FUNCTION_TIME_TRIGGER_MODE,
+                                 ENV_FUNCTION_MANAGED_GROUP_NAME)
 from c7n_azure.function_package import FunctionPackage
 from c7n_azure.functionapp_utils import FunctionAppUtilities
 from c7n_azure.storage_utils import StorageUtilities
-from c7n_azure.utils import ResourceIdParser, StringUtils
+from c7n_azure.utils import ResourceIdParser, StringUtils, ManagedGroupHelper
 
 
 class AzureFunctionMode(ServerlessExecutionMode):
@@ -81,9 +83,7 @@ class AzureFunctionMode(ServerlessExecutionMode):
                     ]
                 },
             },
-            'execution-options': {'type': 'object'},
-            'target-subscription-ids': {'type': 'array',
-                                        'items': {'type': 'string'}}
+            'execution-options': {'type': 'object'}
         }
     }
 
@@ -96,9 +96,12 @@ class AzureFunctionMode(ServerlessExecutionMode):
         self.policy = policy
         self.log = logging.getLogger('custodian.azure.AzureFunctionMode')
         self.policy_name = self.policy.data['name'].replace(' ', '-').lower()
-        self.target_subscription_ids = self.policy.data['mode'].get('target-subscription-ids', None)
         self.function_params = None
         self.function_app = None
+
+        if ENV_FUNCTION_MANAGED_GROUP_NAME in os.environ:
+            self.target_subscription_ids = \
+                ManagedGroupHelper.get_subscriptions_list(os.environ[ENV_FUNCTION_MANAGED_GROUP_NAME])
 
     def get_function_app_params(self):
         session = local_session(self.policy.session_factory)
@@ -191,10 +194,10 @@ class AzureFunctionMode(ServerlessExecutionMode):
         """Retrieve logs for the policy"""
         raise NotImplementedError("subclass responsibility")
 
-    def build_functions_package(self, queue_name=None):
+    def build_functions_package(self, queue_name=None, target_subscription_ids=None):
         self.log.info("Building function package for %s" % self.function_params.function_app_name)
 
-        package = FunctionPackage(self.policy_name, target_subscription_ids=self.target_subscription_ids)
+        package = FunctionPackage(self.policy_name, target_subscription_ids=target_subscription_ids)
         package.build(self.policy.data,
                       modules=['c7n', 'c7n-azure', 'applicationinsights'],
                       non_binary_packages=['pyyaml', 'pycparser', 'tabulate', 'pyrsistent'],
@@ -216,7 +219,7 @@ class AzurePeriodicMode(AzureFunctionMode, PullMode):
 
     def provision(self):
         super(AzurePeriodicMode, self).provision()
-        package = self.build_functions_package()
+        package = self.build_functions_package(target_subscription_ids=self.target_subscription_ids)
         FunctionAppUtilities.publish_functions_package(self.function_params, package)
 
     def run(self, event=None, lambda_context=None):
@@ -254,8 +257,7 @@ class AzureEventGridMode(AzureFunctionMode):
         queue_name = re.sub(r'(-{2,})+', '-', self.function_params.function_app_name.lower())
         storage_account = self._create_storage_queue(queue_name, session)
         self._create_event_subscription(storage_account, queue_name, session)
-        self.target_subscription_ids = None
-        package = self.build_functions_package(queue_name)
+        package = self.build_functions_package(queue_name=queue_name)
         FunctionAppUtilities.publish_functions_package(self.function_params, package)
 
     def run(self, event=None, lambda_context=None):
@@ -325,10 +327,10 @@ class AzureEventGridMode(AzureFunctionMode):
         advance_filter = StringInAdvancedFilter(key='Data.OperationName', values=subscribed_events)
         event_filter = EventSubscriptionFilter(advanced_filters=[advance_filter])
 
-        for subscribtion_id in self.target_subscription_ids:
+        for subscription_id in self.target_subscription_ids:
             try:
-                AzureEventSubscription.create(destination, queue_name, subscribtion_id, session, event_filter)
-                self.log.info('Event grid subscription creation succeeded: subscription_id=%s' % (subscribtion_id))
+                AzureEventSubscription.create(destination, queue_name, subscription_id, session, event_filter)
+                self.log.info('Event grid subscription creation succeeded: subscription_id=%s' % subscription_id)
             except Exception as e:
                 self.log.error('Event Subscription creation failed with error: %s' % e)
                 raise SystemExit
