@@ -178,7 +178,7 @@ class AzureFunctionMode(ServerlessExecutionMode):
     def provision(self):
         # Make sure we have auth data for function provisioning
         session = local_session(self.policy.session_factory)
-        session.get_functions_auth_string(self.target_subscription_ids)
+        session.get_functions_auth_string("")
 
         if sys.version_info[0] < 3:
             self.log.error("Python 2.7 is not supported for deploying Azure Functions.")
@@ -254,6 +254,7 @@ class AzureEventGridMode(AzureFunctionMode):
         queue_name = re.sub(r'(-{2,})+', '-', self.function_params.function_app_name.lower())
         storage_account = self._create_storage_queue(queue_name, session)
         self._create_event_subscription(storage_account, queue_name, session)
+        self.target_subscription_ids = None
         package = self.build_functions_package(queue_name)
         FunctionAppUtilities.publish_functions_package(self.function_params, package)
 
@@ -324,9 +325,10 @@ class AzureEventGridMode(AzureFunctionMode):
         advance_filter = StringInAdvancedFilter(key='Data.OperationName', values=subscribed_events)
         event_filter = EventSubscriptionFilter(advanced_filters=[advance_filter])
 
-        try:
-            AzureEventSubscription.create(destination, queue_name, session, event_filter)
-            self.log.info('Event grid subscription creation succeeded')
-        except Exception as e:
-            self.log.error('Event Subscription creation failed with error: %s' % e)
-            raise SystemExit
+        for subscribtion_id in self.target_subscription_ids:
+            try:
+                AzureEventSubscription.create(destination, queue_name, subscribtion_id, session, event_filter)
+                self.log.info('Event grid subscription creation succeeded: subscription_id=%s' % (subscribtion_id))
+            except Exception as e:
+                self.log.error('Event Subscription creation failed with error: %s' % e)
+                raise SystemExit

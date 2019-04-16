@@ -39,6 +39,10 @@ class ResourceIdParser(object):
         return parse_resource_id(resource_id).get('namespace')
 
     @staticmethod
+    def get_subscription_id(resource_id):
+        return parse_resource_id(resource_id).get('subscription')
+
+    @staticmethod
     def get_resource_group(resource_id):
         result = parse_resource_id(resource_id).get("resource_group")
         # parse_resource_id fails to parse resource id for resource groups

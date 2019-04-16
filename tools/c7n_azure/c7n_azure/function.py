@@ -22,6 +22,7 @@ from os.path import dirname, join
 sys.path.append(dirname(dirname(__file__)))
 
 from c7n_azure import handler, entry
+from c7n_azure.utils import ResourceIdParser
 
 try:
     import azure.functions as func
@@ -47,7 +48,7 @@ def main(input):
         if input.dequeue_count > max_dequeue_count:
             return
         event = input.get_json()
-        subscription_id = ""
+        subscription_id = ResourceIdParser.get_subscription_id(event['subject'])
 
     handler.run(event, context, subscription_id)
 
