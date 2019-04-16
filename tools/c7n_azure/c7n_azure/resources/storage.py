@@ -38,7 +38,7 @@ class StorageSetNetworkRulesAction(AzureBaseAction):
         required=['default-action'],
         **{
             'default-action': {'enum': ['Allow', 'Deny']},
-            'bypass': {'type': 'string'},
+            'bypass': {'type': 'array', 'items': {'enum': ['AzureServices', 'Logging', 'Metrics']}},
             'ip-rules': {
                 'type': 'array',
                 'items': {'ip-address-or-range': {'type': 'string'}}
@@ -70,8 +70,7 @@ class StorageSetNetworkRulesAction(AzureBaseAction):
                     action='Allow')  # 'Allow' is the only allowed action
                 for r in self.data['virtual-network-rules']]
 
-        if 'bypass' in self.data:
-            rule_set.bypass = self.data['bypass']
+        rule_set.bypass = ','.join(self.data['bypass']) if 'bypass' in self.data else None
 
         self.client.storage_accounts.update(
             resource['resourceGroup'],

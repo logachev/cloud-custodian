@@ -19,7 +19,7 @@ Add storage firewall
         actions:
         - type: set-network-rules
           default-action: Deny
-          bypass: Logging, Metrics
+          bypass: [Logging, Metrics]
           ip-rules:
               - ip-address-or-range: 11.12.13.14
               - ip-address-or-range: 21.22.23.24

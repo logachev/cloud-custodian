@@ -6,7 +6,7 @@ Remove public storage IP-s
     policies:
         - name: storage-no-public-ip
         description: |
-            find publicly available storage ip-s and remove them keeping virtual network access intact
+            Find publicly available storage ip-s and remove them while keeping the virtual network access intact.
         resource: azure.storage
         
         filters:
