@@ -19,7 +19,7 @@ from azure_common import BaseTest, arm_template
 class StorageTest(BaseTest):
     def setUp(self):
         super(StorageTest, self).setUp()
-        self.cleanup_policy = self.load_policy({
+        cleanup_policy = self.load_policy({
             'name': 'test-azure-storage-cleanup',
             'resource': 'azure.storage',
             'filters': [
@@ -35,6 +35,7 @@ class StorageTest(BaseTest):
                  'virtual-network-rules': []}
             ]
         })
+        cleanup_policy.run()
 
     def test_storage_schema_validate(self):
         with self.sign_out_patch():
@@ -61,8 +62,6 @@ class StorageTest(BaseTest):
 
     @arm_template('storage.json')
     def test_network_ip_rules_action(self):
-        self.cleanup_policy.run()
-
         p_add = self.load_policy({
             'name': 'test-azure-storage-add-ips',
             'resource': 'azure.storage',
@@ -105,15 +104,8 @@ class StorageTest(BaseTest):
         self.assertEqual(ip_rules[0]['action'], 'Allow')
         self.assertEqual(ip_rules[1]['action'], 'Allow')
 
-        self.cleanup_policy.run()
-        resources = p_get.run()
-        ip_rules = resources[0]['properties']['networkAcls']['ipRules']
-        self.assertEqual(len(ip_rules), 0)
-
     @arm_template('storage.json')
     def test_virtual_network_rules_action(self):
-        resources = self.cleanup_policy.run()
-
         p_vnet_get = self.load_policy({
             'name': 'test-azure-storage-enum',
             'resource': 'azure.vnet',
@@ -172,7 +164,3 @@ class StorageTest(BaseTest):
         self.assertEqual(rules[0]['action'], 'Allow')
         self.assertEqual(rules[1]['action'], 'Allow')
 
-        self.cleanup_policy.run()
-        resources = p_get.run()
-        rules = resources[0]['properties']['networkAcls']['virtualNetworkRules']
-        self.assertEqual(len(rules), 0)
