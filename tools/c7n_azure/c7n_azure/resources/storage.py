@@ -70,7 +70,10 @@ class StorageSetNetworkRulesAction(AzureBaseAction):
                     action='Allow')  # 'Allow' is the only allowed action
                 for r in self.data['virtual-network-rules']]
 
-        rule_set.bypass = ','.join(self.data['bypass']) if 'bypass' in self.data else None
+        if 'bypass' in self.data and len(self.data['bypass']) > 0:
+            rule_set.bypass = ','.join(self.data['bypass'])
+        else:
+            rule_set.bypass = 'None'
 
         self.client.storage_accounts.update(
             resource['resourceGroup'],
