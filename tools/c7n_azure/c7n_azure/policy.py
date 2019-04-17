@@ -98,10 +98,8 @@ class AzureFunctionMode(ServerlessExecutionMode):
         self.policy_name = self.policy.data['name'].replace(' ', '-').lower()
         self.function_params = None
         self.function_app = None
+        self.target_subscription_ids = []
 
-        if ENV_FUNCTION_MANAGED_GROUP_NAME in os.environ:
-            self.target_subscription_ids = \
-                ManagedGroupHelper.get_subscriptions_list(os.environ[ENV_FUNCTION_MANAGED_GROUP_NAME])
 
     def get_function_app_params(self):
         session = local_session(self.policy.session_factory)
@@ -186,6 +184,14 @@ class AzureFunctionMode(ServerlessExecutionMode):
         if sys.version_info[0] < 3:
             self.log.error("Python 2.7 is not supported for deploying Azure Functions.")
             sys.exit(1)
+
+        if ENV_FUNCTION_MANAGED_GROUP_NAME in os.environ:
+            self.target_subscription_ids = \
+                ManagedGroupHelper.get_subscriptions_list(os.environ[ENV_FUNCTION_MANAGED_GROUP_NAME])
+        else:
+            session = local_session(self.policy.session_factory)
+            self.target_subscription_ids = [session.get_function_target_subscription_id()]
+
 
         self.function_params = self.get_function_app_params()
         self.function_app = FunctionAppUtilities.deploy_function_app(self.function_params)

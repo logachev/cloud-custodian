@@ -31,14 +31,18 @@ class FunctionTest(BaseTest):
 
     @patch('c7n_azure.handler.run')
     def test_queue_message_dequeue_count_less_than_max(self, mock_handler_run):
-        input = QueueMessage(body='{"data": "test body data"}', dequeue_count=1)
+        input = QueueMessage(body='{"data": "test body data", "subject": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/cctest"}',
+                             dequeue_count=1,
+                             )
         functionMain(input)
 
         mock_handler_run.assert_called_once()
 
     @patch('c7n_azure.handler.run')
     def test_queue_message_dequeue_count_above_max(self, mock_handler_run):
-        input = QueueMessage(body='{"data": "test body data"}', dequeue_count=4)
+        input = QueueMessage(body='{"data": "test body data", "subject": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/cctest"}',
+                             dequeue_count=4)
+
         functionMain(input)
 
         mock_handler_run.assert_not_called()
