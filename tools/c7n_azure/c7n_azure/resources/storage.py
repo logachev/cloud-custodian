@@ -70,7 +70,7 @@ class StorageSetNetworkRulesAction(AzureBaseAction):
                     action='Allow')  # 'Allow' is the only allowed action
                 for r in self.data['virtual-network-rules']]
 
-        if 'bypass' in self.data and len(self.data['bypass']) > 0:
+        if len(self.data.get('bypass', [])) > 0:
             rule_set.bypass = ','.join(self.data['bypass'])
         else:
             rule_set.bypass = 'None'

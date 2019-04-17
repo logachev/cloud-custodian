@@ -168,6 +168,29 @@ class StorageTest(BaseTest):
         self.assertEqual(bypass, 'None')
 
     @arm_template('storage.json')
+    def test_missing_bypass_network_rules_action(self):
+        p_add = self.load_policy({
+            'name': 'test-azure-storage-add-ips',
+            'resource': 'azure.storage',
+            'filters': [
+                {'type': 'value',
+                 'key': 'name',
+                 'op': 'glob',
+                 'value_type': 'normalize',
+                 'value': 'cctstorage*'}],
+            'actions': [
+                {'type': 'set-network-rules',
+                 'default-action': 'Deny'}
+            ]
+        })
+
+        p_add.run()
+
+        resources = self._get_resources()
+        bypass = resources[0]['properties']['networkAcls']['bypass']
+        self.assertEqual(bypass, 'None')
+
+    @arm_template('storage.json')
     def test_bypass_network_rules_action(self):
         p_add = self.load_policy({
             'name': 'test-azure-storage-add-ips',
