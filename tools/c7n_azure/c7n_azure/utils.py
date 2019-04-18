@@ -388,19 +388,9 @@ class AppInsightsHelper(object):
 class ManagedGroupHelper(object):
 
     @staticmethod
-    def get_subscriptions_list(managed_resource_group):
-        from .session import Session
-        s = local_session(Session)
-        client = ManagementGroupsAPI(s.get_credentials())
-        entities = None
-        try:
-            entities = client.entities.list(filter='name eq \'%s\'' % managed_resource_group)
-        except Exception as e:
-            print(e)
+    def get_subscriptions_list(managed_resource_group, credentials):
+        client = ManagementGroupsAPI(credentials)
+        entities = client.entities.list(filter='name eq \'%s\'' % managed_resource_group)
 
-        subscriptions = []
-        for e in entities:
-            if e.type == '/subscriptions':
-                subscriptions.append(e.name)
+        return [e.name for e in entities if e.type == '/subscriptions']
 
-        return subscriptions

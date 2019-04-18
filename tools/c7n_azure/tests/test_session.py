@@ -110,7 +110,7 @@ class SessionTest(BaseTest):
 
                 s = Session()
 
-                auth = s.get_functions_auth_string()
+                auth = s.get_functions_auth_string(s.get_function_target_subscription_ids()[0])
 
                 expected = """{
                               "credentials": {
@@ -140,7 +140,7 @@ class SessionTest(BaseTest):
 
                 s = Session()
 
-                auth = s.get_functions_auth_string()
+                auth = s.get_functions_auth_string(s.get_function_target_subscription_ids()[0])
 
                 expected = """{
                               "credentials": {

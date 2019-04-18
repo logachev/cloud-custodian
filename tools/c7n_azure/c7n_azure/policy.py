@@ -122,8 +122,10 @@ class AzureFunctionMode(ServerlessExecutionMode):
         location = service_plan.get('location', 'eastus')
         rg_name = service_plan['resource_group_name']
         sub_id = session.get_subscription_id()
-        target_sub_id = session.get_function_target_subscription_id()
-        function_suffix = StringUtils.naming_hash(rg_name + target_sub_id)
+
+        target_sub_name = session.get_function_target_subscription_name()
+        function_suffix = StringUtils.naming_hash(rg_name + target_sub_name)
+
         storage_suffix = StringUtils.naming_hash(rg_name + sub_id)
 
         storage_account = AzureFunctionMode.extract_properties(
@@ -185,13 +187,7 @@ class AzureFunctionMode(ServerlessExecutionMode):
             self.log.error("Python 2.7 is not supported for deploying Azure Functions.")
             sys.exit(1)
 
-        if ENV_FUNCTION_MANAGED_GROUP_NAME in os.environ:
-            self.target_subscription_ids = \
-                ManagedGroupHelper.get_subscriptions_list(os.environ[ENV_FUNCTION_MANAGED_GROUP_NAME])
-        else:
-            session = local_session(self.policy.session_factory)
-            self.target_subscription_ids = [session.get_function_target_subscription_id()]
-
+        self.target_subscription_ids = session.get_function_target_subscription_ids()
 
         self.function_params = self.get_function_app_params()
         self.function_app = FunctionAppUtilities.deploy_function_app(self.function_params)
