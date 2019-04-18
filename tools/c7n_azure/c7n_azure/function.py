@@ -31,7 +31,6 @@ except ImportError:
 
 max_dequeue_count = 3
 
-
 def main(input):
     logging.info("Running Azure Cloud Custodian Policy")
 
