@@ -54,7 +54,8 @@ class FunctionPackage(object):
         for target_subscription_id in self.target_subscription_ids:
             name = self.name + ("_" + target_subscription_id if target_subscription_id else "")
             # generate and add auth
-            self.pkg.add_contents(dest=name + '/auth.json', contents=s.get_functions_auth_string(target_subscription_id))
+            self.pkg.add_contents(dest=name + '/auth.json',
+                                  contents=s.get_functions_auth_string(target_subscription_id))
 
             self.pkg.add_file(self.function_path,
                               dest=name + '/function.py')

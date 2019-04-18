@@ -31,7 +31,9 @@ class AzureEventSubscriptionsTest(BaseTest):
         StorageUtilities.create_queue_from_storage_account(account, queue_name, self.session)
         event_sub_destination = StorageQueueEventSubscriptionDestination(
             resource_id=account.id, queue_name=queue_name)
-        AzureEventSubscription.create(event_sub_destination, self.event_sub_name, DEFAULT_SUBSCRIPTION_ID)
+        AzureEventSubscription.create(event_sub_destination,
+                                      self.event_sub_name,
+                                      DEFAULT_SUBSCRIPTION_ID)
 
     def test_event_subscription_schema_validate(self):
         with self.sign_out_patch():

@@ -15,7 +15,6 @@
 import logging
 import re
 import sys
-import os
 
 import six
 from azure.mgmt.eventgrid.models import \
@@ -26,13 +25,12 @@ from c7n.actions import EventAction
 from c7n.policy import PullMode, ServerlessExecutionMode, execution
 from c7n.utils import local_session
 from c7n_azure.azure_events import AzureEvents, AzureEventSubscription
-from c7n_azure.constants import (FUNCTION_EVENT_TRIGGER_MODE,
-                                 FUNCTION_TIME_TRIGGER_MODE,
-                                 ENV_FUNCTION_MANAGED_GROUP_NAME)
 from c7n_azure.function_package import FunctionPackage
+from c7n_azure.constants import (FUNCTION_EVENT_TRIGGER_MODE,
+                                 FUNCTION_TIME_TRIGGER_MODE)
 from c7n_azure.functionapp_utils import FunctionAppUtilities
 from c7n_azure.storage_utils import StorageUtilities
-from c7n_azure.utils import ResourceIdParser, StringUtils, ManagedGroupHelper
+from c7n_azure.utils import ResourceIdParser, StringUtils
 
 
 class AzureFunctionMode(ServerlessExecutionMode):
@@ -99,7 +97,6 @@ class AzureFunctionMode(ServerlessExecutionMode):
         self.function_params = None
         self.function_app = None
         self.target_subscription_ids = []
-
 
     def get_function_app_params(self):
         session = local_session(self.policy.session_factory)
@@ -331,8 +328,10 @@ class AzureEventGridMode(AzureFunctionMode):
 
         for subscription_id in self.target_subscription_ids:
             try:
-                AzureEventSubscription.create(destination, queue_name, subscription_id, session, event_filter)
-                self.log.info('Event grid subscription creation succeeded: subscription_id=%s' % subscription_id)
+                AzureEventSubscription.create(destination, queue_name,
+                                              subscription_id, session, event_filter)
+                self.log.info('Event grid subscription creation succeeded: subscription_id=%s' %
+                              subscription_id)
             except Exception as e:
                 self.log.error('Event Subscription creation failed with error: %s' % e)
                 raise SystemExit

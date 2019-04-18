@@ -393,4 +393,3 @@ class ManagedGroupHelper(object):
         entities = client.entities.list(filter='name eq \'%s\'' % managed_resource_group)
 
         return [e.name for e in entities if e.type == '/subscriptions']
-
