@@ -170,8 +170,10 @@ class Session(object):
         return self.subscription_id
 
     def get_function_target_subscription_name(self):
+        self._initialize_session()
+
         if constants.ENV_FUNCTION_MANAGED_GROUP_NAME in os.environ:
-            return constants.ENV_FUNCTION_MANAGED_GROUP_NAME
+            return os.environ[constants.ENV_FUNCTION_MANAGED_GROUP_NAME]
         return os.environ.get(constants.ENV_FUNCTION_SUB_ID, self.subscription_id)
 
     def get_function_target_subscription_ids(self):
@@ -223,10 +225,11 @@ class Session(object):
     def load_auth_file(self, path):
         with open(path) as json_file:
             data = json.load(json_file)
+            self.tenant_id = data['credentials']['tenant']
             return (ServicePrincipalCredentials(
                 client_id=data['credentials']['client_id'],
                 secret=data['credentials']['secret'],
-                tenant=data['credentials']['tenant'],
+                tenant=self.tenant_id,
                 resource=self.resource_namespace
             ), data.get('subscription', None))
 
