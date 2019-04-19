@@ -181,7 +181,7 @@ class Session(object):
 
         if constants.ENV_FUNCTION_MANAGED_GROUP_NAME in os.environ:
             return ManagedGroupHelper.get_subscriptions_list(
-                os.environ[constants.ENV_FUNCTION_MANAGED_GROUP_NAME])
+                os.environ[constants.ENV_FUNCTION_MANAGED_GROUP_NAME], self.get_credentials())
 
         return [os.environ.get(constants.ENV_FUNCTION_SUB_ID, self.subscription_id)]
 

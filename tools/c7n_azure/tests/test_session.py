@@ -24,7 +24,6 @@ import re
 import sys
 
 from azure.common.credentials import ServicePrincipalCredentials, BasicTokenAuthentication
-from azure.mgmt.managementgroups import ManagementGroupsAPI
 from msrestazure.azure_active_directory import MSIAuthentication
 from azure_common import BaseTest, DEFAULT_SUBSCRIPTION_ID
 from c7n_azure import constants
@@ -137,14 +136,11 @@ class SessionTest(BaseTest):
 
                 auth = s.get_functions_auth_string(CUSTOM_SUBSCRIPTION_ID)
 
-                expected = {
-                              "credentials": {
-                                "client_id": "client",
-                                "secret": "secret",
-                                "tenant": "tenant"
-                              },
-                              "subscription": CUSTOM_SUBSCRIPTION_ID
-                            }
+                expected = {"credentials":
+                            {"client_id": "client",
+                             "secret": "secret",
+                             "tenant": "tenant"},
+                            "subscription": CUSTOM_SUBSCRIPTION_ID}
 
                 self.assertEqual(json.loads(auth), expected)
 
