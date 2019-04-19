@@ -242,6 +242,7 @@ class UtilsTest(BaseTest):
         Bag({'name': GUID,
              'type': '/subscriptions'}),
     ])
+
     @patch('azure.mgmt.managementgroups.operations.EntitiesOperations.list',
            return_value=managed_group_return_value)
     def test_managed_group_helper(self, _1):
