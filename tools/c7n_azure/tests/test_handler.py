@@ -2,8 +2,8 @@ from azure_common import BaseTest, CUSTOM_SUBSCRIPTION_ID
 from c7n_azure.handler import run
 from os.path import dirname, join
 from c7n.config import Config
-from c7n.policy import Policy
 from mock import patch, call
+
 
 class HandlerTest(BaseTest):
 
