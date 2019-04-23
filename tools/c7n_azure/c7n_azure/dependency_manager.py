@@ -115,17 +115,11 @@ class DependencyManager(object):
             wheel.install(paths, ScriptMaker(None, None), lib_only=True)
 
     @staticmethod
-    def _get_dir_hash(directory):
+    def _get_file_hash(filepath):
         hash = hashlib.md5()
-
-        for root, _, files in os.walk(directory):
-            for names in files:
-                filepath = os.path.join(root, names)
-                with open(filepath, 'rb') as f:
-                    buf = f.read(65536)
-                    if not buf:
-                        break
-                    hash.update(buf)
+        with open(filepath, 'rb') as f:
+            for chunk in iter(lambda: f.read(65536), b""):
+                hash.update(chunk)
         return hash.hexdigest()
 
     @staticmethod
@@ -133,13 +127,13 @@ class DependencyManager(object):
         return hashlib.md5(bytes(string, 'utf-8')).hexdigest()
 
     @staticmethod
-    def check_cache(cache_folder, install_folder, packages):
+    def check_cache(cache_folder, cache_zip_file, packages):
         metadata_file = os.path.join(cache_folder, 'metadata.json')
 
         if not os.path.exists(metadata_file):
             return False
 
-        if not os.path.exists(install_folder):
+        if not os.path.exists(cache_zip_file):
             return False
 
         with open(metadata_file, 'rt') as f:
@@ -151,13 +145,13 @@ class DependencyManager(object):
         if DependencyManager._get_string_hash(' '.join(packages)) != data.get('packages_hash'):
             return False
 
-        if DependencyManager._get_dir_hash(install_folder) != data.get('install_hash'):
+        if DependencyManager._get_file_hash(cache_zip_file) != data.get('zip_hash'):
             return False
         return True
 
     @staticmethod
-    def create_cache_metadata(cache_folder, install_folder, packages):
+    def create_cache_metadata(cache_folder, cache_zip_file, packages):
         metadata_file = os.path.join(cache_folder, 'metadata.json')
         with open(metadata_file, 'wt+') as f:
             json.dump({'packages_hash': DependencyManager._get_string_hash(' '.join(packages)),
-                       'install_hash': DependencyManager._get_dir_hash(install_folder)}, f)
+                       'zip_hash': DependencyManager._get_file_hash(cache_zip_file)}, f)
