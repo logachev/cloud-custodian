@@ -964,6 +964,17 @@ class PythonArchiveTest(unittest.TestCase):
         archive.close()
         self.assertRaises(AssertionError, self.check_world_readable, archive)
 
+    def test_cache_zip_file(self):
+        archive = PythonPackageArchive(cache_file=os.path.join(os.path.dirname(__file__),
+                                                               "data",
+                                                               "test.zip"))
+        archive.close()
+
+        self.assertTrue("cheese.txt" in archive.get_filenames())
+        self.assertTrue("cheese/is/yummy.txt" in archive.get_filenames())
+        with archive.get_reader() as reader:
+            self.assertEqual(b"So yummy!", reader.read("cheese.txt"))
+            self.assertEqual(b"True!", reader.read("cheese/is/yummy.txt"))
 
 class PycCase(unittest.TestCase):
 

@@ -70,7 +70,7 @@ class PythonPackageArchive(object):
                 self._temp_archive_file.write(fin.read())
 
         self._zip_file = zipfile.ZipFile(
-            self._temp_archive_file, mode='w',
+            self._temp_archive_file, mode='a',
             compression=self.zip_compression)
         self._closed = False
         self.add_modules(None, modules)
