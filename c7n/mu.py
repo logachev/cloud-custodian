@@ -63,7 +63,7 @@ class PythonPackageArchive(object):
 
     zip_compression = zipfile.ZIP_DEFLATED
 
-    def __init__(self, *modules, cache_file=None):
+    def __init__(self, modules=[], cache_file=None):
         self._temp_archive_file = tempfile.NamedTemporaryFile()
         if cache_file:
             with open(cache_file, 'rb') as fin:
@@ -72,7 +72,7 @@ class PythonPackageArchive(object):
             self._temp_archive_file, mode='w',
             compression=self.zip_compression)
         self._closed = False
-        self.add_modules(None, *modules)
+        self.add_modules(None, modules)
 
     @property
     def path(self):
@@ -84,7 +84,7 @@ class PythonPackageArchive(object):
             raise ValueError("Archive not closed, size not accurate")
         return os.stat(self._temp_archive_file.name).st_size
 
-    def add_modules(self, ignore, *modules):
+    def add_modules(self, ignore, modules):
         """Add the named Python modules to the archive. For consistency's sake
         we only add ``*.py`` files, not ``*.pyc``. We also don't add other
         files, including compiled modules. You'll have to add such files
@@ -276,7 +276,7 @@ def custodian_archive(packages=None):
     modules = {'c7n', 'pkg_resources'}
     if packages:
         modules = filter(None, modules.union(packages))
-    return PythonPackageArchive(*sorted(modules))
+    return PythonPackageArchive(sorted(modules))
 
 
 class LambdaManager(object):

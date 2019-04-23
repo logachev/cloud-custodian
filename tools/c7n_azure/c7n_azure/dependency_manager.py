@@ -1,3 +1,4 @@
+import base64
 import hashlib
 import json
 import logging
@@ -6,6 +7,8 @@ import re
 import subprocess
 import sys
 from builtins import bytes
+
+from c7n.mu import checksum
 
 logger = logging.getLogger('c7n_azure.dependency_manager')
 
@@ -116,11 +119,9 @@ class DependencyManager(object):
 
     @staticmethod
     def _get_file_hash(filepath):
-        hash = hashlib.md5()
+        hasher = hashlib.sha256()
         with open(filepath, 'rb') as f:
-            for chunk in iter(lambda: f.read(65536), b""):
-                hash.update(chunk)
-        return hash.hexdigest()
+            return base64.b64encode(checksum(f, hasher)).decode('ascii')
 
     @staticmethod
     def _get_string_hash(string):
