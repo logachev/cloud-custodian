@@ -163,7 +163,6 @@ class FunctionPackage(object):
             self.log.info("Installing wheels...")
             DependencyManager.install_wheels(wheels_folder, wheels_install_folder)
 
-
             for root, _, files in os.walk(wheels_install_folder):
                 arc_prefix = os.path.relpath(root, wheels_install_folder)
                 for f in files:
@@ -174,10 +173,6 @@ class FunctionPackage(object):
                     f_path = os.path.join(root, f)
 
                     cache_pkg.add_file(f_path, dest_path)
-
-            exclude = os.path.normpath('/cache/') + os.path.sep
-            cache_pkg.add_modules(lambda f: (exclude in f),
-                                  *[m.replace('-', '_') for m in modules])
 
             self.log.info('Saving cache zip file...')
             cache_pkg.close()
@@ -193,8 +188,11 @@ class FunctionPackage(object):
                                                     cache_zip_file,
                                                     packages)
 
-
         self.pkg = PythonPackageArchive(cache_file=cache_zip_file)
+
+        exclude = os.path.normpath('/cache/') + os.path.sep
+        self.pkg.add_modules(lambda f: (exclude in f),
+                             *[m.replace('-', '_') for m in modules])
 
         # add config and policy
         self._add_functions_required_files(policy, queue_name)
