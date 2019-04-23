@@ -128,16 +128,14 @@ class DependencyManager(object):
         return hashlib.md5(bytes(string, 'utf-8')).hexdigest()
 
     @staticmethod
-    def check_cache(cache_folder, cache_zip_file, packages):
-        metadata_file = os.path.join(cache_folder, 'metadata.json')
-
-        if not os.path.exists(metadata_file):
+    def check_cache(cache_metadata_file, cache_zip_file, packages):
+        if not os.path.exists(cache_metadata_file):
             return False
 
         if not os.path.exists(cache_zip_file):
             return False
 
-        with open(metadata_file, 'rt') as f:
+        with open(cache_metadata_file, 'rt') as f:
             try:
                 data = json.load(f)
             except Exception:
@@ -151,8 +149,7 @@ class DependencyManager(object):
         return True
 
     @staticmethod
-    def create_cache_metadata(cache_folder, cache_zip_file, packages):
-        metadata_file = os.path.join(cache_folder, 'metadata.json')
-        with open(metadata_file, 'wt+') as f:
+    def create_cache_metadata(cache_metadata_file, cache_zip_file, packages):
+        with open(cache_metadata_file, 'wt+') as f:
             json.dump({'packages_hash': DependencyManager._get_string_hash(' '.join(packages)),
                        'zip_hash': DependencyManager._get_file_hash(cache_zip_file)}, f)

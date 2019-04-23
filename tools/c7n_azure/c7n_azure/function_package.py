@@ -142,11 +142,12 @@ class FunctionPackage(object):
         wheels_install_folder = os.path.join(self.cache_folder, 'dependencies')
 
         cache_zip_file = os.path.join(self.cache_folder, 'cache.zip')
+        cache_metadata_file = os.path.join(self.cache_folder, 'metadata.json')
 
         packages = \
             DependencyManager.get_dependency_packages_list(modules, excluded_packages)
 
-        if not DependencyManager.check_cache(self.cache_folder, cache_zip_file, packages):
+        if not DependencyManager.check_cache(cache_metadata_file, cache_zip_file, packages):
             cache_pkg = PythonPackageArchive()
             self.log.info("Cached packages not found or requirements were changed.")
             # If cache check fails, wipe all previous wheels, installations etc
@@ -184,7 +185,7 @@ class FunctionPackage(object):
             shutil.rmtree(wheels_install_folder)
 
             self.log.info("Updating metadata file...")
-            DependencyManager.create_cache_metadata(self.cache_folder,
+            DependencyManager.create_cache_metadata(cache_metadata_file,
                                                     cache_zip_file,
                                                     packages)
 
