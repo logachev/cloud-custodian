@@ -13,14 +13,14 @@
 # limitations under the License.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from azure.mgmt.storage.models import StorageAccountUpdateParameters, DefaultAction, IPRule, \
+    VirtualNetworkRule
 from azure_common import BaseTest, arm_template
+from c7n_azure.resources.storage import StorageSetNetworkRulesAction
 from c7n_azure.session import Session
-from c7n_azure.resources.storage import Storage, StorageSetNetworkRulesAction
-from c7n.utils import local_session
-from azure.mgmt.storage.models import StorageAccountUpdateParameters, DefaultAction, NetworkRuleSet
-from mock import patch
-from mock import MagicMock, Mock
+from mock import MagicMock
 
+from c7n.utils import local_session
 
 rg_name = 'test_storage'
 
@@ -89,11 +89,52 @@ class StorageTestFirewall(BaseTest):
 
     def test_deny_action(self):
         data = {'type': 'set-network-rules',
-                'default-action': 'Deny'}
+                'default-action': 'Allow'}
+        rules = self._emulate_set_network_rules_action(data)
+
+        self.assertEqual(rules.default_action, 'Allow')
+        self.assertEqual(rules.bypass, 'None')
+
+    def test_bypass(self):
+        data = {'type': 'set-network-rules',
+                'default-action': 'Deny',
+                'bypass': ['Logging', 'Metrics']}
         rules = self._emulate_set_network_rules_action(data)
 
         self.assertEqual(rules.default_action, 'Deny')
-        self.assertEqual(rules.bypass, 'None')
+        self.assertEqual(rules.bypass, 'Logging,Metrics')
+
+    def test_ip_rules(self):
+        data = {'type': 'set-network-rules',
+                'default-action': 'Deny',
+                'ip-rules': [
+                    {'ip-address-or-range': '127.0.0.1'},
+                    {'ip-address-or-range': '127.0.0.1-127.0.0.2'}]
+                }
+        rules = self._emulate_set_network_rules_action(data)
+
+        self.assertEqual(rules.default_action, 'Deny')
+        self.assertEqual(len(rules.ip_rules), 2)
+        self.assertEqual(rules.ip_rules[0],
+                         IPRule(ip_address_or_range='127.0.0.1', action='Allow'))
+        self.assertEqual(rules.ip_rules[1],
+                         IPRule(ip_address_or_range='127.0.0.1-127.0.0.2', action='Allow'))
+
+    def test_virtual_network_rules(self):
+        data = {'type': 'set-network-rules',
+                'default-action': 'Deny',
+                'virtual-network-rules': [
+                    {'virtual-network-resource-id': 'id_1'},
+                    {'virtual-network-resource-id': 'id_2'}]
+                }
+        rules = self._emulate_set_network_rules_action(data)
+
+        self.assertEqual(rules.default_action, 'Deny')
+        self.assertEqual(len(rules.virtual_network_rules), 2)
+        self.assertEqual(rules.virtual_network_rules[0],
+                         VirtualNetworkRule(virtual_network_resource_id='id_1', action='Allow'))
+        self.assertEqual(rules.virtual_network_rules[1],
+                         VirtualNetworkRule(virtual_network_resource_id='id_2', action='Allow'))
 
     def _get_resources(self):
         p_get = self.load_policy({
@@ -126,11 +167,14 @@ class StorageTestFirewall(BaseTest):
             StorageAccountUpdateParameters(network_rule_set=resource.network_rule_set))
 
     def _emulate_set_network_rules_action(self, data):
-        resource = {'resourceGroup': 'test', 'name': 'test'}
+        resource = {'resourceGroup': 'testRG', 'name': 'testName'}
         action = StorageSetNetworkRulesAction(data=data)
         action.client = MagicMock()
         action._process_resource(resource)
         update = action.client.storage_accounts.update
 
         self.assertEqual(len(update.call_args_list), 1)
+        self.assertEqual(len(update.call_args_list[0][0]), 3)
+        self.assertEqual(update.call_args_list[0][0][0], 'testRG')
+        self.assertEqual(update.call_args_list[0][0][1], 'testName')
         return update.call_args_list[0][0][2].network_rule_set
