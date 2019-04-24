@@ -15,29 +15,29 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from azure_common import BaseTest, arm_template
 from c7n_azure.session import Session
+from c7n_azure.resources.storage import Storage, StorageSetNetworkRulesAction
 from c7n.utils import local_session
-from azure.mgmt.storage.models import StorageAccountUpdateParameters, DefaultAction
+from azure.mgmt.storage.models import StorageAccountUpdateParameters, DefaultAction, NetworkRuleSet
+from mock import patch
+from mock import MagicMock, Mock
+
 
 rg_name = 'test_storage'
 
 
 class StorageTestFirewall(BaseTest):
-    def tearDown(self):
-        client = local_session(Session).client('azure.mgmt.storage.StorageManagementClient')
-        resources = list(client.storage_accounts.list_by_resource_group(rg_name))
-        self.assertEqual(len(resources), 1)
-        resource = resources[0]
-        resource.network_rule_set.ip_rules = []
-        resource.network_rule_set.virtual_network_rules = []
-        resource.network_rule_set.bypass = 'AzureServices'
-        resource.network_rule_set.default_action = DefaultAction.allow
-        client.storage_accounts.update(
-            rg_name,
-            resource.name,
-            StorageAccountUpdateParameters(network_rule_set=resource.network_rule_set))
 
     @arm_template('storage.json')
     def test_network_ip_rules_action(self):
+        subscription_id = local_session(Session).get_subscription_id()
+        subnet_id = '/subscriptions/{0}/' \
+                    'resourceGroups/{1}/' \
+                    'providers/Microsoft.Network/' \
+                    'virtualNetworks/{2}/subnets/{3}'
+        id1 = subnet_id.format(subscription_id, 'test_storage', 'cctstoragevnet1', 'testsubnet1')
+        id2 = subnet_id.format(subscription_id, 'test_storage', 'cctstoragevnet2', 'testsubnet2')
+        self.addCleanup(self._cleanup)
+
         p_add = self.load_policy({
             'name': 'test-azure-storage-add-ips',
             'resource': 'azure.storage',
@@ -50,56 +50,11 @@ class StorageTestFirewall(BaseTest):
             'actions': [
                 {'type': 'set-network-rules',
                  'default-action': 'Deny',
-                 'bypass': ['Logging', 'Metrics'],
+                 'bypass': ['Metrics'],
                  'ip-rules': [
                      {'ip-address-or-range': '11.12.13.14'},
                      {'ip-address-or-range': '21.22.23.24'}
-                 ]}
-            ]
-        })
-
-        p_add.run()
-
-        resources = self._get_resources()
-        self.assertEqual(len(resources), 1)
-        ip_rules = resources[0]['properties']['networkAcls']['ipRules']
-        self.assertEqual(len(ip_rules), 2)
-        self.assertEqual(ip_rules[0]['value'], '11.12.13.14')
-        self.assertEqual(ip_rules[1]['value'], '21.22.23.24')
-        self.assertEqual(ip_rules[0]['action'], 'Allow')
-        self.assertEqual(ip_rules[1]['action'], 'Allow')
-
-    @arm_template('storage.json')
-    def test_virtual_network_rules_action(self):
-        p_vnet_get = self.load_policy({
-            'name': 'test-azure-storage-enum',
-            'resource': 'azure.vnet',
-            'filters': [
-                {'type': 'value',
-                 'key': 'name',
-                 'op': 'glob',
-                 'value_type': 'normalize',
-                 'value': 'cctstoragevnet*'}],
-        })
-
-        vnets = p_vnet_get.run()
-
-        id1 = vnets[0]['properties']['subnets'][0]['id']
-        id2 = vnets[1]['properties']['subnets'][0]['id']
-
-        p_add = self.load_policy({
-            'name': 'test-azure-storage-add-ips',
-            'resource': 'azure.storage',
-            'filters': [
-                {'type': 'value',
-                 'key': 'name',
-                 'op': 'glob',
-                 'value_type': 'normalize',
-                 'value': 'cctstorage*'}],
-            'actions': [
-                {'type': 'set-network-rules',
-                 'default-action': 'Deny',
-                 'bypass': ['Logging', 'Metrics'],
+                 ],
                  'virtual-network-rules': [
                      {'virtual-network-resource-id': id1},
                      {'virtual-network-resource-id': id2}
@@ -111,6 +66,20 @@ class StorageTestFirewall(BaseTest):
 
         resources = self._get_resources()
         self.assertEqual(len(resources), 1)
+
+        action = resources[0]['properties']['networkAcls']['defaultAction']
+        self.assertEqual(action, 'Deny')
+
+        bypass = resources[0]['properties']['networkAcls']['bypass']
+        self.assertEqual(bypass, 'Metrics')
+
+        ip_rules = resources[0]['properties']['networkAcls']['ipRules']
+        self.assertEqual(len(ip_rules), 2)
+        self.assertEqual(ip_rules[0]['value'], '11.12.13.14')
+        self.assertEqual(ip_rules[1]['value'], '21.22.23.24')
+        self.assertEqual(ip_rules[0]['action'], 'Allow')
+        self.assertEqual(ip_rules[1]['action'], 'Allow')
+
         rules = resources[0]['properties']['networkAcls']['virtualNetworkRules']
         self.assertEqual(len(rules), 2)
         self.assertEqual(rules[0]['id'], id1)
@@ -118,99 +87,13 @@ class StorageTestFirewall(BaseTest):
         self.assertEqual(rules[0]['action'], 'Allow')
         self.assertEqual(rules[1]['action'], 'Allow')
 
-    @arm_template('storage.json')
-    def test_empty_bypass_network_rules_action(self):
-        p_add = self.load_policy({
-            'name': 'test-azure-storage-add-ips',
-            'resource': 'azure.storage',
-            'filters': [
-                {'type': 'value',
-                 'key': 'name',
-                 'op': 'glob',
-                 'value_type': 'normalize',
-                 'value': 'cctstorage*'}],
-            'actions': [
-                {'type': 'set-network-rules',
-                 'default-action': 'Deny',
-                 'bypass': []}
-            ]
-        })
+    def test_deny_action(self):
+        data = {'type': 'set-network-rules',
+                'default-action': 'Deny'}
+        rules = self._emulate_set_network_rules_action(data)
 
-        p_add.run()
-
-        resources = self._get_resources()
-        bypass = resources[0]['properties']['networkAcls']['bypass']
-        self.assertEqual(bypass, 'None')
-
-    @arm_template('storage.json')
-    def test_missing_bypass_network_rules_action(self):
-        p_add = self.load_policy({
-            'name': 'test-azure-storage-add-ips',
-            'resource': 'azure.storage',
-            'filters': [
-                {'type': 'value',
-                 'key': 'name',
-                 'op': 'glob',
-                 'value_type': 'normalize',
-                 'value': 'cctstorage*'}],
-            'actions': [
-                {'type': 'set-network-rules',
-                 'default-action': 'Deny'}
-            ]
-        })
-
-        p_add.run()
-
-        resources = self._get_resources()
-        bypass = resources[0]['properties']['networkAcls']['bypass']
-        self.assertEqual(bypass, 'None')
-
-    @arm_template('storage.json')
-    def test_default_action_network_rules_action(self):
-        p_add = self.load_policy({
-            'name': 'test-azure-storage-add-ips',
-            'resource': 'azure.storage',
-            'filters': [
-                {'type': 'value',
-                 'key': 'name',
-                 'op': 'glob',
-                 'value_type': 'normalize',
-                 'value': 'cctstorage*'}],
-            'actions': [
-                {'type': 'set-network-rules',
-                 'default-action': 'Deny'}
-            ]
-        })
-
-        p_add.run()
-
-        resources = self._get_resources()
-        action = resources[0]['properties']['networkAcls']['defaultAction']
-        self.assertEqual(action, 'Deny')
-
-    @arm_template('storage.json')
-    def test_bypass_network_rules_action(self):
-        p_add = self.load_policy({
-            'name': 'test-azure-storage-add-ips',
-            'resource': 'azure.storage',
-            'filters': [
-                {'type': 'value',
-                 'key': 'name',
-                 'op': 'glob',
-                 'value_type': 'normalize',
-                 'value': 'cctstorage*'}],
-            'actions': [
-                {'type': 'set-network-rules',
-                 'default-action': 'Deny',
-                 'bypass': ['Metrics']}
-            ]
-        })
-
-        p_add.run()
-
-        resources = self._get_resources()
-        bypass = resources[0]['properties']['networkAcls']['bypass']
-        self.assertEqual(bypass, 'Metrics')
+        self.assertEqual(rules.default_action, 'Deny')
+        self.assertEqual(rules.bypass, 'None')
 
     def _get_resources(self):
         p_get = self.load_policy({
@@ -227,3 +110,27 @@ class StorageTestFirewall(BaseTest):
         resources = p_get.run()
 
         return resources
+
+    def _cleanup(self):
+        client = local_session(Session).client('azure.mgmt.storage.StorageManagementClient')
+        resources = list(client.storage_accounts.list_by_resource_group(rg_name))
+        self.assertEqual(len(resources), 1)
+        resource = resources[0]
+        resource.network_rule_set.ip_rules = []
+        resource.network_rule_set.virtual_network_rules = []
+        resource.network_rule_set.bypass = 'AzureServices'
+        resource.network_rule_set.default_action = DefaultAction.allow
+        client.storage_accounts.update(
+            rg_name,
+            resource.name,
+            StorageAccountUpdateParameters(network_rule_set=resource.network_rule_set))
+
+    def _emulate_set_network_rules_action(self, data):
+        resource = {'resourceGroup': 'test', 'name': 'test'}
+        action = StorageSetNetworkRulesAction(data=data)
+        action.client = MagicMock()
+        action._process_resource(resource)
+        update = action.client.storage_accounts.update
+
+        self.assertEqual(len(update.call_args_list), 1)
+        return update.call_args_list[0][0][2].network_rule_set
