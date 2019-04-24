@@ -20,6 +20,7 @@ from azure_common import BaseTest
 from c7n_azure.function_package import FunctionPackage
 from c7n_azure.constants import ENV_CUSTODIAN_DISABLE_SSL_CERT_VERIFICATION,\
     FUNCTION_TIME_TRIGGER_MODE, FUNCTION_EVENT_TRIGGER_MODE
+from c7n.mu import PythonPackageArchive
 from mock import patch
 
 
@@ -94,6 +95,7 @@ class FunctionPackageTest(BaseTest):
         })
 
         packer = FunctionPackage(p.data['name'])
+        packer.pkg = PythonPackageArchive()
 
         packer._add_functions_required_files(p.data, 'test-queue')
         files = packer.pkg._zip_file.filelist
