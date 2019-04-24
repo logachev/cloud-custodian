@@ -22,6 +22,7 @@ from azure_common import BaseTest
 from c7n_azure.dependency_manager import DependencyManager
 
 
+@unittest.skipIf(sys.version_info < (3, 6), "Functions is not supported in this version")
 class DependencyManagerTest(BaseTest):
 
     test_zip = os.path.join(os.path.dirname(__file__), 'data', 'test_cache', 'cache.zip')
