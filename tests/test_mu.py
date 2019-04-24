@@ -811,17 +811,17 @@ class PolicyLambdaProvision(BaseTest):
 
 class PythonArchiveTest(unittest.TestCase):
 
-    def make_archive(self, modules=[]):
-        archive = self.make_open_archive(modules)
+    def make_archive(self, modules=(), cache_file=None):
+        archive = self.make_open_archive(modules, cache_file=cache_file)
         archive.close()
         return archive
 
-    def make_open_archive(self, modules=[]):
-        archive = PythonPackageArchive(modules=modules)
+    def make_open_archive(self, modules=(), cache_file=None):
+        archive = PythonPackageArchive(modules=modules, cache_file=cache_file)
         self.addCleanup(archive.remove)
         return archive
 
-    def get_filenames(self, modules=[]):
+    def get_filenames(self, modules=()):
         return self.make_archive(modules).get_filenames()
 
     def test_handles_stdlib_modules(self):
@@ -965,10 +965,9 @@ class PythonArchiveTest(unittest.TestCase):
         self.assertRaises(AssertionError, self.check_world_readable, archive)
 
     def test_cache_zip_file(self):
-        archive = PythonPackageArchive(cache_file=os.path.join(os.path.dirname(__file__),
-                                                               "data",
-                                                               "test.zip"))
-        archive.close()
+        archive = self.make_archive(cache_file=os.path.join(os.path.dirname(__file__),
+                                                            "data",
+                                                            "test.zip"))
 
         self.assertTrue("cheese.txt" in archive.get_filenames())
         self.assertTrue("cheese/is/yummy.txt" in archive.get_filenames())

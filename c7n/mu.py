@@ -63,7 +63,7 @@ class PythonPackageArchive(object):
 
     zip_compression = zipfile.ZIP_DEFLATED
 
-    def __init__(self, modules=[], cache_file=None):
+    def __init__(self, modules=(), cache_file=None):
         self._temp_archive_file = tempfile.NamedTemporaryFile(delete=False)
         if cache_file:
             with open(cache_file, 'rb') as fin:
