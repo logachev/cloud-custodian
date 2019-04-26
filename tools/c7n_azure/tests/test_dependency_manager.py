@@ -16,9 +16,7 @@ import json
 import os
 import re
 import shutil
-import sys
 import tempfile
-import unittest
 
 from azure_common import BaseTest
 from c7n_azure.dependency_manager import DependencyManager
