@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import filecmp
+import json
 import os
 import re
 import shutil
@@ -24,7 +24,6 @@ from azure_common import BaseTest
 from c7n_azure.dependency_manager import DependencyManager
 
 
-@unittest.skipIf(sys.version_info < (3, 6), "Functions is not supported in this version")
 class DependencyManagerTest(BaseTest):
 
     test_zip = os.path.join(os.path.dirname(__file__), 'data', 'test_cache', 'cache.zip')
@@ -52,7 +51,11 @@ class DependencyManagerTest(BaseTest):
                                                 self.test_zip,
                                                 self.test_packages)
 
-        self.assertTrue(filecmp.cmp(self.test_metadata, tmp_metadata))
+        with open(self.test_metadata, 'rt') as f:
+            test_json = json.load(f)
+        with open(tmp_metadata, 'rt') as f:
+            tmp_json = json.load(f)
+        self.assertTrue(test_json == tmp_json)
 
     def test_check_hash(self):
         self.assertFalse(DependencyManager.check_cache(self.test_metadata_wrong,
@@ -79,5 +82,5 @@ class DependencyManagerTest(BaseTest):
         self.assertEqual(sorted(d), d)
         # Remove versions from all packages & make sure there is no duplicates in the list
         regex = "^[^<>~=]*"
-        d_no_versions = [re.match(regex, p)[0] for p in d]
+        d_no_versions = [re.match(regex, p).group(0) for p in d]
         self.assertEqual(len(d), len(set(d_no_versions)))
