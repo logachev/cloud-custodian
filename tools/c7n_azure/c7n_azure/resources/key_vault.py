@@ -35,6 +35,11 @@ class KeyVault(ArmResourceManager):
         client = 'KeyVaultManagementClient'
         enum_spec = ('vaults', 'list', None)
 
+    def augment(self, resources):
+        for r in resources:
+            r['c7n:vaultUrl'] = 'https://{0}.vault.azure.net'.format(r['name'])
+        return resources
+
 
 @KeyVault.filter_registry.register('whitelist')
 class WhiteListFilter(Filter):

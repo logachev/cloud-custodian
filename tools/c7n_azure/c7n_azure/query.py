@@ -94,7 +94,11 @@ class ChildResourceQuery(ResourceQuery):
             if extra_args:
                 params.update({key: parent[extra_args[key]] for key in extra_args.keys()})
 
-            op = getattr(getattr(client, enum_op), list_op)
+            if enum_op:
+                op = getattr(getattr(client, enum_op), list_op)
+            else:
+                op = getattr(client, list_op)
+
             subset = [r.serialize(True) for r in op(**params)]
 
             if annotate_parent:

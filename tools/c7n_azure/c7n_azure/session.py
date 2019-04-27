@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import inspect
 import importlib
 import json
 import logging
@@ -149,7 +150,12 @@ class Session(object):
         service_name, client_name = client.rsplit('.', 1)
         svc_module = importlib.import_module(service_name)
         klass = getattr(svc_module, client_name)
-        client = klass(self.credentials, self.subscription_id)
+        init_signature = inspect.signature(klass).parameters
+
+        if 'subscription_id' in init_signature:
+            client = klass(credentials=self.credentials, subscription_id=self.subscription_id)
+        else:
+            client = klass(credentials=self.credentials)
 
         # Override send() method to log request limits & custom retries
         service_client = client._client
