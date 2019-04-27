@@ -92,7 +92,7 @@ class ChildResourceQuery(ResourceQuery):
         results = []
         for parent in parents.resources():
             if extra_args:
-                params.update({key: parent[extra_args[key]] for key in extra_args.keys()})
+                params.update({key: extra_args[key](parent) for key in extra_args.keys()})
 
             if enum_op:
                 op = getattr(getattr(client, enum_op), list_op)

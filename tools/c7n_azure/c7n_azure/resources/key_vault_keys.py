@@ -34,7 +34,7 @@ class KeyVaultKeys(ChildArmResourceManager):
         service = 'azure.keyvault'
         client = 'KeyVaultClient'
         enum_spec = (None, 'get_keys', {
-            'vault_base_url': 'c7n:vaultUrl'
+            'vault_base_url': lambda p: 'https://{0}.vault.azure.net'.format(p['name'])
         })
         parent_spec = ChildArmResourceManager.ParentSpec(
             manager_name='keyvault',
