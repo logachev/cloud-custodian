@@ -20,28 +20,28 @@ This policy will find all Keys in all KeyVaults that are older than 30 days
 
  .. code-block:: yaml
      policies:
-        - name: keyvault-keys
-          description:
-            List all keys that are older than 30 days
-          resource: azure.keyvault-key
-          filters:
-            - type: value
-              key: created
-              value_type: age
-              op: gt
-              value: 30
+       - name: keyvault-keys
+         description:
+           List all keys that are older than 30 days
+         resource: azure.keyvault-keys
+         filters:
+           - type: value
+             key: attributes.created
+             value_type: age
+             op: gt
+             value: 1
 
 
 This policy will find all Keys in all KeyVaults that are not RSA-HSM
 
  .. code-block:: yaml
      policies:
-        - name: keyvault-keys
-          description:
-            List all non-RSA-HSM keys
-          resource: azure.keyvault-key
-          filters:
-            - type: not
-               - type: key-type
-                  key-types:
-                    - RSA-HSM
+       - name: keyvault-keys
+         description:
+           List all non-RSA-HSM keys
+         resource: azure.keyvault-keys
+         filters:
+           - not:
+              - type: key-type
+                key-types:
+                  - RSA-HSM
