@@ -212,6 +212,9 @@ class ChildResourceManager(QueryResourceManager):
 
     ParentSpec = namedtuple("ParentSpec", ["manager_name", "annotate_parent"])
 
+    class resource_type(QueryResourceManager.resource_type):
+        parent_spec = None
+
     child_source = 'describe-child-azure'
 
     @property
