@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from enum import Enum
+import logging
 import six
 from collections import namedtuple
 from c7n_azure.actions import Notify
@@ -22,6 +24,9 @@ from c7n.filters import FilterRegistry
 from c7n.manager import ResourceManager
 from c7n.query import sources
 from c7n.utils import local_session
+
+
+log = logging.getLogger('custodian.azure.query')
 
 
 class ResourceQuery(object):
@@ -100,14 +105,23 @@ class ChildResourceQuery(ResourceQuery):
             else:
                 op = getattr(client, list_op)
 
-            subset = [r.serialize(True) for r in op(**params)]
+            try:
+                subset = [r.serialize(True) for r in op(**params)]
 
-            if annotate_parent:
-                for r in subset:
-                    r[self.parent_key] = parent[parents.resource_type.id]
+                if annotate_parent:
+                    for r in subset:
+                        r[self.parent_key] = parent[parents.resource_type.id]
 
-            if subset:
-                results.extend(subset)
+                if subset:
+                    results.extend(subset)
+            except Exception as e:
+                log.warning('{0}.{1} failed for {2}. {3}'.format(m.client,
+                                                                 list_op,
+                                                                 parent[parents.resource_type.id],
+                                                                 e))
+                if m.raise_on_exception:
+                    raise e
+
         return results
 
 
@@ -214,6 +228,7 @@ class ChildResourceManager(QueryResourceManager):
 
     class resource_type(QueryResourceManager.resource_type):
         parent_spec = None
+        raise_on_exception = True
 
     child_source = 'describe-child-azure'
 

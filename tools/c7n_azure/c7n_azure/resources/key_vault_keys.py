@@ -40,6 +40,7 @@ class KeyVaultKeys(ChildResourceManager):
             manager_name='keyvault',
             annotate_parent=True
         )
+        raise_on_exception = False
 
 
 @KeyVaultKeys.filter_registry.register('keyvault')
