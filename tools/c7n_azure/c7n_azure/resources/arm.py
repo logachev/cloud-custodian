@@ -18,7 +18,7 @@ from c7n_azure.actions import Tag, AutoTagUser, RemoveTag, TagTrim, TagDelayedAc
 from c7n_azure.filters import (MetricFilter, TagActionFilter,
                                DiagnosticSettingsFilter, PolicyCompliantFilter)
 from c7n_azure.provider import resources
-from c7n_azure.query import QueryResourceManager, QueryMeta
+from c7n_azure.query import QueryResourceManager, QueryMeta, ChildResourceManager
 from c7n_azure.utils import ResourceIdParser
 
 from c7n.utils import local_session
@@ -28,7 +28,7 @@ from c7n.utils import local_session
 @six.add_metaclass(QueryMeta)
 class ArmResourceManager(QueryResourceManager):
 
-    class resource_type(object):
+    class resource_type(QueryResourceManager.resource_type):
         service = 'azure.mgmt.resource'
         client = 'ResourceManagementClient'
         enum_spec = ('resources', 'list', None)
@@ -79,21 +79,8 @@ class ArmResourceManager(QueryResourceManager):
 
 
 @six.add_metaclass(QueryMeta)
-class ChildArmResourceManager(ArmResourceManager):
-
-    ParentSpec = namedtuple("ParentSpec", ["manager_name", "annotate_parent"])
-
-    child_source = 'describe-child-azure'
-
-    @property
-    def source_type(self):
-        source = self.data.get('source', self.child_source)
-        if source == 'describe':
-            source = self.child_source
-        return source
-
-    def get_parent_manager(self):
-        return self.get_resource_manager(self.resource_type.parent_spec.manager_name)
+class ChildArmResourceManager(ChildResourceManager, ArmResourceManager):
+    pass
 
 
 resources.subscribe(resources.EVENT_FINAL, ArmResourceManager.register_arm_specific)

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import six
+from collections import namedtuple
 from c7n_azure.actions import Notify
 from c7n_azure.provider import resources
 
@@ -140,6 +141,11 @@ class QueryMeta(type):
 @six.add_metaclass(QueryMeta)
 class QueryResourceManager(ResourceManager):
 
+    class resource_type(object):
+        service = ''
+        client = ''
+
+
     def __init__(self, data, options):
         super(QueryResourceManager, self).__init__(data, options)
         self.source = self.get_source(self.source_type)
@@ -199,6 +205,24 @@ class QueryResourceManager(ResourceManager):
         for resource in registry.keys():
             klass = registry.get(resource)
             klass.action_registry.register('notify', Notify)
+
+
+@six.add_metaclass(QueryMeta)
+class ChildResourceManager(QueryResourceManager):
+
+    ParentSpec = namedtuple("ParentSpec", ["manager_name", "annotate_parent"])
+
+    child_source = 'describe-child-azure'
+
+    @property
+    def source_type(self):
+        source = self.data.get('source', self.child_source)
+        if source == 'describe':
+            source = self.child_source
+        return source
+
+    def get_parent_manager(self):
+        return self.get_resource_manager(self.resource_type.parent_spec.manager_name)
 
 
 resources.subscribe(resources.EVENT_FINAL, QueryResourceManager.register_actions_and_filters)

@@ -20,31 +20,41 @@ from c7n.filters import Filter
 from c7n.utils import type_schema
 
 from c7n_azure.provider import resources
-from c7n_azure.resources.arm import ArmResourceManager, ChildArmResourceManager
-from c7n_azure.utils import ThreadHelper
+from c7n_azure.query import ChildResourceManager
+from c7n_azure.utils import ThreadHelper, ResourceIdParser
 
 
 log = logging.getLogger('custodian.azure.keyvault.keys')
 
 
 @resources.register('keyvault-keys')
-class KeyVaultKeys(ChildArmResourceManager):
+class KeyVaultKeys(ChildResourceManager):
 
-    class resource_type(ArmResourceManager.resource_type):
+    class resource_type(ChildResourceManager.resource_type):
         service = 'azure.keyvault'
         client = 'KeyVaultClient'
         enum_spec = (None, 'get_keys', {
             'vault_base_url': lambda p: 'https://{0}.vault.azure.net'.format(p['name'])
         })
-        parent_spec = ChildArmResourceManager.ParentSpec(
+        parent_spec = ChildResourceManager.ParentSpec(
             manager_name='keyvault',
             annotate_parent=True
         )
 
-    def augment(self, resources):
-        for r in resources:
-            r['id'] = r['kid']
-        return resources
+
+@KeyVaultKeys.filter_registry.register('keyvault')
+class KeyvaultFilter(Filter):
+    schema = type_schema(
+        'keyvault',
+        required=['keyvaults'],
+        **{
+            'keyvaults': {'type': 'array', 'items': {'type': 'string'}}
+        }
+    )
+
+    def process(self, resources, event=None):
+        return [r for r in resources
+                if ResourceIdParser.get_resource_name(r['c7n:parent-id']) in self.data['keyvaults']]
 
 
 @KeyVaultKeys.filter_registry.register('key-type')
@@ -52,7 +62,7 @@ class KeyTypeFilter(Filter):
     schema = type_schema(
         'key-type',
         **{
-            'key-types': {'type': 'array', 'items': {'enum': ['EC', 'EC-HSM', 'RSA', 'RSA-HSM']}},
+            'key-types': {'type': 'array', 'items': {'enum': ['EC', 'EC-HSM', 'RSA', 'RSA-HSM']}}
         }
     )
 
