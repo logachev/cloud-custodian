@@ -13,7 +13,7 @@
 # limitations under the License.from c7n_azure.provider import resources
 
 from c7n_azure.provider import resources
-from c7n_azure.resources.arm import ArmResourceManager, ChildArmResourceManager
+from c7n_azure.resources.arm import ChildArmResourceManager
 
 
 @resources.register('sqldatabase')
@@ -29,4 +29,3 @@ class SqlDatabase(ChildArmResourceManager):
         def extra_args(cls, parent_resource):
             return {'resource_group_name': parent_resource['resourceGroup'],
                     'server_name': parent_resource['name']}
-

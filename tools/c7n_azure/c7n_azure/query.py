@@ -12,10 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from enum import Enum
 import logging
 import six
-from collections import namedtuple
 from c7n_azure.actions import Notify
 from c7n_azure import constants
 from c7n_azure.provider import resources
@@ -159,10 +157,9 @@ class TypeInfo(object):
 class ChildTypeInfo(TypeInfo):
 
     parent_manager_name = ''
-    annotate_parent = ''
+    annotate_parent = True
     raise_on_exception = True
     parent_key = 'c7n:parent-id'
-
 
     @classmethod
     def extra_args(cls, parent_resource):

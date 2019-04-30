@@ -13,12 +13,12 @@
 # limitations under the License.
 
 import six
-from collections import namedtuple
 from c7n_azure.actions import Tag, AutoTagUser, RemoveTag, TagTrim, TagDelayedAction, DeleteAction
 from c7n_azure.filters import (MetricFilter, TagActionFilter,
                                DiagnosticSettingsFilter, PolicyCompliantFilter)
 from c7n_azure.provider import resources
-from c7n_azure.query import QueryResourceManager, QueryMeta, ChildResourceManager, TypeInfo, ChildTypeInfo, TypeMeta
+from c7n_azure.query import QueryResourceManager, QueryMeta, ChildResourceManager, TypeInfo, \
+    ChildTypeInfo, TypeMeta
 from c7n_azure.utils import ResourceIdParser
 
 from c7n.utils import local_session

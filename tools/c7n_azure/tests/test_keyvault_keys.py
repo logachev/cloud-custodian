@@ -13,7 +13,7 @@
 # limitations under the License.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from azure_common import BaseTest, arm_template, DEFAULT_TENANT_ID
+from azure_common import BaseTest, arm_template
 from c7n_azure.session import Session
 from c7n.utils import local_session, reset_session_cache
 
@@ -31,6 +31,7 @@ class KeyVaultKeyTest(BaseTest):
         }, validate=True)
         self.assertTrue(p)
 
+    @arm_template('keyvault.json')
     def test_key_vault_keys_keyvault(self):
         mgmt_client = local_session(Session).client('azure.mgmt.keyvault.KeyVaultManagementClient')
         kvs = [k for k in mgmt_client.vaults.list_by_resource_group('test_keyvault')]
@@ -50,6 +51,7 @@ class KeyVaultKeyTest(BaseTest):
         resources = p.run()
         self.assertEqual(len(resources), 2)
 
+    @arm_template('keyvault.json')
     def test_key_vault_keys_type(self):
         p = self.load_policy({
             'name': 'test-key-vault',
@@ -57,7 +59,7 @@ class KeyVaultKeyTest(BaseTest):
             'filters': [
                 {
                     'type': 'key-type',
-                    'key-types':  ['RSA', 'RSA-HSM']
+                    'key-types': ['RSA', 'RSA-HSM']
                 },
             ]
         }, validate=True)
