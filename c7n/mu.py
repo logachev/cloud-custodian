@@ -26,6 +26,7 @@ import io
 import json
 import logging
 import os
+import shutil
 import time
 import tempfile
 import zipfile
@@ -67,7 +68,7 @@ class PythonPackageArchive(object):
         self._temp_archive_file = tempfile.NamedTemporaryFile(delete=False)
         if cache_file:
             with open(cache_file, 'rb') as fin:
-                self._temp_archive_file.write(fin.read())
+                shutil.copyfileobj(fin, self._temp_archive_file)
 
         self._zip_file = zipfile.ZipFile(
             self._temp_archive_file, mode='a',
