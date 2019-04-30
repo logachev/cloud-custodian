@@ -19,7 +19,7 @@ from c7n_azure.resources.arm import ArmResourceManager, ChildArmResourceManager
 @resources.register('sqldatabase')
 class SqlDatabase(ChildArmResourceManager):
 
-    class resource_type(ArmResourceManager.resource_type):
+    class resource_type(ChildArmResourceManager.resource_type):
         service = 'azure.mgmt.sql'
         client = 'SqlManagementClient'
         enum_spec = ('databases', 'list_by_server', {

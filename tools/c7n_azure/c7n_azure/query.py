@@ -17,6 +17,7 @@ import logging
 import six
 from collections import namedtuple
 from c7n_azure.actions import Notify
+from c7n_azure import constants
 from c7n_azure.provider import resources
 
 from c7n.actions import ActionRegistry
@@ -163,6 +164,7 @@ class QueryResourceManager(ResourceManager):
     def __init__(self, data, options):
         super(QueryResourceManager, self).__init__(data, options)
         self.source = self.get_source(self.source_type)
+        self._session = None
 
     def augment(self, resources):
         return resources
@@ -174,7 +176,9 @@ class QueryResourceManager(ResourceManager):
         return sources.get(source_type)(self)
 
     def get_session(self):
-        return local_session(self.session_factory)
+        if self._session is None:
+            self._session = local_session(self.session_factory)
+        return self._session
 
     def get_client(self, service=None):
         if not service:
@@ -229,6 +233,7 @@ class ChildResourceManager(QueryResourceManager):
     class resource_type(QueryResourceManager.resource_type):
         parent_spec = None
         raise_on_exception = True
+        resource = constants.RESOURCE_ACTIVE_DIRECTORY
 
     child_source = 'describe-child-azure'
 
@@ -241,6 +246,15 @@ class ChildResourceManager(QueryResourceManager):
 
     def get_parent_manager(self):
         return self.get_resource_manager(self.resource_type.parent_spec.manager_name)
+
+    def get_session(self):
+        if self._session is None:
+            session = super(ChildResourceManager, self).get_session()
+            if self.resource_type.resource != constants.RESOURCE_ACTIVE_DIRECTORY:
+                session = session.get_session_for_resource(self.resource_type.resource)
+            self._session = session
+
+        return self._session
 
 
 resources.subscribe(resources.EVENT_FINAL, QueryResourceManager.register_actions_and_filters)

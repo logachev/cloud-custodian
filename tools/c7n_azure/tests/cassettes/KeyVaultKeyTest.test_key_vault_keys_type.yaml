@@ -16,262 +16,6 @@ interactions:
       accept-language:
       - en-US
     method: GET
-    uri: https://management.azure.com/subscriptions/ea42f556-5106-4743-99b0-c129bfa71a47/resourceGroups/test_keyvault/providers/Microsoft.KeyVault/vaults?api-version=2018-02-14
-  response:
-    body:
-      string: !!binary |
-        H4sIAAAAAAAEAO29B2AcSZYlJi9tynt/SvVK1+B0oQiAYBMk2JBAEOzBiM3mkuwdaUcjKasqgcpl
-        VmVdZhZAzO2dvPfee++999577733ujudTif33/8/XGZkAWz2zkrayZ4hgKrIHz9+fB8/In7xR5dZ
-        uc4/evS9X/xRMfvo0Ud3m/WkmdbFqi2qZXM3yx4ePHywP9m+P9vLtvdnDw+2swcH2fa9g73zew92
-        7892HuR367yp1vU0/7yu1qvmbps37e//Nr++zNZle3dVV5fFLK+bu18U07pqqvN2/Hvl1z/JX3KT
-        5u50aprvZs3s/KPRR8tsQUh91P+ivV7hi0FY1KSsphmwp2aEVzuf5su2zso1vmuzi+ajR7/4l4w+
-        IrxWed0WOf7+qHm7xo/zbFGU1/TiMbVVHF632XKW1bOP6KU2X2bL9gyEerB3/vDgYHK+ffDp+e72
-        /m52vv1wN5ts780eTGc7u7uzyf4DApJNp3nTvKzKYspdEZ3fH0g1+el8Km/M8v3d+3v5ve179+7n
-        9Mbk/vbDyf1Pt88Pzvfynf17+b08pzdoaIuiaYgK1Ocv/oioSD+/99HneUtfPi8a/PhqNctaND6p
-        c/nlbLGqanz1NC9z/uRVPq0u85p+e5JN365X9Msrmt6qzj/6/uijJp/WOdG8C/k1/3FLIFPMwnlB
-        c8b0CSG9H45fZMvsIj+plm02JbTMB2dNsyYGpL8JtvsDXbi/CGf3h8A2f3//l/yS0QdO24Pz2Wxv
-        erC3nec7B9v793ay7YP9h/e2H356b+fB7vns3s5kSm9smDailCM3/dEh2zeA43R6cH9399Od7fN7
-        5/dI1knMDz7dOd9+cL47m57nu5O9c7yxAUehKf14v2mLcYUbawiZpon+vSWQDo1CSB+Io2Gu/zdy
-        2+69h/k5uG0nvz/Z3n9IWnsClpvm+zuTh5OH+3uzCb3xo5lk8GbifjZmklCniZyU+exZVT/NV2V1
-        vSBz9NGj86xs8uDLonl7upzW12x5Iw3e5ItVScOLQGHT91Vd0NTP23bVPLrbNalj/nWc/WBd5+Nl
-        3t4lZMkCXhaY/WJ5QUaOyETGbk32Kp/lZO2A+zJ/1z4vlm/pGwN4waRB9wptWi3u/hw4Db9Htiq2
-        aUYxgM/2dnYPtnf2tnf3f+Hv1rwlPKq3+fKz32fvRf1Tv3e59/v83j/ZzJ4+m0/3Xi0++iX/Dwa4
-        QD/zCAAA
-    headers:
-      Cache-Control:
-      - no-cache
-      Content-Encoding:
-      - gzip
-      Content-Type:
-      - application/json; charset=utf-8
-      Date:
-      - Mon, 29 Apr 2019 22:59:33 GMT
-      Expires:
-      - '-1'
-      Pragma:
-      - no-cache
-      Server:
-      - Microsoft-IIS/10.0
-      Strict-Transport-Security:
-      - max-age=31536000; includeSubDomains
-      Transfer-Encoding:
-      - chunked
-      Vary:
-      - Accept-Encoding
-      X-AspNet-Version:
-      - 4.0.30319
-      X-Content-Type-Options:
-      - nosniff
-      X-Powered-By:
-      - ASP.NET
-      x-ms-correlation-request-id:
-      - 8bd1c598-9869-4662-8b6a-9ae02a69c9b2
-      x-ms-keyvault-service-version:
-      - 1.1.0.244
-      x-ms-ratelimit-remaining-subscription-reads:
-      - '11999'
-      x-ms-request-id:
-      - 8bd1c598-9869-4662-8b6a-9ae02a69c9b2
-      x-ms-routing-request-id:
-      - WESTUS2:20190429T225933Z:8bd1c598-9869-4662-8b6a-9ae02a69c9b2
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - application/json
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json; charset=utf-8
-      User-Agent:
-      - python/3.6.4 (Windows-10-10.0.17134-SP0) msrest/0.6.6 msrest_azure/0.6.0 azure-mgmt-keyvault/1.1.0
-        Azure-SDK-For-Python
-      accept-language:
-      - en-US
-    method: GET
-    uri: https://management.azure.com/subscriptions/ea42f556-5106-4743-99b0-c129bfa71a47/resourceGroups/test_keyvault/providers/Microsoft.KeyVault/vaults?api-version=2018-02-14&$skiptoken=Y2NrZXl2YXVsdDFhc2Rm
-  response:
-    body:
-      string: !!binary |
-        H4sIAAAAAAAEAO29B2AcSZYlJi9tynt/SvVK1+B0oQiAYBMk2JBAEOzBiM3mkuwdaUcjKasqgcpl
-        VmVdZhZAzO2dvPfee++999577733ujudTif33/8/XGZkAWz2zkrayZ4hgKrIHz9+fB8/In7xR5dZ
-        uc4/evS97/+S/wdC6kBEDAAAAA==
-    headers:
-      Cache-Control:
-      - no-cache
-      Content-Encoding:
-      - gzip
-      Content-Type:
-      - application/json; charset=utf-8
-      Date:
-      - Mon, 29 Apr 2019 22:59:33 GMT
-      Expires:
-      - '-1'
-      Pragma:
-      - no-cache
-      Server:
-      - Microsoft-IIS/10.0
-      Strict-Transport-Security:
-      - max-age=31536000; includeSubDomains
-      Transfer-Encoding:
-      - chunked
-      Vary:
-      - Accept-Encoding
-      X-AspNet-Version:
-      - 4.0.30319
-      X-Content-Type-Options:
-      - nosniff
-      X-Powered-By:
-      - ASP.NET
-      x-ms-correlation-request-id:
-      - 7ccf8f9c-321a-4058-8af8-286346b56c17
-      x-ms-keyvault-service-version:
-      - 1.1.0.244
-      x-ms-ratelimit-remaining-subscription-reads:
-      - '11999'
-      x-ms-request-id:
-      - 7ccf8f9c-321a-4058-8af8-286346b56c17
-      x-ms-routing-request-id:
-      - WESTUS2:20190429T225934Z:7ccf8f9c-321a-4058-8af8-286346b56c17
-    status:
-      code: 200
-      message: OK
-- request:
-    body: mock_body
-    headers:
-      Accept:
-      - application/json
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      Content-Length:
-      - '14'
-      Content-Type:
-      - application/json; charset=utf-8
-      User-Agent:
-      - python/3.6.4 (Windows-10-10.0.17134-SP0) msrest/0.6.6 msrest_azure/0.6.0 azure-keyvault/7.0
-        Azure-SDK-For-Python
-      accept-language:
-      - en-US
-    method: POST
-    uri: https://cckeyvault1asdf.vault.azure.net/keys/cctestrsa/create?api-version=7.0
-  response:
-    body:
-      string: '{"key":{"kid":"https://cckeyvault1asdf.vault.azure.net/keys/cctestrsa/979aa0993fb24caeb03b510f2ac6ea15","kty":"RSA","key_ops":["encrypt","decrypt","sign","verify","wrapKey","unwrapKey"],"n":"wd9KHlI8Wyf-GmMEo0pGIFCCWQd8TuixaqB57WQVTEsjZ0xuXlEuG0jsH9qm1hPwOrhEp2GWtBzDXzE2K4qxHAktsdBtn1xC-YU9SYgOIPqUAeS-MmJOHNY-L1Llqgt1o-0OTcvMx6N_y12ZJ87tOI2w5beqP46YBDA1DntCQ9Cl4_tlwDNx6RUOMQtGik7xqbLXPucgiXvNCH9sJyENsiEIICDXRWRau0XWKSQvixmwm1k-Dty-7O864o6MMTUzUXKVndr2tgXYGbYtAHc-EbmYHIvE41ePc1or5PgUkIEX1akqFHtU1T2C_3lq0fsDiX3LUpjYoUdK_Xwmn_dYdQ","e":"AQAB"},"attributes":{"enabled":true,"created":1556578774,"updated":1556578774,"recoveryLevel":"Purgeable"}}'
-    headers:
-      Cache-Control:
-      - no-cache
-      Content-Length:
-      - '647'
-      Content-Type:
-      - application/json; charset=utf-8
-      Date:
-      - Mon, 29 Apr 2019 22:59:33 GMT
-      Expires:
-      - '-1'
-      Pragma:
-      - no-cache
-      Server:
-      - Microsoft-IIS/10.0
-      Strict-Transport-Security:
-      - max-age=31536000;includeSubDomains
-      X-AspNet-Version:
-      - 4.0.30319
-      X-Content-Type-Options:
-      - nosniff
-      X-Powered-By:
-      - ASP.NET
-      x-ms-keyvault-network-info:
-      - addr=131.107.159.132;act_addr_fam=InterNetwork;
-      x-ms-keyvault-region:
-      - southcentralus
-      x-ms-keyvault-service-version:
-      - 1.1.0.865
-      x-ms-request-id:
-      - 217b211c-031d-430f-b4f1-4d9a13cece5c
-    status:
-      code: 200
-      message: OK
-- request:
-    body: mock_body
-    headers:
-      Accept:
-      - application/json
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      Content-Length:
-      - '13'
-      Content-Type:
-      - application/json; charset=utf-8
-      User-Agent:
-      - python/3.6.4 (Windows-10-10.0.17134-SP0) msrest/0.6.6 msrest_azure/0.6.0 azure-keyvault/7.0
-        Azure-SDK-For-Python
-      accept-language:
-      - en-US
-    method: POST
-    uri: https://cckeyvault1asdf.vault.azure.net/keys/cctestec/create?api-version=7.0
-  response:
-    body:
-      string: '{"key":{"kid":"https://cckeyvault1asdf.vault.azure.net/keys/cctestec/99a62ac25d724cd7b31d2750890ed9e3","kty":"EC","key_ops":["sign","verify"],"crv":"P-256","x":"Nj7uRtrfz_OR_mEpq_BnUfzO1JJyg4IVn20zCdXpjCg","y":"vO66gpKI37LzG4oSgq2mtWG4oACqf5s3XoXe6tbAUH0"},"attributes":{"enabled":true,"created":1556578775,"updated":1556578775,"recoveryLevel":"Purgeable"}}'
-    headers:
-      Cache-Control:
-      - no-cache
-      Content-Length:
-      - '357'
-      Content-Type:
-      - application/json; charset=utf-8
-      Date:
-      - Mon, 29 Apr 2019 22:59:34 GMT
-      Expires:
-      - '-1'
-      Pragma:
-      - no-cache
-      Server:
-      - Microsoft-IIS/10.0
-      Strict-Transport-Security:
-      - max-age=31536000;includeSubDomains
-      X-AspNet-Version:
-      - 4.0.30319
-      X-Content-Type-Options:
-      - nosniff
-      X-Powered-By:
-      - ASP.NET
-      x-ms-keyvault-network-info:
-      - addr=131.107.159.132;act_addr_fam=InterNetwork;
-      x-ms-keyvault-region:
-      - southcentralus
-      x-ms-keyvault-service-version:
-      - 1.1.0.865
-      x-ms-request-id:
-      - 3c9d26e0-944f-4f45-9c06-0d6828a94b25
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - application/json
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json; charset=utf-8
-      User-Agent:
-      - python/3.6.4 (Windows-10-10.0.17134-SP0) msrest/0.6.6 msrest_azure/0.6.0 azure-mgmt-keyvault/1.1.0
-        Azure-SDK-For-Python
-      accept-language:
-      - en-US
-    method: GET
     uri: https://management.azure.com/subscriptions/ea42f556-5106-4743-99b0-c129bfa71a47/resources?$filter=resourceType%20eq%20%27Microsoft.KeyVault%2Fvaults%27&api-version=2015-11-01
   response:
     body:
@@ -280,19 +24,20 @@ interactions:
         VmVdZhZAzO2dvPfee++999577733ujudTif33/8/XGZkAWz2zkrayZ4hgKrIHz9+fB8/In7xR5dZ
         uc4/evS9X/xRMfvo0Ud3m/WkmdbFqi2qZXM3yx4ePHywP9m+P9vLtvdnDw+2swcH2fa9g73zew92
         7892HuR367yp1vU0/7yu1qvmbps37e//Nr++zNZle3dVV5fFLK+bu18U07pqqvN2/Hvl1z/JX3KT
-        5u50aprvZs3s/KPRR8tsQUh91P+ivV7hi0FY1KSsphmwp2aEVzuf5su2zso1vmuzi+ajR7/4l/yS
-        0c/SeLeX1faqKotpkTfvOfa9t4t8b//8Is9+0eUvekvI9ojQa/FNUeP7v+T/AWZrB+QJAgAA
+        5u50aprvTj+ts/u/6Bet3s6nefXR6KNltiDsPtrQor1eocUgdGpSVtMM46FmhGlLLy7bOivX+K7N
+        LpqPHv3iX/JLRj9LFNheVturqiymRd68JzX23i7yvf3zizz7RZe/6C0h26NGr8U3RY3v/5L/B+3h
+        i5IbAgAA
     headers:
       Cache-Control:
       - no-cache
       Content-Encoding:
       - gzip
       Content-Length:
-      - '339'
+      - '348'
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Mon, 29 Apr 2019 22:59:35 GMT
+      - Mon, 29 Apr 2019 23:52:37 GMT
       Expires:
       - '-1'
       Pragma:
@@ -304,13 +49,13 @@ interactions:
       X-Content-Type-Options:
       - nosniff
       x-ms-correlation-request-id:
-      - f624037c-4ae4-401a-bb64-ccd7968b4708
+      - cf10f87a-92be-4e34-af8b-a90776a8bc3e
       x-ms-ratelimit-remaining-subscription-reads:
-      - '11999'
+      - '11998'
       x-ms-request-id:
-      - f624037c-4ae4-401a-bb64-ccd7968b4708
+      - cf10f87a-92be-4e34-af8b-a90776a8bc3e
       x-ms-routing-request-id:
-      - WESTUS2:20190429T225935Z:f624037c-4ae4-401a-bb64-ccd7968b4708
+      - WESTUS2:20190429T235237Z:cf10f87a-92be-4e34-af8b-a90776a8bc3e
     status:
       code: 200
       message: OK
@@ -331,19 +76,19 @@ interactions:
       accept-language:
       - en-US
     method: GET
-    uri: https://cckeyvault1asdf.vault.azure.net/keys?api-version=7.0
+    uri: https://cckeyvault1c6ra5qqpkhceo.vault.azure.net/keys?api-version=7.0
   response:
     body:
-      string: '{"value":[{"kid":"https://cckeyvault1asdf.vault.azure.net/keys/cctestec","attributes":{"enabled":true,"created":1556578775,"updated":1556578775,"recoveryLevel":"Purgeable"}},{"kid":"https://cckeyvault1asdf.vault.azure.net/keys/cctestrsa","attributes":{"enabled":true,"created":1556578774,"updated":1556578774,"recoveryLevel":"Purgeable"}}],"nextLink":null}'
+      string: '{"value":[{"kid":"https://cckeyvault1c6ra5qqpkhceo.vault.azure.net/keys/cctestec","attributes":{"enabled":true,"created":1556580367,"updated":1556580367,"recoveryLevel":"Purgeable"}},{"kid":"https://cckeyvault1c6ra5qqpkhceo.vault.azure.net/keys/cctestrsa","attributes":{"enabled":true,"created":1556580361,"updated":1556580361,"recoveryLevel":"Purgeable"}}],"nextLink":null}'
     headers:
       Cache-Control:
       - no-cache
       Content-Length:
-      - '356'
+      - '374'
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Mon, 29 Apr 2019 22:59:36 GMT
+      - Mon, 29 Apr 2019 23:52:38 GMT
       Expires:
       - '-1'
       Pragma:
@@ -365,7 +110,7 @@ interactions:
       x-ms-keyvault-service-version:
       - 1.1.0.865
       x-ms-request-id:
-      - be7d5aaf-4000-4998-b3b4-446d5ddfd351
+      - 10d43ee1-bec0-4b34-b401-8714b8943183
     status:
       code: 200
       message: OK
@@ -398,7 +143,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Mon, 29 Apr 2019 22:59:36 GMT
+      - Mon, 29 Apr 2019 23:52:38 GMT
       Expires:
       - '-1'
       Pragma:
@@ -420,7 +165,7 @@ interactions:
       x-ms-keyvault-service-version:
       - 1.1.0.865
       x-ms-request-id:
-      - 4cde2d01-32fc-4de5-98f9-5404ba95551f
+      - 8c91e32e-0e22-4dea-b2bb-95e31426ee37
     status:
       code: 403
       message: Forbidden
@@ -441,19 +186,19 @@ interactions:
       accept-language:
       - en-US
     method: GET
-    uri: https://cckeyvault1asdf.vault.azure.net/keys/cctestec/?api-version=7.0
+    uri: https://cckeyvault1c6ra5qqpkhceo.vault.azure.net/keys/cctestec/?api-version=7.0
   response:
     body:
-      string: '{"key":{"kid":"https://cckeyvault1asdf.vault.azure.net/keys/cctestec/99a62ac25d724cd7b31d2750890ed9e3","kty":"EC","key_ops":["sign","verify"],"crv":"P-256","x":"Nj7uRtrfz_OR_mEpq_BnUfzO1JJyg4IVn20zCdXpjCg","y":"vO66gpKI37LzG4oSgq2mtWG4oACqf5s3XoXe6tbAUH0"},"attributes":{"enabled":true,"created":1556578775,"updated":1556578775,"recoveryLevel":"Purgeable"}}'
+      string: '{"key":{"kid":"https://cckeyvault1c6ra5qqpkhceo.vault.azure.net/keys/cctestec/4addb75da5bd47108d34d453b2c6c378","kty":"EC","key_ops":["sign","verify"],"crv":"P-256","x":"Yi1KpVLsTX2Cz3uEv1bI7gdaRYmwu-Tk3AymMcq4ltM","y":"raWc9qa0Zk5LuH7gk8mhC7YsNVDKt4ltAtNhc5f3tfI"},"attributes":{"enabled":true,"created":1556580367,"updated":1556580367,"recoveryLevel":"Purgeable"}}'
     headers:
       Cache-Control:
       - no-cache
       Content-Length:
-      - '357'
+      - '366'
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Mon, 29 Apr 2019 22:59:37 GMT
+      - Mon, 29 Apr 2019 23:52:39 GMT
       Expires:
       - '-1'
       Pragma:
@@ -475,7 +220,7 @@ interactions:
       x-ms-keyvault-service-version:
       - 1.1.0.865
       x-ms-request-id:
-      - 91b4d256-34ba-4118-806f-6aad17b7e308
+      - 45502935-a8e9-4022-8f35-2e9ef085b7a8
     status:
       code: 200
       message: OK
@@ -496,19 +241,19 @@ interactions:
       accept-language:
       - en-US
     method: GET
-    uri: https://cckeyvault1asdf.vault.azure.net/keys/cctestrsa/?api-version=7.0
+    uri: https://cckeyvault1c6ra5qqpkhceo.vault.azure.net/keys/cctestrsa/?api-version=7.0
   response:
     body:
-      string: '{"key":{"kid":"https://cckeyvault1asdf.vault.azure.net/keys/cctestrsa/979aa0993fb24caeb03b510f2ac6ea15","kty":"RSA","key_ops":["encrypt","decrypt","sign","verify","wrapKey","unwrapKey"],"n":"wd9KHlI8Wyf-GmMEo0pGIFCCWQd8TuixaqB57WQVTEsjZ0xuXlEuG0jsH9qm1hPwOrhEp2GWtBzDXzE2K4qxHAktsdBtn1xC-YU9SYgOIPqUAeS-MmJOHNY-L1Llqgt1o-0OTcvMx6N_y12ZJ87tOI2w5beqP46YBDA1DntCQ9Cl4_tlwDNx6RUOMQtGik7xqbLXPucgiXvNCH9sJyENsiEIICDXRWRau0XWKSQvixmwm1k-Dty-7O864o6MMTUzUXKVndr2tgXYGbYtAHc-EbmYHIvE41ePc1or5PgUkIEX1akqFHtU1T2C_3lq0fsDiX3LUpjYoUdK_Xwmn_dYdQ","e":"AQAB"},"attributes":{"enabled":true,"created":1556578774,"updated":1556578774,"recoveryLevel":"Purgeable"}}'
+      string: '{"key":{"kid":"https://cckeyvault1c6ra5qqpkhceo.vault.azure.net/keys/cctestrsa/3180952229424b258403c01e3feb968c","kty":"RSA","key_ops":["encrypt","decrypt","sign","verify","wrapKey","unwrapKey"],"n":"iKA9HpThlbOO9FHVBO2NvN3VFY7uvZXkeveTpumAoJRztkGhAxzyYSFqwbrGaoqFJiFc8B3eHo6vhneML6J7lJj55_OG_7w1VZasgCSZGfl9Cm3lPrkTul156ThNn85Fa9iKYgMqJHPrqzPUMBoLDgY7dc_LR5gmhECeJNOFtqMqNcIKZtKI_JcGoecnSFqeoHaTmszscMmoN6KMTZdwHIuyFuk1VUHrH7BinoyMbWF_5i2-me9tLHjzRQnjhZgQt9pea2g1Dhv2pfQ3b2eU-0Pz40dZnwjwtFi39BGoXDxNqqCgnKgz_LexffmJX_l3kuD7ZkrgtHOTXGbrcs-xAQ","e":"AQAB"},"attributes":{"enabled":true,"created":1556580361,"updated":1556580361,"recoveryLevel":"Purgeable"}}'
     headers:
       Cache-Control:
       - no-cache
       Content-Length:
-      - '647'
+      - '656'
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Mon, 29 Apr 2019 22:59:37 GMT
+      - Mon, 29 Apr 2019 23:52:40 GMT
       Expires:
       - '-1'
       Pragma:
@@ -530,121 +275,7 @@ interactions:
       x-ms-keyvault-service-version:
       - 1.1.0.865
       x-ms-request-id:
-      - 422e6d23-0ef5-4ebc-84de-3d423c8c5c79
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - application/json
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      Content-Length:
-      - '0'
-      Content-Type:
-      - application/json; charset=utf-8
-      User-Agent:
-      - python/3.6.4 (Windows-10-10.0.17134-SP0) msrest/0.6.6 msrest_azure/0.6.0 azure-keyvault/7.0
-        Azure-SDK-For-Python
-      accept-language:
-      - en-US
-    method: DELETE
-    uri: https://cckeyvault1asdf.vault.azure.net/keys/cctestec?api-version=7.0
-  response:
-    body:
-      string: '{"key":{"kid":"https://cckeyvault1asdf.vault.azure.net/keys/cctestec/99a62ac25d724cd7b31d2750890ed9e3","kty":"EC","key_ops":["sign","verify"],"crv":"P-256","x":"Nj7uRtrfz_OR_mEpq_BnUfzO1JJyg4IVn20zCdXpjCg","y":"vO66gpKI37LzG4oSgq2mtWG4oACqf5s3XoXe6tbAUH0"},"attributes":{"enabled":true,"created":1556578775,"updated":1556578775,"recoveryLevel":"Purgeable"}}'
-    headers:
-      Cache-Control:
-      - no-cache
-      Content-Length:
-      - '357'
-      Content-Type:
-      - application/json; charset=utf-8
-      Date:
-      - Mon, 29 Apr 2019 22:59:37 GMT
-      Expires:
-      - '-1'
-      Pragma:
-      - no-cache
-      Server:
-      - Microsoft-IIS/10.0
-      Strict-Transport-Security:
-      - max-age=31536000;includeSubDomains
-      X-AspNet-Version:
-      - 4.0.30319
-      X-Content-Type-Options:
-      - nosniff
-      X-Powered-By:
-      - ASP.NET
-      x-ms-keyvault-network-info:
-      - addr=131.107.159.132;act_addr_fam=InterNetwork;
-      x-ms-keyvault-region:
-      - southcentralus
-      x-ms-keyvault-service-version:
-      - 1.1.0.865
-      x-ms-request-id:
-      - 04a841a0-5d15-4853-b328-51dad1a72e2a
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - application/json
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      Content-Length:
-      - '0'
-      Content-Type:
-      - application/json; charset=utf-8
-      User-Agent:
-      - python/3.6.4 (Windows-10-10.0.17134-SP0) msrest/0.6.6 msrest_azure/0.6.0 azure-keyvault/7.0
-        Azure-SDK-For-Python
-      accept-language:
-      - en-US
-    method: DELETE
-    uri: https://cckeyvault1asdf.vault.azure.net/keys/cctestrsa?api-version=7.0
-  response:
-    body:
-      string: '{"key":{"kid":"https://cckeyvault1asdf.vault.azure.net/keys/cctestrsa/979aa0993fb24caeb03b510f2ac6ea15","kty":"RSA","key_ops":["encrypt","decrypt","sign","verify","wrapKey","unwrapKey"],"n":"wd9KHlI8Wyf-GmMEo0pGIFCCWQd8TuixaqB57WQVTEsjZ0xuXlEuG0jsH9qm1hPwOrhEp2GWtBzDXzE2K4qxHAktsdBtn1xC-YU9SYgOIPqUAeS-MmJOHNY-L1Llqgt1o-0OTcvMx6N_y12ZJ87tOI2w5beqP46YBDA1DntCQ9Cl4_tlwDNx6RUOMQtGik7xqbLXPucgiXvNCH9sJyENsiEIICDXRWRau0XWKSQvixmwm1k-Dty-7O864o6MMTUzUXKVndr2tgXYGbYtAHc-EbmYHIvE41ePc1or5PgUkIEX1akqFHtU1T2C_3lq0fsDiX3LUpjYoUdK_Xwmn_dYdQ","e":"AQAB"},"attributes":{"enabled":true,"created":1556578774,"updated":1556578774,"recoveryLevel":"Purgeable"}}'
-    headers:
-      Cache-Control:
-      - no-cache
-      Content-Length:
-      - '647'
-      Content-Type:
-      - application/json; charset=utf-8
-      Date:
-      - Mon, 29 Apr 2019 22:59:37 GMT
-      Expires:
-      - '-1'
-      Pragma:
-      - no-cache
-      Server:
-      - Microsoft-IIS/10.0
-      Strict-Transport-Security:
-      - max-age=31536000;includeSubDomains
-      X-AspNet-Version:
-      - 4.0.30319
-      X-Content-Type-Options:
-      - nosniff
-      X-Powered-By:
-      - ASP.NET
-      x-ms-keyvault-network-info:
-      - addr=131.107.159.132;act_addr_fam=InterNetwork;
-      x-ms-keyvault-region:
-      - southcentralus
-      x-ms-keyvault-service-version:
-      - 1.1.0.865
-      x-ms-request-id:
-      - 9561cea2-82c6-4009-a135-e8456275a4c3
+      - 6836fb70-3954-4fb4-8cce-cf6c8510c494
     status:
       code: 200
       message: OK

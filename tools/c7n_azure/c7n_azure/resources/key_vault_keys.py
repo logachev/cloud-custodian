@@ -19,6 +19,7 @@ from azure.keyvault.key_vault_id import KeyVaultId
 from c7n.filters import Filter
 from c7n.utils import type_schema
 
+from c7n_azure import constants
 from c7n_azure.provider import resources
 from c7n_azure.query import ChildResourceManager
 from c7n_azure.utils import ThreadHelper, ResourceIdParser
@@ -31,6 +32,7 @@ log = logging.getLogger('custodian.azure.keyvault.keys')
 class KeyVaultKeys(ChildResourceManager):
 
     class resource_type(ChildResourceManager.resource_type):
+        resource = constants.RESOURCE_VAULT
         service = 'azure.keyvault'
         client = 'KeyVaultClient'
         enum_spec = (None, 'get_keys', {

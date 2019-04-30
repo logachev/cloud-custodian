@@ -20,24 +20,6 @@ from c7n.utils import local_session, reset_session_cache
 
 class KeyVaultKeyTest(BaseTest):
 
-    def setUp(self):
-        super(KeyVaultKeyTest, self).setUp()
-
-        mgmt_client = local_session(Session).client('azure.mgmt.keyvault.KeyVaultManagementClient')
-        kvs = [k for k in mgmt_client.vaults.list_by_resource_group('test_keyvault')]
-        self.assertEqual(len(kvs), 1)
-
-        self.vault_name = kvs[0].name
-        vault_url = 'https://{0}.vault.azure.net'.format(kvs[0].name)
-
-        kv_client = local_session(Session).client('azure.keyvault.KeyVaultClient')
-        kv_client.create_key(vault_url, 'cctestrsa', 'RSA')
-        kv_client.create_key(vault_url, 'cctestec', 'EC')
-
-        self.addCleanup(kv_client.delete_key, vault_url, 'cctestrsa')
-        self.addCleanup(kv_client.delete_key, vault_url, 'cctestec')
-        reset_session_cache()
-
     def test_key_vault_keys_schema_validate(self):
         p = self.load_policy({
             'name': 'test-key-vault',
@@ -50,6 +32,10 @@ class KeyVaultKeyTest(BaseTest):
         self.assertTrue(p)
 
     def test_key_vault_keys_keyvault(self):
+        mgmt_client = local_session(Session).client('azure.mgmt.keyvault.KeyVaultManagementClient')
+        kvs = [k for k in mgmt_client.vaults.list_by_resource_group('test_keyvault')]
+        self.assertEqual(len(kvs), 1)
+        reset_session_cache()
 
         p = self.load_policy({
             'name': 'test-key-vault',
@@ -57,7 +43,7 @@ class KeyVaultKeyTest(BaseTest):
             'filters': [
                 {
                     'type': 'keyvault',
-                    'keyvaults': [self.vault_name]
+                    'keyvaults': [kvs[0].name]
                 },
             ]
         }, validate=True)

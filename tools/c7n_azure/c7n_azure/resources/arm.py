@@ -80,7 +80,9 @@ class ArmResourceManager(QueryResourceManager):
 
 @six.add_metaclass(QueryMeta)
 class ChildArmResourceManager(ChildResourceManager, ArmResourceManager):
-    pass
+
+    class resource_type(ChildResourceManager.resource_type, ArmResourceManager.resource_type):
+        pass
 
 
 resources.subscribe(resources.EVENT_FINAL, ArmResourceManager.register_arm_specific)
