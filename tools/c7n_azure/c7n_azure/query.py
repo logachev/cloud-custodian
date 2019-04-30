@@ -79,8 +79,6 @@ class ChildResourceQuery(ResourceQuery):
     parents identifiers. ie. SQL and Cosmos databases
     """
 
-    parent_key = 'c7n:parent-id'
-
     def __init__(self, session_factory, manager):
         super(ChildResourceQuery, self).__init__(session_factory)
         self.manager = manager
@@ -92,14 +90,15 @@ class ChildResourceQuery(ResourceQuery):
 
         enum_op, list_op, extra_args = m.enum_spec
 
-        parent_type, annotate_parent = m.parent_spec
-        parents = self.manager.get_resource_manager(parent_type)
+        parents = self.manager.get_resource_manager(m.parent_manager_name)
 
         # Have to query separately for each parent's children.
         results = []
         for parent in parents.resources():
             if extra_args:
                 params.update({key: extra_args[key](parent) for key in extra_args.keys()})
+
+            params.update(m.extra_args(parent))
 
             if enum_op:
                 op = getattr(getattr(client, enum_op), list_op)
@@ -109,9 +108,9 @@ class ChildResourceQuery(ResourceQuery):
             try:
                 subset = [r.serialize(True) for r in op(**params)]
 
-                if annotate_parent:
+                if m.annotate_parent:
                     for r in subset:
-                        r[self.parent_key] = parent[parents.resource_type.id]
+                        r[m.parent_key] = parent[parents.resource_type.id]
 
                 if subset:
                     results.extend(subset)
@@ -140,6 +139,36 @@ class ChildDescribeSource(DescribeSource):
             self.manager.session_factory, self.manager)
 
 
+class TypeMeta(type):
+
+    def __repr__(cls):
+        return "<Type info service:%s client: %s>" % (
+            cls.service,
+            cls.client)
+
+
+@six.add_metaclass(TypeMeta)
+class TypeInfo(object):
+    service = ''
+    client = ''
+
+    resource = constants.RESOURCE_ACTIVE_DIRECTORY
+
+
+@six.add_metaclass(TypeMeta)
+class ChildTypeInfo(TypeInfo):
+
+    parent_manager_name = ''
+    annotate_parent = ''
+    raise_on_exception = True
+    parent_key = 'c7n:parent-id'
+
+
+    @classmethod
+    def extra_args(cls, parent_resource):
+        return {}
+
+
 class QueryMeta(type):
     """metaclass to have consistent action/filter registry for new resources."""
     def __new__(cls, name, parents, attrs):
@@ -155,11 +184,6 @@ class QueryMeta(type):
 
 @six.add_metaclass(QueryMeta)
 class QueryResourceManager(ResourceManager):
-
-    class resource_type(object):
-        service = ''
-        client = ''
-
 
     def __init__(self, data, options):
         super(QueryResourceManager, self).__init__(data, options)
@@ -228,13 +252,6 @@ class QueryResourceManager(ResourceManager):
 @six.add_metaclass(QueryMeta)
 class ChildResourceManager(QueryResourceManager):
 
-    ParentSpec = namedtuple("ParentSpec", ["manager_name", "annotate_parent"])
-
-    class resource_type(QueryResourceManager.resource_type):
-        parent_spec = None
-        raise_on_exception = True
-        resource = constants.RESOURCE_ACTIVE_DIRECTORY
-
     child_source = 'describe-child-azure'
 
     @property
@@ -245,7 +262,7 @@ class ChildResourceManager(QueryResourceManager):
         return source
 
     def get_parent_manager(self):
-        return self.get_resource_manager(self.resource_type.parent_spec.manager_name)
+        return self.get_resource_manager(self.resource_type.parent_manager_name)
 
     def get_session(self):
         if self._session is None:

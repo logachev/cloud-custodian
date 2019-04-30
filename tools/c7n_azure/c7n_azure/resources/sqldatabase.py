@@ -22,11 +22,11 @@ class SqlDatabase(ChildArmResourceManager):
     class resource_type(ChildArmResourceManager.resource_type):
         service = 'azure.mgmt.sql'
         client = 'SqlManagementClient'
-        enum_spec = ('databases', 'list_by_server', {
-            'resource_group_name': lambda p: p['resourceGroup'],
-            'server_name': lambda p: p['name']
-        })
-        parent_spec = ChildArmResourceManager.ParentSpec(
-            manager_name='sqlserver',
-            annotate_parent=True
-        )
+        enum_spec = ('databases', 'list_by_server', None)
+        parent_manager_name = 'sqlserver'
+
+        @classmethod
+        def extra_args(cls, parent_resource):
+            return {'resource_group_name': parent_resource['resourceGroup'],
+                    'server_name': parent_resource['name']}
+

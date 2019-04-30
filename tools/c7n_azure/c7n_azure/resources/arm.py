@@ -18,28 +18,32 @@ from c7n_azure.actions import Tag, AutoTagUser, RemoveTag, TagTrim, TagDelayedAc
 from c7n_azure.filters import (MetricFilter, TagActionFilter,
                                DiagnosticSettingsFilter, PolicyCompliantFilter)
 from c7n_azure.provider import resources
-from c7n_azure.query import QueryResourceManager, QueryMeta, ChildResourceManager
+from c7n_azure.query import QueryResourceManager, QueryMeta, ChildResourceManager, TypeInfo, ChildTypeInfo, TypeMeta
 from c7n_azure.utils import ResourceIdParser
 
 from c7n.utils import local_session
+
+
+@six.add_metaclass(TypeMeta)
+class ArmTypeInfo(TypeInfo):
+    id = 'id'
+    name = 'name'
+    diagnostic_settings_enabled = True
+    default_report_fields = (
+        'name',
+        'location',
+        'resourceGroup'
+    )
 
 
 @resources.register('armresource')
 @six.add_metaclass(QueryMeta)
 class ArmResourceManager(QueryResourceManager):
 
-    class resource_type(QueryResourceManager.resource_type):
+    class resource_type(ArmTypeInfo):
         service = 'azure.mgmt.resource'
         client = 'ResourceManagementClient'
         enum_spec = ('resources', 'list', None)
-        id = 'id'
-        name = 'name'
-        diagnostic_settings_enabled = True
-        default_report_fields = (
-            'name',
-            'location',
-            'resourceGroup'
-        )
 
     def augment(self, resources):
         for resource in resources:
@@ -81,7 +85,7 @@ class ArmResourceManager(QueryResourceManager):
 @six.add_metaclass(QueryMeta)
 class ChildArmResourceManager(ChildResourceManager, ArmResourceManager):
 
-    class resource_type(ChildResourceManager.resource_type, ArmResourceManager.resource_type):
+    class resource_type(ChildTypeInfo, ArmTypeInfo):
         pass
 
 
