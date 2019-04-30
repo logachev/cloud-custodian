@@ -9,7 +9,7 @@ Filters
     - Model: `Key Vault Key <https://docs.microsoft.com/en-us/python/api/azure-keyvault/azure.keyvault.v7_0.models.keyitem?view=azure-python>`_
 
 - `keyvault` filter: filters keys from specified list of keyvaults.
-    - `keyvault`: array of strings, allowed keyvault names
+    - `vaults`: array of strings, allowed key vault names
 
 - `key-type` filter: Find all keys with specified types
     - `key-types`: array of types. 
@@ -25,11 +25,11 @@ This policy will find all Keys in `keyvault_test` and `keyvault_prod` KeyVaults
      policies:
        - name: keyvault-keys
          description:
-           List all keys that are older than 30 days
+           List all keys from 'keyvault_test' and 'keyvault_prod' vaults
          resource: azure.keyvault-keys
          filters:
            - type: keyvault
-             keyvaults:
+             vaults:
                - keyvault_test
                - keyvault_prod
 
@@ -47,7 +47,7 @@ This policy will find all Keys in all KeyVaults that are older than 30 days
              key: attributes.created
              value_type: age
              op: gt
-             value: 1
+             value: 30
 
 
 This policy will find all Keys in all KeyVaults that are not RSA-HSM

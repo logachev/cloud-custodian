@@ -49,15 +49,15 @@ class KeyVaultKeys(ChildResourceManager):
 class KeyvaultFilter(Filter):
     schema = type_schema(
         'keyvault',
-        required=['keyvaults'],
+        required=['vaults'],
         **{
-            'keyvaults': {'type': 'array', 'items': {'type': 'string'}}
+            'vaults': {'type': 'array', 'items': {'type': 'string'}}
         }
     )
 
     def process(self, resources, event=None):
         return [r for r in resources
-                if ResourceIdParser.get_resource_name(r['c7n:parent-id']) in self.data['keyvaults']]
+                if ResourceIdParser.get_resource_name(r['c7n:parent-id']) in self.data['vaults']]
 
 
 @KeyVaultKeys.filter_registry.register('key-type')

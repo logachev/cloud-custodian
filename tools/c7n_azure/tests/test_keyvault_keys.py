@@ -25,7 +25,7 @@ class KeyVaultKeyTest(BaseTest):
             'name': 'test-key-vault',
             'resource': 'azure.keyvault-keys',
             'filters': [
-                {'keyvault': {'keyvaults': ['kv1', 'kv2']}},
+                {'keyvault': {'vaults': ['kv1', 'kv2']}},
                 {'key-type': {'key-types': ['RSA', 'RSA-HSM', 'EC', 'EC-HSM']}},
             ]
         }, validate=True)
@@ -43,7 +43,7 @@ class KeyVaultKeyTest(BaseTest):
             'filters': [
                 {
                     'type': 'keyvault',
-                    'keyvaults': [kvs[0].name]
+                    'vaults': [kvs[0].name]
                 },
             ]
         }, validate=True)
