@@ -21,7 +21,7 @@ from c7n.utils import type_schema
 
 from c7n_azure import constants
 from c7n_azure.provider import resources
-from c7n_azure.query import ChildResourceManager
+from c7n_azure.query import ChildResourceManager, ChildTypeInfo
 from c7n_azure.utils import ThreadHelper, ResourceIdParser
 
 
@@ -31,33 +31,33 @@ log = logging.getLogger('custodian.azure.keyvault.keys')
 @resources.register('keyvault-keys')
 class KeyVaultKeys(ChildResourceManager):
 
-    class resource_type(ChildResourceManager.resource_type):
+    class resource_type(ChildTypeInfo):
         resource = constants.RESOURCE_VAULT
         service = 'azure.keyvault'
         client = 'KeyVaultClient'
-        enum_spec = (None, 'get_keys', {
-            'vault_base_url': lambda p: 'https://{0}.vault.azure.net'.format(p['name'])
-        })
-        parent_spec = ChildResourceManager.ParentSpec(
-            manager_name='keyvault',
-            annotate_parent=True
-        )
+        enum_spec = (None, 'get_keys', None)
+
+        parent_manager_name = 'keyvault'
         raise_on_exception = False
+
+        @classmethod
+        def extra_args(cls, parent_resource):
+            return {'vault_base_url': 'https://{0}.vault.azure.net'.format(parent_resource['name'])}
 
 
 @KeyVaultKeys.filter_registry.register('keyvault')
 class KeyvaultFilter(Filter):
     schema = type_schema(
         'keyvault',
-        required=['keyvaults'],
+        required=['vaults'],
         **{
-            'keyvaults': {'type': 'array', 'items': {'type': 'string'}}
+            'vaults': {'type': 'array', 'items': {'type': 'string'}}
         }
     )
 
     def process(self, resources, event=None):
         return [r for r in resources
-                if ResourceIdParser.get_resource_name(r['c7n:parent-id']) in self.data['keyvaults']]
+                if ResourceIdParser.get_resource_name(r['c7n:parent-id']) in self.data['vaults']]
 
 
 @KeyVaultKeys.filter_registry.register('key-type')
