@@ -12,22 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import inspect
 import importlib
+import inspect
 import json
 import logging
 import os
+import sys
 import types
 
 import jwt
 from azure.common.credentials import (BasicTokenAuthentication,
                                       ServicePrincipalCredentials)
-
-from msrestazure.azure_active_directory import MSIAuthentication
-
 from c7n_azure import constants
 from c7n_azure.utils import (ResourceIdParser, StringUtils, custodian_azure_send_override,
                              ManagedGroupHelper)
+from msrestazure.azure_active_directory import MSIAuthentication
 
 try:
     from azure.cli.core._profile import Profile
@@ -150,9 +149,14 @@ class Session(object):
         service_name, client_name = client.rsplit('.', 1)
         svc_module = importlib.import_module(service_name)
         klass = getattr(svc_module, client_name)
-        init_signature = inspect.signature(klass).parameters
 
-        if 'subscription_id' in init_signature:
+        if sys.version_info[0] < 3:
+            import funcsigs
+            klass_parameters = funcsigs.signature(klass).parameters
+        else:
+            klass_parameters = inspect.signature(klass).parameters
+
+        if 'subscription_id' in klass_parameters:
             client = klass(credentials=self.credentials, subscription_id=self.subscription_id)
         else:
             client = klass(credentials=self.credentials)
