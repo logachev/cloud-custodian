@@ -103,8 +103,21 @@ class FunctionPackageTest(BaseTest):
         self.assertTrue(FunctionPackageTest._file_exists(files, 'test-azure-package/function.json'))
         self.assertTrue(FunctionPackageTest._file_exists(files, 'test-azure-package/config.json'))
         self.assertTrue(FunctionPackageTest._file_exists(files, 'host.json'))
-        self.assertTrue(FunctionPackageTest._file_exists(files, 'extensions.csproj'))
-        self.assertTrue(FunctionPackageTest._file_exists(files, 'bin/extensions.dll'))
+
+    @patch('c7n.mu.PythonPackageArchive.add_contents')
+    def test_add_host_config(self, add_contents_mock):
+        packer = FunctionPackage('test')
+        with patch('c7n.mu.PythonPackageArchive.add_contents') as mock:
+            packer._add_host_config(FUNCTION_EVENT_TRIGGER_MODE)
+            mock.asser_called_once()
+            self.assertEqual(mock.call_args[1]['dest'], 'host.json')
+            self.assertTrue('extensionBundle' in json.loads(mock.call_args[1]['contents']))
+
+        with patch('c7n.mu.PythonPackageArchive.add_contents') as mock:
+            packer._add_host_config(FUNCTION_TIME_TRIGGER_MODE)
+            mock.asser_called_once()
+            self.assertEqual(mock.call_args[1]['dest'], 'host.json')
+            self.assertFalse('extensionBundle' in json.loads(mock.call_args[1]['contents']))
 
     def test_env_var_disables_cert_validation(self):
         p = self.load_policy({

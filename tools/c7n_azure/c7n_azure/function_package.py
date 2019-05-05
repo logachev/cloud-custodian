@@ -72,9 +72,9 @@ class FunctionPackage(object):
                 self.pkg.add_contents(dest=name + '/config.json',
                                       contents=policy_contents)
 
-        self._add_host_config()
+        self._add_host_config(policy['mode']['type'])
 
-    def _add_host_config(self):
+    def _add_host_config(self, mode):
         config = \
             {
                 "version": "2.0",
@@ -96,11 +96,10 @@ class FunctionPackage(object):
                         "maxOutstandingRequests": 30
                     }
                 },
-                "extensionBundle": {
-                    "id": "Microsoft.Azure.Functions.ExtensionBundle",
-                    "version": "[1.*, 2.0.0)"
-                }
             }
+        if mode == FUNCTION_EVENT_TRIGGER_MODE:
+            config['extensionBundle'] = {"id": "Microsoft.Azure.Functions.ExtensionBundle",
+                                         "version": "[1.*, 2.0.0)"}
         self.pkg.add_contents(dest='host.json', contents=json.dumps(config))
 
     def get_function_config(self, policy, queue_name=None):
