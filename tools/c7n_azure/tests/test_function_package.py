@@ -26,8 +26,8 @@ from mock import patch, PropertyMock
 
 test_files_folder = os.path.join(os.path.dirname(__file__), 'data')
 
-class FunctionPackageTest(BaseTest):
 
+class FunctionPackageTest(BaseTest):
 
     def setUp(self):
         super(FunctionPackageTest, self).setUp()
