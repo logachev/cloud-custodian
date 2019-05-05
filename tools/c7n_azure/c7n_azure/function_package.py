@@ -71,9 +71,6 @@ class FunctionPackage(object):
                 self.pkg.add_contents(dest=name + '/config.json',
                                       contents=policy_contents)
 
-                if policy['mode']['type'] == FUNCTION_EVENT_TRIGGER_MODE:
-                    self._add_queue_binding_extensions()
-
         self._add_host_config()
 
     def _add_host_config(self):
@@ -97,17 +94,13 @@ class FunctionPackage(object):
                         "maxConcurrentRequests": 5,
                         "maxOutstandingRequests": 30
                     }
+                },
+                "extensionBundle": {
+                    "id": "Microsoft.Azure.Functions.ExtensionBundle",
+                    "version": "[1.*, 2.0.0)"
                 }
             }
         self.pkg.add_contents(dest='host.json', contents=json.dumps(config))
-
-    def _add_queue_binding_extensions(self):
-        bindings_dir_path = os.path.abspath(
-            os.path.join(os.path.join(__file__, os.pardir), 'function_binding_resources'))
-        bin_path = os.path.join(bindings_dir_path, 'bin')
-
-        self.pkg.add_directory(bin_path)
-        self.pkg.add_file(os.path.join(bindings_dir_path, 'extensions.csproj'))
 
     def get_function_config(self, policy, queue_name=None):
         config = \
