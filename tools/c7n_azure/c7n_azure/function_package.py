@@ -95,7 +95,7 @@ class FunctionPackage(object):
                         "maxConcurrentRequests": 5,
                         "maxOutstandingRequests": 30
                     }
-                },
+                }
             }
         if mode == FUNCTION_EVENT_TRIGGER_MODE:
             config['extensionBundle'] = {"id": "Microsoft.Azure.Functions.ExtensionBundle",
