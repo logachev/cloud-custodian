@@ -17,6 +17,7 @@ import logging
 import os
 import shutil
 import time
+import urllib3
 
 import requests
 
@@ -221,13 +222,21 @@ class FunctionPackage(object):
         # update perms of the package
         self._update_perms_package()
         zip_api_url = '%s/api/zipdeploy?isAsync=true' % deployment_creds.scm_uri
-
+        headers = urllib3.util.make_headers(
+            basic_auth='{0}:{1}'.format(
+                deployment_creds.publishing_user_name,
+                deployment_creds.publishing_password))
+        headers['content-type'] = 'application/octet-stream'
         self.log.info("Publishing Function package from %s" % self.pkg.path)
 
         zip_file = self.pkg.get_bytes()
 
         try:
-            r = requests.post(zip_api_url, data=zip_file, timeout=300, verify=self.enable_ssl_cert)
+            r = requests.post(zip_api_url,
+                              data=zip_file,
+                              headers=headers,
+                              timeout=300,
+                              verify=self.enable_ssl_cert)
         except requests.exceptions.ReadTimeout:
             self.log.error("Your Function App deployment timed out after 5 minutes. Try again.")
 
