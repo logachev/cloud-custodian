@@ -104,7 +104,6 @@ class FunctionPackageTest(BaseTest):
         self.assertTrue(FunctionPackageTest._file_exists(files, 'test-azure-package/config.json'))
         self.assertTrue(FunctionPackageTest._file_exists(files, 'host.json'))
 
-    @patch('c7n.mu.PythonPackageArchive.add_contents')
     def test_add_host_config(self, add_contents_mock):
         packer = FunctionPackage('test')
         with patch('c7n.mu.PythonPackageArchive.add_contents') as mock:
