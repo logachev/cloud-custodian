@@ -25,7 +25,6 @@ from mock import patch, MagicMock
 from azure.mgmt.web.models.user import User
 
 
-
 class FunctionPackageTest(BaseTest):
     def setUp(self):
         super(FunctionPackageTest, self).setUp()
@@ -140,8 +139,6 @@ class FunctionPackageTest(BaseTest):
                          'https://uri/api/zipdeploy?isAsync=true')
         self.assertEqual(post_mock.call_args[1]['headers']['content-type'],
                          'application/octet-stream')
-
-
 
     def test_env_var_disables_cert_validation(self):
         p = self.load_policy({

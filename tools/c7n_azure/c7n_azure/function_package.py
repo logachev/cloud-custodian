@@ -17,7 +17,6 @@ import logging
 import os
 import shutil
 import time
-import urllib3
 
 import requests
 
