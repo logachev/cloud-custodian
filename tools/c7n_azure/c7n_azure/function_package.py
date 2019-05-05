@@ -221,11 +221,7 @@ class FunctionPackage(object):
         # update perms of the package
         self._update_perms_package()
         zip_api_url = '%s/api/zipdeploy?isAsync=true' % deployment_creds.scm_uri
-        headers = urllib3.util.make_headers(
-            basic_auth='{0}:{1}'.format(
-                deployment_creds.publishing_user_name,
-                deployment_creds.publishing_password))
-        headers['content-type'] = 'application/octet-stream'
+        headers = {'content-type': 'application/octet-stream'}
         self.log.info("Publishing Function package from %s" % self.pkg.path)
 
         zip_file = self.pkg.get_bytes()

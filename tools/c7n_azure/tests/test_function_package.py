@@ -20,7 +20,10 @@ from azure_common import BaseTest
 from c7n_azure.function_package import FunctionPackage
 from c7n_azure.constants import ENV_CUSTODIAN_DISABLE_SSL_CERT_VERIFICATION,\
     FUNCTION_TIME_TRIGGER_MODE, FUNCTION_EVENT_TRIGGER_MODE
-from mock import patch
+from mock import patch, MagicMock
+
+from azure.mgmt.web.models.user import User
+
 
 
 class FunctionPackageTest(BaseTest):
@@ -104,19 +107,41 @@ class FunctionPackageTest(BaseTest):
         self.assertTrue(FunctionPackageTest._file_exists(files, 'test-azure-package/config.json'))
         self.assertTrue(FunctionPackageTest._file_exists(files, 'host.json'))
 
-    def test_add_host_config(self, add_contents_mock):
+    def test_add_host_config(self):
         packer = FunctionPackage('test')
         with patch('c7n.mu.PythonPackageArchive.add_contents') as mock:
             packer._add_host_config(FUNCTION_EVENT_TRIGGER_MODE)
-            mock.asser_called_once()
+            mock.assert_called_once()
             self.assertEqual(mock.call_args[1]['dest'], 'host.json')
             self.assertTrue('extensionBundle' in json.loads(mock.call_args[1]['contents']))
 
         with patch('c7n.mu.PythonPackageArchive.add_contents') as mock:
             packer._add_host_config(FUNCTION_TIME_TRIGGER_MODE)
-            mock.asser_called_once()
+            mock.assert_called_once()
             self.assertEqual(mock.call_args[1]['dest'], 'host.json')
             self.assertFalse('extensionBundle' in json.loads(mock.call_args[1]['contents']))
+
+    @patch('requests.post')
+    def test_publish(self, post_mock):
+        status_mock = MagicMock()
+        post_mock.return_value = status_mock
+        packer = FunctionPackage('test')
+        creds = User(publishing_user_name='user',
+                     publishing_password='password',
+                     scm_uri='https://uri')
+
+        packer.publish(creds)
+
+        post_mock.assert_called_once()
+        status_mock.raise_for_status.assert_called_once()
+
+        print(post_mock.call_args)
+        self.assertEqual(post_mock.call_args[0][0],
+                         'https://uri/api/zipdeploy?isAsync=true')
+        self.assertEqual(post_mock.call_args[1]['headers']['content-type'],
+                         'application/octet-stream')
+
+
 
     def test_env_var_disables_cert_validation(self):
         p = self.load_policy({
