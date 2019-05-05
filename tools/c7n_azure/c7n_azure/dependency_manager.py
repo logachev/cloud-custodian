@@ -6,7 +6,6 @@ import os
 import re
 import subprocess
 import sys
-from builtins import bytes
 
 from c7n.mu import checksum
 
@@ -125,7 +124,7 @@ class DependencyManager(object):
 
     @staticmethod
     def _get_string_hash(string):
-        return hashlib.md5(bytes(string, 'utf-8')).hexdigest()
+        return hashlib.md5(string.encode('utf-8')).hexdigest()
 
     @staticmethod
     def check_cache(cache_metadata_file, cache_zip_file, packages):
