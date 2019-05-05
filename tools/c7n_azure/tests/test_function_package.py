@@ -24,7 +24,7 @@ from c7n.mu import PythonPackageArchive
 from mock import patch, PropertyMock
 
 
-test_files_folder = os.path.join(os.path.dirname(__file__), 'files')
+test_files_folder = os.path.join(os.path.dirname(__file__), 'data')
 
 class FunctionPackageTest(BaseTest):
 
