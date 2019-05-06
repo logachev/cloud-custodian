@@ -22,7 +22,7 @@ from c7n.utils import type_schema
 from c7n_azure import constants
 from c7n_azure.provider import resources
 from c7n_azure.query import ChildResourceManager, ChildTypeInfo
-from c7n_azure.utils import ThreadHelper, ResourceIdParser
+from c7n_azure.utils import ThreadHelper, ResourceIdParser, generate_key_vault_url
 
 
 log = logging.getLogger('custodian.azure.keyvault.keys')
@@ -42,11 +42,11 @@ class KeyVaultKeys(ChildResourceManager):
 
         @classmethod
         def extra_args(cls, parent_resource):
-            return {'vault_base_url': 'https://{0}.vault.azure.net'.format(parent_resource['name'])}
+            return {'vault_base_url': generate_key_vault_url(parent_resource['name'])}
 
 
 @KeyVaultKeys.filter_registry.register('keyvault')
-class KeyvaultFilter(Filter):
+class KeyVaultFilter(Filter):
     schema = type_schema(
         'keyvault',
         required=['vaults'],
@@ -56,8 +56,9 @@ class KeyvaultFilter(Filter):
     )
 
     def process(self, resources, event=None):
+        parent_key = self.manager.resource_type.parent_key
         return [r for r in resources
-                if ResourceIdParser.get_resource_name(r['c7n:parent-id']) in self.data['vaults']]
+                if ResourceIdParser.get_resource_name(r[parent_key]) in self.data['vaults']]
 
 
 @KeyVaultKeys.filter_registry.register('key-type')

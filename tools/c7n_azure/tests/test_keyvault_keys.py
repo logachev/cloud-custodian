@@ -65,3 +65,4 @@ class KeyVaultKeyTest(BaseTest):
         }, validate=True)
         resources = p.run()
         self.assertEqual(len(resources), 1)
+        self.assertTrue(resources[0]['c7n:kty'].lower(), 'rsa')

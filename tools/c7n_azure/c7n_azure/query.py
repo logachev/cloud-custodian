@@ -93,11 +93,15 @@ class ChildResourceQuery(ResourceQuery):
         # Have to query separately for each parent's children.
         results = []
         for parent in parents.resources():
+            # There are 2 types of extra_args:
+            #   - static values stored in 'extra_args' dict (e.g. some type)
+            #   - dynamic values are retrieved via 'extra_args' method (e.g. parent name)
             if extra_args:
                 params.update({key: extra_args[key](parent) for key in extra_args.keys()})
 
             params.update(m.extra_args(parent))
 
+            # Some resources might not have enum_op piece (non-arm resources)
             if enum_op:
                 op = getattr(getattr(client, enum_op), list_op)
             else:
@@ -106,6 +110,7 @@ class ChildResourceQuery(ResourceQuery):
             try:
                 subset = [r.serialize(True) for r in op(**params)]
 
+                # If required, append parent resource ID to all child resources
                 if m.annotate_parent:
                     for r in subset:
                         r[m.parent_key] = parent[parents.resource_type.id]
@@ -147,6 +152,9 @@ class TypeMeta(type):
 
 @six.add_metaclass(TypeMeta)
 class TypeInfo(object):
+
+    # api client construction information
+
     service = ''
     client = ''
 
@@ -155,6 +163,8 @@ class TypeInfo(object):
 
 @six.add_metaclass(TypeMeta)
 class ChildTypeInfo(TypeInfo):
+
+    # api client construction information for child resources
 
     parent_manager_name = ''
     annotate_parent = True

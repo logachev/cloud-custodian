@@ -150,12 +150,14 @@ class Session(object):
         svc_module = importlib.import_module(service_name)
         klass = getattr(svc_module, client_name)
 
+        klass_parameters = None
         if sys.version_info[0] < 3:
             import funcsigs
             klass_parameters = funcsigs.signature(klass).parameters
         else:
             klass_parameters = inspect.signature(klass).parameters
 
+        client = None
         if 'subscription_id' in klass_parameters:
             client = klass(credentials=self.credentials, subscription_id=self.subscription_id)
         else:

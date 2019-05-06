@@ -60,3 +60,8 @@ DEFAULT_CHUNK_SIZE = 20
 Custom Retry Code Variables
 """
 DEFAULT_MAX_RETRY_AFTER = 30
+
+"""
+KeyVault url templates
+"""
+TEMPLATE_KEYVAULT_URL = 'https://{0}.vault.azure.net'
