@@ -134,7 +134,6 @@ class FunctionPackageTest(BaseTest):
         post_mock.assert_called_once()
         status_mock.raise_for_status.assert_called_once()
 
-        print(post_mock.call_args)
         self.assertEqual(post_mock.call_args[0][0],
                          'https://uri/api/zipdeploy?isAsync=true')
         self.assertEqual(post_mock.call_args[1]['headers']['content-type'],

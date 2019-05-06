@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import copy
 import distutils.util
 import json
 import logging
@@ -24,7 +25,9 @@ from c7n.mu import PythonPackageArchive
 from c7n.utils import local_session
 from c7n_azure.constants import (ENV_CUSTODIAN_DISABLE_SSL_CERT_VERIFICATION,
                                  FUNCTION_EVENT_TRIGGER_MODE,
-                                 FUNCTION_TIME_TRIGGER_MODE)
+                                 FUNCTION_TIME_TRIGGER_MODE,
+                                 FUNCTION_HOST_CONFIG,
+                                 FUNCTION_EXTENSION_BUNDLE_CONFIG)
 from c7n_azure.dependency_manager import DependencyManager
 from c7n_azure.session import Session
 
@@ -74,31 +77,9 @@ class FunctionPackage(object):
         self._add_host_config(policy['mode']['type'])
 
     def _add_host_config(self, mode):
-        config = \
-            {
-                "version": "2.0",
-                "healthMonitor": {
-                    "enabled": True,
-                    "healthCheckInterval": "00:00:10",
-                    "healthCheckWindow": "00:02:00",
-                    "healthCheckThreshold": 6,
-                    "counterThreshold": 0.80
-                },
-                "functionTimeout": "00:05:00",
-                "logging": {
-                    "fileLoggingMode": "debugOnly"
-                },
-                "extensions": {
-                    "http": {
-                        "routePrefix": "api",
-                        "maxConcurrentRequests": 5,
-                        "maxOutstandingRequests": 30
-                    }
-                }
-            }
+        config = copy.deepcopy(FUNCTION_HOST_CONFIG)
         if mode == FUNCTION_EVENT_TRIGGER_MODE:
-            config['extensionBundle'] = {"id": "Microsoft.Azure.Functions.ExtensionBundle",
-                                         "version": "[1.*, 2.0.0)"}
+            config['extensionBundle'] = FUNCTION_EXTENSION_BUNDLE_CONFIG
         self.pkg.add_contents(dest='host.json', contents=json.dumps(config))
 
     def get_function_config(self, policy, queue_name=None):
