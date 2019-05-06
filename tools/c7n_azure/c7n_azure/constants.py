@@ -87,6 +87,6 @@ FUNCTION_HOST_CONFIG = {
 }
 
 FUNCTION_EXTENSION_BUNDLE_CONFIG = {
-	"id": "Microsoft.Azure.Functions.ExtensionBundle",
-	"version": "[1.*, 2.0.0)"
+    "id": "Microsoft.Azure.Functions.ExtensionBundle",
+    "version": "[1.*, 2.0.0)"
 }
