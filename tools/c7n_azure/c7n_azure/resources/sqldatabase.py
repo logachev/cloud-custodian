@@ -13,17 +13,18 @@
 # limitations under the License.from c7n_azure.provider import resources
 
 import abc
-import six
-import logging
 import enum
-from c7n_azure.provider import resources
-from c7n_azure.resources.arm import ArmResourceManager, ChildArmResourceManager
-from c7n_azure.query import ChildResourceQuery
+import logging
+
+import six
 from c7n_azure.filters import scalar_ops
-from c7n.filters import Filter
+from c7n_azure.provider import resources
+from c7n_azure.resources.arm import ChildArmResourceManager
 from c7n_azure.utils import RetentionPeriod, ResourceIdParser, ThreadHelper
-from c7n.utils import type_schema
 from msrestazure.azure_exceptions import CloudError
+
+from c7n.filters import Filter
+from c7n.utils import type_schema
 
 log = logging.getLogger('custodian.azure.sqldatabase')
 
