@@ -124,21 +124,18 @@ class Session(object):
         else:
             # Azure CLI authentication
             self._is_cli_auth = True
-            (credentials,
+            (self.credentials,
              self.subscription_id,
              self.tenant_id) = Profile().get_login_credentials(
                 resource=self.resource_namespace)
 
-            # TODO: cleanup this workaround when issue resolved.
-            # https://github.com/Azure/azure-sdk-for-python/issues/5096
-            if self.resource_namespace == constants.RESOURCE_VAULT:
-                scheme, token, _ = credentials._token_retriever()
-                access_token = AccessToken(scheme=scheme, token=token)
-                self.credentials = KeyVaultAuthentication(lambda _1, _2, _3: access_token)
-            else:
-                self.credentials = credentials
-
             self.log.info("Creating session with Azure CLI Authentication")
+
+        # TODO: cleanup this workaround when issue resolved.
+        # https://github.com/Azure/azure-sdk-for-python/issues/5096
+        if self.resource_namespace == constants.RESOURCE_VAULT:
+            access_token = AccessToken(token=self.get_bearer_token())
+            self.credentials = KeyVaultAuthentication(lambda _1, _2, _3: access_token)
 
         # Let provided id parameter override everything else
         if self.subscription_id_override is not None:
