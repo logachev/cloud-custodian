@@ -14,20 +14,17 @@
                     "message": "OK"
                 },
                 "headers": {
-                    "cache-control": [
-                        "no-cache"
-                    ],
-                    "date": [
-                        "Mon, 06 May 2019 21:35:13 GMT"
-                    ],
                     "content-type": [
                         "application/json; charset=utf-8"
                     ],
-                    "x-ms-keyvault-service-version": [
-                        "1.1.0.244"
+                    "date": [
+                        "Tue, 07 May 2019 16:46:58 GMT"
+                    ],
+                    "cache-control": [
+                        "no-cache"
                     ],
                     "content-length": [
-                        "1920"
+                        "1250"
                     ]
                 },
                 "body": {
@@ -44,10 +41,10 @@
                                         "family": "A",
                                         "name": "Standard"
                                     },
-                                    "tenantId": "72f988bf-86f1-41af-91ab-2d7cd011db47",
+                                    "tenantId": "00000000-0000-0000-0000-000000000003",
                                     "accessPolicies": [
                                         {
-                                            "tenantId": "72f988bf-86f1-41af-91ab-2d7cd011db47",
+                                            "tenantId": "00000000-0000-0000-0000-000000000003",
                                             "objectId": "139efc82-0e5b-4998-b30a-ce40b9b942db",
                                             "permissions": {
                                                 "keys": [
@@ -59,14 +56,7 @@
                                                     "Delete",
                                                     "Recover",
                                                     "Backup",
-                                                    "Restore",
-                                                    "Decrypt",
-                                                    "Encrypt",
-                                                    "UnwrapKey",
-                                                    "WrapKey",
-                                                    "Verify",
-                                                    "Sign",
-                                                    "Purge"
+                                                    "Restore"
                                                 ],
                                                 "secrets": [
                                                     "Get",
@@ -92,58 +82,6 @@
                                                     "SetIssuers",
                                                     "DeleteIssuers"
                                                 ]
-                                            }
-                                        },
-                                        {
-                                            "tenantId": "72f988bf-86f1-41af-91ab-2d7cd011db47",
-                                            "objectId": "cc851160-f3f3-4d8a-860f-7f1dcfe1b2f7",
-                                            "permissions": {
-                                                "keys": [
-                                                    "Get",
-                                                    "List",
-                                                    "Update",
-                                                    "Create",
-                                                    "Import",
-                                                    "Delete",
-                                                    "Recover",
-                                                    "Backup",
-                                                    "Restore",
-                                                    "Decrypt",
-                                                    "Encrypt",
-                                                    "UnwrapKey",
-                                                    "WrapKey",
-                                                    "Verify",
-                                                    "Sign",
-                                                    "Purge"
-                                                ],
-                                                "secrets": [],
-                                                "certificates": []
-                                            }
-                                        },
-                                        {
-                                            "tenantId": "72f988bf-86f1-41af-91ab-2d7cd011db47",
-                                            "objectId": "db256002-538a-466e-aec3-9a20cebb6612",
-                                            "permissions": {
-                                                "keys": [
-                                                    "Get",
-                                                    "List",
-                                                    "Update",
-                                                    "Create",
-                                                    "Import",
-                                                    "Delete",
-                                                    "Recover",
-                                                    "Backup",
-                                                    "Restore",
-                                                    "Decrypt",
-                                                    "Encrypt",
-                                                    "UnwrapKey",
-                                                    "WrapKey",
-                                                    "Verify",
-                                                    "Sign",
-                                                    "Purge"
-                                                ],
-                                                "secrets": [],
-                                                "certificates": []
                                             }
                                         }
                                     ],
@@ -173,17 +111,14 @@
                     "message": "OK"
                 },
                 "headers": {
-                    "cache-control": [
-                        "no-cache"
-                    ],
-                    "date": [
-                        "Mon, 06 May 2019 21:35:14 GMT"
-                    ],
                     "content-type": [
                         "application/json; charset=utf-8"
                     ],
-                    "x-ms-keyvault-service-version": [
-                        "1.1.0.244"
+                    "date": [
+                        "Tue, 07 May 2019 16:46:58 GMT"
+                    ],
+                    "cache-control": [
+                        "no-cache"
                     ],
                     "content-length": [
                         "12"
@@ -209,17 +144,17 @@
                     "message": "OK"
                 },
                 "headers": {
-                    "cache-control": [
-                        "no-cache"
-                    ],
-                    "date": [
-                        "Mon, 06 May 2019 21:35:14 GMT"
+                    "content-length": [
+                        "269"
                     ],
                     "content-type": [
                         "application/json; charset=utf-8"
                     ],
-                    "content-length": [
-                        "269"
+                    "date": [
+                        "Tue, 07 May 2019 16:46:59 GMT"
+                    ],
+                    "cache-control": [
+                        "no-cache"
                     ]
                 },
                 "body": {
@@ -250,30 +185,74 @@
                     "message": "Unauthorized"
                 },
                 "headers": {
-                    "cache-control": [
-                        "no-cache"
-                    ],
-                    "date": [
-                        "Mon, 06 May 2019 21:35:14 GMT"
-                    ],
-                    "x-ms-keyvault-service-version": [
-                        "1.1.0.866"
-                    ],
-                    "x-ms-keyvault-network-info": [
-                        "addr=192.171.20.23;act_addr_fam=InterNetwork;"
+                    "content-length": [
+                        "0"
                     ],
                     "www-authenticate": [
                         "Bearer authorization=\"https://login.windows.net/72f988bf-86f1-41af-91ab-2d7cd011db47\", resource=\"https://vault.azure.net\""
                     ],
-                    "content-length": [
-                        "0"
+                    "date": [
+                        "Tue, 07 May 2019 16:47:00 GMT"
                     ],
-                    "x-ms-keyvault-region": [
-                        "southcentralus"
+                    "cache-control": [
+                        "no-cache"
                     ]
                 },
                 "body": {
                     "string": ""
+                }
+            }
+        },
+        {
+            "request": {
+                "method": "GET",
+                "uri": "https://cckeyvault1c6ra5qqpkhceo.vault.azure.net/keys?api-version=7.0",
+                "body": "",
+                "headers": {}
+            },
+            "response": {
+                "status": {
+                    "code": 200,
+                    "message": "OK"
+                },
+                "headers": {
+                    "content-length": [
+                        "374"
+                    ],
+                    "content-type": [
+                        "application/json; charset=utf-8"
+                    ],
+                    "date": [
+                        "Tue, 07 May 2019 16:47:00 GMT"
+                    ],
+                    "cache-control": [
+                        "no-cache"
+                    ]
+                },
+                "body": {
+                    "data": {
+                        "value": [
+                            {
+                                "kid": "https://cckeyvault1c6ra5qqpkhceo.vault.azure.net/keys/cctestec",
+                                "attributes": {
+                                    "enabled": true,
+                                    "created": 1557245473,
+                                    "updated": 1557245473,
+                                    "recoveryLevel": "Purgeable"
+                                }
+                            },
+                            {
+                                "kid": "https://cckeyvault1c6ra5qqpkhceo.vault.azure.net/keys/cctestrsa",
+                                "attributes": {
+                                    "enabled": true,
+                                    "created": 1557245463,
+                                    "updated": 1557245463,
+                                    "recoveryLevel": "Purgeable"
+                                }
+                            }
+                        ],
+                        "nextLink": null
+                    }
                 }
             }
         }
