@@ -113,6 +113,7 @@ class FunctionPackageTest(BaseTest):
 
     def test_add_host_config(self):
         packer = FunctionPackage('test')
+        packer.pkg = PythonPackageArchive()
         with patch('c7n.mu.PythonPackageArchive.add_contents') as mock:
             packer._add_host_config(FUNCTION_EVENT_TRIGGER_MODE)
             mock.assert_called_once()
@@ -130,6 +131,7 @@ class FunctionPackageTest(BaseTest):
         status_mock = MagicMock()
         post_mock.return_value = status_mock
         packer = FunctionPackage('test')
+        packer.pkg = PythonPackageArchive()
         creds = User(publishing_user_name='user',
                      publishing_password='password',
                      scm_uri='https://uri')
