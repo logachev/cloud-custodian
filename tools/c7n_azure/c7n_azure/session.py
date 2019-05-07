@@ -27,6 +27,7 @@ from c7n_azure import constants
 from c7n_azure.utils import (ResourceIdParser, StringUtils, custodian_azure_send_override,
                              ManagedGroupHelper)
 from msrestazure.azure_active_directory import MSIAuthentication
+from azure.keyvault import KeyVaultAuthentication, AccessToken
 
 try:
     from azure.cli.core._profile import Profile
@@ -123,10 +124,20 @@ class Session(object):
         else:
             # Azure CLI authentication
             self._is_cli_auth = True
-            (self.credentials,
+            (credentials,
              self.subscription_id,
              self.tenant_id) = Profile().get_login_credentials(
                 resource=self.resource_namespace)
+
+            # TODO: cleanup this workaround when issue resolved.
+            # https://github.com/Azure/azure-sdk-for-python/issues/5096
+            if self.resource_namespace == constants.RESOURCE_VAULT:
+                scheme, token, _ = credentials._token_retriever()
+                access_token = AccessToken(scheme=scheme, token=token)
+                self.credentials = KeyVaultAuthentication(lambda _1, _2, _3: access_token)
+            else:
+                self.credentials = credentials
+
             self.log.info("Creating session with Azure CLI Authentication")
 
         # Let provided id parameter override everything else

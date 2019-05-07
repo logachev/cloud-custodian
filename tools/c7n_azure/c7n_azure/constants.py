@@ -48,7 +48,7 @@ Authentication Resource
 """
 RESOURCE_ACTIVE_DIRECTORY = 'https://management.core.windows.net/'
 RESOURCE_STORAGE = 'https://storage.azure.com/'
-RESOURCE_VAULT = 'https://vault.azure.net/'
+RESOURCE_VAULT = 'https://vault.azure.net'
 
 """
 Threading Variable
