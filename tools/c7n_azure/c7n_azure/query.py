@@ -152,9 +152,7 @@ class TypeMeta(type):
 
 @six.add_metaclass(TypeMeta)
 class TypeInfo(object):
-
     # api client construction information
-
     service = ''
     client = ''
 
@@ -163,9 +161,7 @@ class TypeInfo(object):
 
 @six.add_metaclass(TypeMeta)
 class ChildTypeInfo(TypeInfo):
-
     # api client construction information for child resources
-
     parent_manager_name = ''
     annotate_parent = True
     raise_on_exception = True

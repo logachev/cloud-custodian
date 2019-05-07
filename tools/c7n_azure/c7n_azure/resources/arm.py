@@ -26,9 +26,7 @@ from c7n.utils import local_session
 
 @six.add_metaclass(TypeMeta)
 class ArmTypeInfo(TypeInfo):
-
     # api client construction information for ARM resources
-
     id = 'id'
     name = 'name'
     diagnostic_settings_enabled = True

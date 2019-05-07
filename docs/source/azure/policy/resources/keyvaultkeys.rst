@@ -52,17 +52,18 @@ This policy will find all Keys in all KeyVaults that are older than 30 days
             value: 30
 
 
-This policy will find all Keys in all KeyVaults that are not RSA-HSM
+If your company wants to enforce usage of HSM-backed keys in the KeyVaults,
+you can use this policy to find all Keys in all KeyVaults not backed by an HSM module.
 
 .. code-block:: yaml
 
     policies:
       - name: keyvault-keys
         description:
-          List all non-RSA-HSM keys
+          List all non-HSM keys
         resource: azure.keyvault-keys
         filters:
           - not:
              - type: key-type
                key-types:
-                 - RSA-HSM
+                 - RSA-HSM, EC-HSM
