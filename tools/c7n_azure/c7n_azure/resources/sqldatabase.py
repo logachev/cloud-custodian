@@ -94,7 +94,7 @@ class BackupRetentionPolicyFilter(Filter):
         return retention is not None and self._perform_op(retention, self.retention_limit)
 
     def _get_backup_retention_policy(self, resource, get_operation):
-        server_id = resource[ChildResourceQuery.parent_key]
+        server_id = resource[self.manager.resource_type.parent_key]
         resource_group_name = resource.get('resourceGroup')
         if resource_group_name is None:
             resource_group_name = ResourceIdParser.get_resource_group(server_id)
