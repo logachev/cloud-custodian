@@ -1,0 +1,15 @@
+policies:
+- name: custodian_functions_test_event_dedicated
+  resource: azure.resourcegroup
+  mode:
+      type: azure-event-grid
+      events: ['ResourceGroupWrite']
+      provision-options:
+        servicePlan:
+          resourceGroupName: custodian-function-test-dedicated
+          skuName: S2
+          skuTier: Standard
+  actions:
+    - type: tag
+      tag: custodian-function-event-dedicated
+      value: passed
