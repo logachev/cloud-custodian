@@ -182,10 +182,10 @@ class FunctionAppUtilities(object):
                 properties=app_settings.properties
             )
 
-        # Sync the scale controller for the Function App. 
-        # Not required for the dedicated plans.
-        if cls.is_consumption_plan(function_params) and not cls._sync_function_triggers(function_params):
-            cls.log.error("Unable to sync triggers...")
+            # Sync the scale controller for the Function App.
+            # Not required for the dedicated plans.
+            if not cls._sync_function_triggers(function_params):
+                cls.log.error("Unable to sync triggers...")
 
         cls.log.info('Finished publishing Function application')
 
