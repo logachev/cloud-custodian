@@ -17,5 +17,5 @@ policies:
       value: custodian-function-test-rg
   actions:
     - type: tag
-      tag: custodian-function-timer-dedicated
+      tag: custodian-function-test-timer-dedicated
       value: passed

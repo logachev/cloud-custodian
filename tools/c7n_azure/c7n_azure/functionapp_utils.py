@@ -15,11 +15,12 @@ import datetime
 import logging
 import os
 import re
+import requests
 import time
 
 from azure.storage.blob import BlobPermissions
 from c7n_azure.constants import \
-    FUNCTION_CONSUMPTION_BLOB_CONTAINER, FUNCTION_PACKAGE_SAS_EXPIRY_DAYS
+    FUNCTION_CONSUMPTION_BLOB_CONTAINER, FUNCTION_PACKAGE_SAS_EXPIRY_DAYS, BASE_MANAGEMENT_URL
 from c7n_azure.provisioning.app_insights import AppInsightsUnit
 from c7n_azure.provisioning.app_service_plan import AppServicePlanUnit
 from c7n_azure.provisioning.function_app import FunctionAppDeploymentUnit
@@ -194,25 +195,27 @@ class FunctionAppUtilities(object):
         session = local_session(Session)
         web_client = session.client('azure.mgmt.web.WebSiteManagementClient')
 
+        resource_id = '/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Web/sites/{2}' \
+                      .format(session.get_subscription_id(),
+                              function_params.function_app_resource_group_name,
+                              function_params.function_app_name)
+        version = session.resource_api_version(resource_id)
+
+        url = '{0}/{1}/hostruntime/admin/host/synctriggers?api-version={2}'.format(
+            BASE_MANAGEMENT_URL, resource_id, version)
+
+        access_token = 'Bearer {0}'.format(session.get_bearer_token())
+
         max_retry_attempts = 3
         for r in range(max_retry_attempts):
             res = None
             try:
-                res = web_client.web_apps.sync_function_triggers(
-                    function_params.function_app_resource_group_name,
-                    function_params.function_app_name
-                )
-            except CloudError as e:
-                # This appears to be a bug in the API
-                # Success can be either 200 or 204, which is
-                # unexpected and gets rethrown as a CloudError
-                if e.response.status_code in [200, 204]:
-                    return True
-
+                res = requests.post(url, headers={'Authorization': access_token})
+            except Exception as e:
                 cls.log.error("Failed to sync triggers...")
                 cls.log.error(e)
 
-            if res and res.status_code in [200, 204]:
+            if res and res.status_code in [200, 204] and res.json()['status'] == 'success':
                 return True
             else:
                 cls.log.info("Retrying in 5 seconds...")

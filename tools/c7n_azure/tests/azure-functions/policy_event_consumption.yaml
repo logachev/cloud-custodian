@@ -9,5 +9,5 @@ policies:
           resourceGroupName: custodian-function-test-consumption
   actions:
     - type: tag
-      tag: custodian-function-event-consumption
+      tag: custodian-function-test-event-consumption
       value: passed

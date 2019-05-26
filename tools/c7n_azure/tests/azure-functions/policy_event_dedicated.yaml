@@ -11,5 +11,5 @@ policies:
           skuTier: Standard
   actions:
     - type: tag
-      tag: custodian-function-event-dedicated
+      tag: custodian-function-test-event-dedicated
       value: passed

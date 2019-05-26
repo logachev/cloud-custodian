@@ -15,5 +15,5 @@ policies:
       value: custodian-function-test-rg
   actions:
     - type: tag
-      tag: custodian-function-timer-consumption
+      tag: custodian-function-test-timer-consumption
       value: passed
