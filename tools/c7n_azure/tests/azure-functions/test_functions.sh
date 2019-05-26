@@ -3,6 +3,7 @@
 set -e
 
 function cleanup {
+    set +e
     echo "Removing resource groups"
     $(az group delete -n custodian-function-test-rg -y)
     $(az group delete -n custodian-function-test-dedicated -y)

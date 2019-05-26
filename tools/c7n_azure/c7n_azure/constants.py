@@ -63,11 +63,6 @@ Custom Retry Code Variables
 DEFAULT_MAX_RETRY_AFTER = 30
 
 """
-Azure URLs
-"""
-BASE_MANAGEMENT_URL = 'https://management.azure.com'
-
-"""
 KeyVault url templates
 """
 TEMPLATE_KEYVAULT_URL = 'https://{0}.vault.azure.net'
