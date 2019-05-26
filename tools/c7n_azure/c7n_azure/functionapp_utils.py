@@ -184,8 +184,7 @@ class FunctionAppUtilities(object):
 
             # Sync the scale controller for the Function App.
             # Not required for the dedicated plans.
-            if not cls._sync_function_triggers(function_params):
-                cls.log.error("Unable to sync triggers...")
+            cls._sync_function_triggers(function_params)
 
         cls.log.info('Finished publishing Function application')
 
@@ -222,4 +221,5 @@ class FunctionAppUtilities(object):
                 cls.log.info("Retrying in 5 seconds...")
                 time.sleep(5)
 
+        cls.log.error("Unable to sync triggers...")
         return False

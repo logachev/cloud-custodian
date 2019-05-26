@@ -15,6 +15,7 @@ policies:
       op: eq
       value_type: normalize
       value: custodian-function-test-rg
+    - tag:custodian-function-test-timer-dedicated: absent
   actions:
     - type: tag
       tag: custodian-function-test-timer-dedicated

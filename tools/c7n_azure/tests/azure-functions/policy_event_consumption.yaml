@@ -7,6 +7,13 @@ policies:
       provision-options:
         servicePlan:
           resourceGroupName: custodian-function-test-consumption
+  filters:
+    - type: value
+      key: name
+      op: eq
+      value_type: normalize
+      value: custodian-function-test-rg
+    - tag:custodian-function-test-event-consumption: absent
   actions:
     - type: tag
       tag: custodian-function-test-event-consumption
