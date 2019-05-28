@@ -21,6 +21,8 @@ import json
 import traceback
 import zlib
 
+import six
+from c7n_mailer.azure.azure_smtp_delivery import AzureSmtpDelivery
 from c7n_mailer.azure.sendgrid_delivery import SendGridDelivery
 
 try:
@@ -110,6 +112,12 @@ class MailerAzureQueueProcessor(object):
         try:
             sendgrid_delivery = SendGridDelivery(self.config, self.logger)
             sendgrid_messages = sendgrid_delivery.get_to_addrs_sendgrid_messages_map(queue_message)
-            return sendgrid_delivery.sendgrid_handler(queue_message, sendgrid_messages)
+
+            if 'smtp_server' in self.config:
+                smtp_delivery = AzureSmtpDelivery(self.config, self.session, self.logger)
+                for to_addrs, message in six.iteritems(sendgrid_messages):
+                    smtp_delivery.send_message(message=message, to_addrs=list(to_addrs))
+            else:
+                return sendgrid_delivery.sendgrid_handler(queue_message, sendgrid_messages)
         except Exception:
             traceback.print_exc()
