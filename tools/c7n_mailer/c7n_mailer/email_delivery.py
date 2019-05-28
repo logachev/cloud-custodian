@@ -299,7 +299,6 @@ class EmailDelivery(object):
                 smtp_delivery.send_message(message=mimetext_msg, to_addrs=email_to_addrs)
             # if smtp_server isn't set in mailer.yml, use aws ses normally.
             else:
-                print('NO SMTP_SERVER')
                 self.aws_ses.send_raw_email(RawMessage={'Data': mimetext_msg.as_string()})
         except Exception as error:
             self.logger.warning(
