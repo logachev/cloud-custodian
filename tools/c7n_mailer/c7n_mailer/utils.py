@@ -343,7 +343,6 @@ def resource_format(resource, resource_type):
 
 
 def kms_decrypt(config, logger, session, encrypted_field):
-    print('kms_decrypt')
     if config.get(encrypted_field):
         try:
             kms = session.client('kms')
