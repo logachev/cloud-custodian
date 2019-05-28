@@ -1,9 +1,10 @@
 import unittest
-from mock import patch, call, MagicMock
 
-from c7n_mailer.smtp_delivery import SmtpDelivery
 from c7n_mailer.aws.aws_smtp_delivery import AwsSmtpDelivery
 from c7n_mailer.azure.azure_smtp_delivery import AzureSmtpDelivery
+from c7n_mailer.smtp_delivery import SmtpDelivery
+from mock import patch, call, MagicMock
+
 
 class SmtpDeliveryTest(unittest.TestCase):
 
@@ -69,14 +70,14 @@ class SmtpDeliveryTest(unittest.TestCase):
                          smtp_username=None,
                          smtp_password=None)
         message_mock = MagicMock()
-        message_mock.__getitem__.side_effect = lambda x: 'test@test.com' if x == 'From' else None
+        message_mock.__getitem__.side_effect = lambda x: 't@test.com' if x == 'From' else None
         message_mock.as_string.return_value = 'mock_text'
         d.send_message(message_mock,
                        ['test1@test.com'])
         del d
 
         mock_smtp.assert_has_calls([call('server', 25),
-                                    call().sendmail('test@test.com', ['test1@test.com'], 'mock_text'),
+                                    call().sendmail('t@test.com', ['test1@test.com'], 'mock_text'),
                                     call().quit()])
 
     @patch('smtplib.SMTP')
