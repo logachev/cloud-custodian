@@ -342,6 +342,10 @@ def resource_format(resource, resource_type):
         return "%s" % format_struct(resource)
 
 
+def is_azure_cloud(mailer_config):
+    return mailer_config.get('queue_url', '').startswith('asq')
+
+
 def kms_decrypt(config, logger, session, encrypted_field):
     if config.get(encrypted_field):
         try:
@@ -360,6 +364,18 @@ def kms_decrypt(config, logger, session, encrypted_field):
                 "Error: %s Unable to decrypt %s with kms, will assume plaintext." %
                 (e, encrypted_field))
         return config[encrypted_field]
+    else:
+        logger.debug("No encrypted value to decrypt.")
+        return None
+
+
+def decrypt(config, logger, session, encrypted_field):
+    if config.get(encrypted_field):
+        if is_azure_cloud(config):
+            from c7n_mailer.azure.utils import azure_decrypt
+            return azure_decrypt(config, logger, session, encrypted_field)
+        else:
+            return kms_decrypt(config, logger, session, encrypted_field)
     else:
         logger.debug("No encrypted value to decrypt.")
         return None

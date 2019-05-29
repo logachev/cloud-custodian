@@ -17,7 +17,7 @@ import six
 
 from .ldap_lookup import LdapLookup
 from c7n_mailer.utils_email import is_email
-from c7n_mailer.aws.aws_smtp_delivery import AwsSmtpDelivery
+from c7n_mailer.smtp_delivery import SmtpDelivery
 from .utils import (
     get_message_subject, get_resource_tag_targets,
     get_rendered_jinja, kms_decrypt, get_aws_username_from_event)
@@ -292,9 +292,9 @@ class EmailDelivery(object):
         try:
             # if smtp_server is set in mailer.yml, send through smtp
             if 'smtp_server' in self.config:
-                smtp_delivery = AwsSmtpDelivery(config=self.config,
-                                                session=self.session,
-                                                logger=self.logger)
+                smtp_delivery = SmtpDelivery(config=self.config,
+                                             session=self.session,
+                                             logger=self.logger)
                 smtp_delivery.send_message(message=mimetext_msg, to_addrs=email_to_addrs)
             # if smtp_server isn't set in mailer.yml, use aws ses normally.
             else:

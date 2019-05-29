@@ -1,9 +1,16 @@
 import smtplib
+from c7n_mailer.utils import decrypt
 
 
 class SmtpDelivery(object):
 
-    def __init__(self, smtp_server, smtp_port, smtp_ssl, smtp_username, smtp_password):
+    def __init__(self, config, session, logger):
+        smtp_server = config['smtp_server']
+        smtp_port = int(config.get('smtp_port', 25))
+        smtp_ssl = bool(config.get('smtp_ssl', True))
+        smtp_username = config.get('smtp_username')
+        smtp_password = decrypt(config, logger, session, 'smtp_password')
+
         smtp_connection = smtplib.SMTP(smtp_server, smtp_port)
         if smtp_ssl:
             smtp_connection.starttls()

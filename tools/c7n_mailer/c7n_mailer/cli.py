@@ -11,6 +11,7 @@ from c7n_mailer import deploy, utils
 from c7n_mailer.azure.azure_queue_processor import MailerAzureQueueProcessor
 from c7n_mailer.azure import deploy as azure_deploy
 from c7n_mailer.sqs_queue_processor import MailerSqsQueueProcessor
+from c7n_mailer.utils import is_azure_cloud
 from ruamel import yaml
 
 CONFIG_SCHEMA = {
@@ -182,10 +183,6 @@ def run_mailer_in_parallel(processor, max_num_processes):
         raise Exception
     processor.max_num_processes = max_num_processes
     processor.run(parallel=True)
-
-
-def is_azure_cloud(mailer_config):
-    return mailer_config.get('queue_url').startswith('asq')
 
 
 def main():
