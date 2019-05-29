@@ -21,9 +21,9 @@ class SmtpDeliveryTest(unittest.TestCase):
         mock_smtp.assert_has_calls([call('server', 25),
                                     call().quit()])
 
-    @patch('c7n_mailer.utils.kms_decrypt', return_value='password')
+    @patch('c7n_mailer.utils.decrypt', return_value='password')
     @patch('smtplib.SMTP')
-    def test_no_ssl_with_credentials(self, mock_smtp, kms_mock):
+    def test_no_ssl_with_credentials(self, mock_smtp, decrypt_mock):
         config = {
             'smtp_server': 'server',
             'smtp_port': 25,
@@ -55,9 +55,9 @@ class SmtpDeliveryTest(unittest.TestCase):
                                     call().ehlo(),
                                     call().quit()])
 
-    @patch('c7n_mailer.utils.kms_decrypt', return_value='password')
+    @patch('c7n_mailer.utils.decrypt', return_value='password')
     @patch('smtplib.SMTP')
-    def test_with_ssl_and_credentials(self, mock_smtp, kms_mock):
+    def test_with_ssl_and_credentials(self, mock_smtp, decrypt_mock):
         config = {
             'smtp_server': 'server',
             'smtp_port': 25,
