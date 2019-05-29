@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import unittest
-from mock import Mock
+from mock import Mock, patch
 
 from c7n_mailer import utils
 
@@ -204,3 +204,28 @@ class GetAwsUsernameFromEvent(unittest.TestCase):
             utils.get_aws_username_from_event(Mock(), evt),
             'blam'
         )
+
+
+class ProviderSelector(unittest.TestCase):
+
+    def test_is_azure_cloud(self):
+        self.assertTrue(utils.is_azure_cloud({'queue_url': 'asq://'}))
+        self.assertFalse(utils.is_azure_cloud({'queue_url': 'sqs://'}))
+
+
+class DecryptTests(unittest.TestCase):
+
+    @patch('c7n_mailer.utils.kms_decrypt')
+    def test_kms_decrypt(self, kms_decrypt_mock):
+        utils.decrypt({'queue_url': 'aws', 'test': 'test'}, Mock(), Mock(), 'test')        
+        kms_decrypt_mock.assert_called_once()
+
+    @patch('c7n_mailer.azure.utils.azure_decrypt')
+    def test_azure_decrypt(self, azure_decrypt_mock):
+        utils.decrypt({'queue_url': 'asq://', 'test': 'test'}, Mock(), Mock(), 'test')        
+        azure_decrypt_mock.assert_called_once()
+
+    def test_kms_decrypt(self):
+        self.assertEqual(utils.decrypt({'queue_url': 'aws'}, Mock(), Mock(), 'test'), None)        
+        self.assertEqual(utils.decrypt({'queue_url': 'asq'}, Mock(), Mock(), 'test'), None)        
+        
