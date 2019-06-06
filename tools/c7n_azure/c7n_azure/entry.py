@@ -51,9 +51,8 @@ import c7n_azure.resources.subscription
 import c7n_azure.resources.policy_assignments
 import c7n_azure.resources.image
 import c7n_azure.resources.event_subscription
-import c7n_azure.resources.appserviceplan  # noqa: F401
 import c7n_azure.resources.k8s_service
-
+import c7n_azure.resources.appserviceplan  # noqa: F401
 
 def initialize_azure():
     # after all resources are loaded, do out of band registrations of filters/actions
