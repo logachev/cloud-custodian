@@ -6,7 +6,7 @@ API Management
 Filters
 -------
 - Standard Value Filter (see :ref:`filters`)
-      - Model: `ContainerService <https://github.com/Azure/azure-sdk-for-python/blob/master/sdk/apimanagement/azure-mgmt-apimanagement/azure/mgmt/apimanagement/models/api_management_service_resource.py>`_
+      - Model: `API Management <https://github.com/Azure/azure-sdk-for-python/blob/master/sdk/apimanagement/azure-mgmt-apimanagement/azure/mgmt/apimanagement/models/api_management_service_resource.py>`_
 - ARM Resource Filters (see :ref:`azure_genericarmfilter`)
     - Tag Filter - Filter on tag presence and/or values
     - Marked-For-Op Filter - Filter on tag that indicates a scheduled operation for a resource
