@@ -11,7 +11,7 @@ from c7n_mailer import deploy, utils
 from c7n_mailer.azure.azure_queue_processor import MailerAzureQueueProcessor
 from c7n_mailer.azure import deploy as azure_deploy
 from c7n_mailer.sqs_queue_processor import MailerSqsQueueProcessor
-from c7n_mailer.utils import is_azure_cloud
+from c7n_mailer.utils import get_provider, Providers
 from ruamel import yaml
 
 CONFIG_SCHEMA = {
@@ -202,6 +202,7 @@ def main():
 
     mailer_config['templates_folders'] = default_templates
 
+    provider = get_provider(mailer_config)
     if args_dict.get('update_lambda'):
         if args_dict.get('debug'):
             print('\n** --debug is only supported with --run, not --update-lambda **\n')
@@ -211,18 +212,18 @@ def main():
                   'with --run, not --update-lambda **\n')
             return
 
-        if is_azure_cloud(mailer_config):
+        if provider == Providers.Azure:
             azure_deploy.provision(mailer_config)
-        else:
+        elif provider == Providers.AWS:
             deploy.provision(mailer_config, functools.partial(session_factory, mailer_config))
 
     if args_dict.get('run'):
         max_num_processes = args_dict.get('max_num_processes')
 
         # Select correct processor
-        if is_azure_cloud(mailer_config):
+        if provider == Providers.Azure:
             processor = MailerAzureQueueProcessor(mailer_config, logger)
-        else:
+        elif provider == Providers.AWS:
             aws_session = session_factory(mailer_config)
             processor = MailerSqsQueueProcessor(mailer_config, aws_session, logger)
 
