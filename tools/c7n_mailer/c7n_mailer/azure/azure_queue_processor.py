@@ -111,15 +111,15 @@ class MailerAzureQueueProcessor(object):
         # this section sends a notification to the resource owner via SendGrid
         try:
             sendgrid_delivery = SendGridDelivery(self.config, self.logger)
-            sendgrid_messages = sendgrid_delivery.get_to_addrs_sendgrid_messages_map(queue_message)
+            email_messages = sendgrid_delivery.get_to_addrs_sendgrid_messages_map(queue_message)
 
             if 'smtp_server' in self.config:
                 smtp_delivery = SmtpDelivery(config=self.config,
                                              session=self.session,
                                              logger=self.logger)
-                for to_addrs, message in six.iteritems(sendgrid_messages):
+                for to_addrs, message in six.iteritems(email_messages):
                     smtp_delivery.send_message(message=message, to_addrs=list(to_addrs))
             else:
-                return sendgrid_delivery.sendgrid_handler(queue_message, sendgrid_messages)
+                return sendgrid_delivery.sendgrid_handler(queue_message, email_messages)
         except Exception:
             traceback.print_exc()

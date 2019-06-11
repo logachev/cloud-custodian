@@ -382,9 +382,6 @@ def decrypt(config, logger, session, encrypted_field):
     if config.get(encrypted_field):
         provider = get_provider(config)
         if provider == Providers.Azure:
-            # TODO: Uncomment this code when KeyVault support is added
-            # from c7n_mailer.azure.utils import azure_decrypt
-            # return azure_decrypt(config, logger, session, encrypted_field)
             return config[encrypted_field]
         elif provider == Providers.AWS:
             return kms_decrypt(config, logger, session, encrypted_field)
