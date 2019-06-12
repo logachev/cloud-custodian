@@ -35,13 +35,13 @@ class ArmResource(ArmResourceManager):
 
 
 @ArmResource.filter_registry.register('resource-type')
-class TypeFilter(Filter):
+class ResourceTypeFilter(Filter):
     schema = type_schema('resource-type',
                          required=['values'],
                          values={'type': 'array', 'items': {'type': 'string'}})
 
     def __init__(self, data, manager=None):
-        super(TypeFilter, self).__init__(data, manager)
+        super(ResourceTypeFilter, self).__init__(data, manager)
         self.allowed_types = [t.lower() for t in self.data['values']]
 
     def process(self, resources, event=None):

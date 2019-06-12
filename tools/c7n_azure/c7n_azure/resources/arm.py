@@ -24,6 +24,7 @@ from c7n_azure.utils import ResourceIdParser
 
 from c7n.utils import local_session
 
+
 arm_resource_types = {}
 
 
@@ -98,5 +99,6 @@ class ChildArmResourceManager(ChildResourceManager, ArmResourceManager):
 
     class resource_type(ChildTypeInfo, ArmTypeInfo):
         pass
+
 
 resources.subscribe(resources.EVENT_FINAL, ArmResourceManager.register_arm_specific)
