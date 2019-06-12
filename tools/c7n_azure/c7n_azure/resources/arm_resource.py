@@ -14,6 +14,8 @@
 
 from c7n_azure.provider import resources
 from c7n_azure.resources.arm import ArmResourceManager, arm_resource_types
+from c7n_azure.utils import ResourceIdParser
+from c7n.filters.core import Filter, type_schema
 
 
 @resources.register('armresource')
@@ -30,3 +32,24 @@ class ArmResource(ArmResourceManager):
         if resource_type.lower() in arm_resource_types:
             return arm_resource_types[resource_type.lower()].enable_tag_operations
         return False
+
+
+@ArmResource.filter_registry.register('resource-type')
+class TypeFilter(Filter):
+    schema = type_schema('resource-type',
+                         required=['values'],
+                         values={'type': 'array', 'items': {'type': 'string'}})
+
+    def __init__(self, data, manager=None):
+        super(TypeFilter, self).__init__(data, manager)
+        self.allowed_types = [t.lower() for t in self.data['values']]
+
+    def process(self, resources, event=None):
+        result = []
+        for r in resources:
+            if 'id' in r:
+                t = ResourceIdParser.get_full_type(r['id'])
+                if t.lower() in self.allowed_types:
+                    result.append(r)
+
+        return result
