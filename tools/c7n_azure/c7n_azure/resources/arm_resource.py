@@ -1,4 +1,4 @@
-# Copyright 2018 Capital One Services, LLC
+# Copyright 2019 Microsoft Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,20 +13,20 @@
 # limitations under the License.
 
 from c7n_azure.provider import resources
-from c7n_azure.resources.arm import ArmResourceManager
+from c7n_azure.resources.arm import ArmResourceManager, arm_resource_types
 
 
-@resources.register('cosmosdb')
-class CosmosDB(ArmResourceManager):
+@resources.register('armresource')
+class ArmResource(ArmResourceManager):
 
     class resource_type(ArmResourceManager.resource_type):
-        service = 'azure.mgmt.cosmosdb'
-        client = 'CosmosDB'
-        enum_spec = ('database_accounts', 'list', None)
-        default_report_fields = (
-            'name',
-            'location',
-            'resourceGroup',
-            'kind'
-        )
-        resource_type = 'Microsoft.DocumentDB/databaseAccounts'
+        service = 'azure.mgmt.resource'
+        client = 'ResourceManagementClient'
+        enum_spec = ('resources', 'list', None)
+        resource_type = 'armresource'
+        enable_tag_operations = True
+
+    def tag_operation_enabled(self, resource_type):
+        if resource_type.lower() in arm_resource_types:
+            return arm_resource_types[resource_type.lower()].enable_tag_operations
+        return False
