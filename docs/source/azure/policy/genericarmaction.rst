@@ -121,7 +121,7 @@ Others
               - name: delete-test-resources
                 description: |
                   Deletes any ARM resource with 'test' in the name
-                resource: azure.armresource
+                resource: azure.arm-resource
                 filters:
                  - type: value
                    name: test

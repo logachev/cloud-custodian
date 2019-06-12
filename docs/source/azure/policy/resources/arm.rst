@@ -10,7 +10,7 @@ Filters
 - ARM Resource Filters (see :ref:`azure_genericarmfilter`)
     - Tag Filter - Filter on tag presence and/or values
     - Marked-For-Op Filter - Filter on tag that indicates a scheduled operation for a resource
-- `resource-type` filter
+- ``resource-type`` filter
     - Filter on ARM resource types, including resource type namespaces
     - Provide a list of resource types (case-insensitive) in a `values` array
 

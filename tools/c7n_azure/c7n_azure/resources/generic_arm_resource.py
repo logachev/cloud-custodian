@@ -18,8 +18,8 @@ from c7n_azure.utils import ResourceIdParser
 from c7n.filters.core import Filter, type_schema
 
 
-@resources.register('armresource')
-class ArmResource(ArmResourceManager):
+@resources.register('arm-resource')
+class GenericArmResource(ArmResourceManager):
 
     class resource_type(ArmResourceManager.resource_type):
         service = 'azure.mgmt.resource'
@@ -34,7 +34,7 @@ class ArmResource(ArmResourceManager):
         return False
 
 
-@ArmResource.filter_registry.register('resource-type')
+@GenericArmResource.filter_registry.register('resource-type')
 class ResourceTypeFilter(Filter):
     schema = type_schema('resource-type',
                          required=['values'],
