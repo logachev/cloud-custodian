@@ -15,7 +15,7 @@ Filters
     - Provide a list of resource types (case-insensitive) in a `values` array
 
     .. c7n-schema:: ResourceTypeFilter
-        :module: c7n_azure.resources.arm_resource
+        :module: c7n_azure.resources.generic_arm_resource
 
 
 Actions

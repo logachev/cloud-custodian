@@ -34,7 +34,7 @@ class ArmResourceTest(BaseTest):
     @arm_template('vm.json')
     def test_find_by_name(self):
         p = self.load_policy({
-            'name': 'test-azure.arm-resource',
+            'name': 'test-azure-arm-resource',
             'resource': 'azure.arm-resource',
             'filters': [
                 {'type': 'value',
