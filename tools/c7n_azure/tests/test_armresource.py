@@ -259,7 +259,7 @@ class ArmResourceTest(BaseTest):
                     'type': 'value',
                     'key': 'resourceGroup',
                     'value_type': 'normalize',
-                    'operation': 'eq',
+                    'op': 'eq',
                     'value': 'test_vm'
                 }
             ]
