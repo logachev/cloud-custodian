@@ -36,6 +36,8 @@ class ArmTypeInfo(TypeInfo):
         'location',
         'resourceGroup'
     )
+    resource_type = None
+    enable_tag_operations = True
 
 
 @resources.register('armresource')
@@ -46,6 +48,7 @@ class ArmResourceManager(QueryResourceManager):
         service = 'azure.mgmt.resource'
         client = 'ResourceManagementClient'
         enum_spec = ('resources', 'list', None)
+        resource_type = 'Generic'
 
     def augment(self, resources):
         for resource in resources:
@@ -67,13 +70,14 @@ class ArmResourceManager(QueryResourceManager):
         for resource in registry.keys():
             klass = registry.get(resource)
             if issubclass(klass, ArmResourceManager):
-                klass.action_registry.register('tag', Tag)
-                klass.action_registry.register('untag', RemoveTag)
-                klass.action_registry.register('auto-tag-user', AutoTagUser)
-                klass.action_registry.register('tag-trim', TagTrim)
+                if klass.resource_type.enable_tag_operations:
+                    klass.action_registry.register('tag', Tag)
+                    klass.action_registry.register('untag', RemoveTag)
+                    klass.action_registry.register('auto-tag-user', AutoTagUser)
+                    klass.action_registry.register('tag-trim', TagTrim)
+                    klass.filter_registry.register('marked-for-op', TagActionFilter)
+                    klass.action_registry.register('mark-for-op', TagDelayedAction)
                 klass.filter_registry.register('metric', MetricFilter)
-                klass.filter_registry.register('marked-for-op', TagActionFilter)
-                klass.action_registry.register('mark-for-op', TagDelayedAction)
                 klass.filter_registry.register('policy-compliant', PolicyCompliantFilter)
 
                 if resource != 'resourcegroup':
