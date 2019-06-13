@@ -26,16 +26,16 @@ class ArmResourceTest(BaseTest):
     def test_arm_resource_schema_validate(self):
         with self.sign_out_patch():
             p = self.load_policy({
-                'name': 'test-azure-arm-resource',
-                'resource': 'azure.arm-resource'
+                'name': 'test-azure-armresource',
+                'resource': 'azure.armresource'
             }, validate=True)
             self.assertTrue(p)
 
     @arm_template('vm.json')
     def test_find_by_name(self):
         p = self.load_policy({
-            'name': 'test-azure-arm-resource',
-            'resource': 'azure.arm-resource',
+            'name': 'test-azure-armresource',
+            'resource': 'azure.armresource',
             'filters': [
                 {'type': 'value',
                  'key': 'name',
@@ -191,8 +191,8 @@ class ArmResourceTest(BaseTest):
         return_value='')
     def test_delete_armresource(self, delete_action_mock, filter_mock):
         p = self.load_policy({
-            'name': 'delete-arm-resource',
-            'resource': 'azure.arm-resource',
+            'name': 'delete-armresource',
+            'resource': 'azure.armresource',
             'filters': [
                 {'type': 'value',
                  'key': 'name',
@@ -212,7 +212,7 @@ class ArmResourceTest(BaseTest):
         return_value='')
     def test_delete_armresource_specific_name(self, delete_action_mock, filter_mock):
         p = self.load_policy({
-            'name': 'delete-arm-resource',
+            'name': 'delete-armresource',
             'resource': 'azure.networksecuritygroup',
             'filters': [
                 {'type': 'value',
@@ -230,8 +230,8 @@ class ArmResourceTest(BaseTest):
     def test_arm_resource_resource_type_schema_validate(self):
         with self.sign_out_patch():
             p = self.load_policy({
-                'name': 'test-azure-arm-resource-filter',
-                'resource': 'azure.arm-resource',
+                'name': 'test-azure-armresource-filter',
+                'resource': 'azure.armresource',
                 'filters': [
                     {
                         'type': 'resource-type',
@@ -244,8 +244,8 @@ class ArmResourceTest(BaseTest):
     @arm_template('vm.json')
     def test_arm_resource_resource_type(self):
         p = self.load_policy({
-            'name': 'test-azure-arm-resource-filter',
-            'resource': 'azure.arm-resource',
+            'name': 'test-azure-armresource-filter',
+            'resource': 'azure.armresource',
             'filters': [
                 {
                     'type': 'resource-type',

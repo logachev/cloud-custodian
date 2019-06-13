@@ -4,7 +4,7 @@ Generic Filters
 ================
 
 These filters can be applied to a specific resource type, such as ``azure.vm``, or they can be
-applied to all Azure resources by using ``azure.arm-resource`` as the resource type.
+applied to all Azure resources by using ``azure.armresource`` as the resource type.
 
 Metric Filter
 -------------
@@ -102,7 +102,7 @@ This policy will delete all ARM resources with the tag 'Tag1' present
 
     policies
       - name: delete-resources-with-Tag1
-        resource: azure.arm-resource
+        resource: azure.armresource
         filters:
           - tag:Tag1: present
         actions:

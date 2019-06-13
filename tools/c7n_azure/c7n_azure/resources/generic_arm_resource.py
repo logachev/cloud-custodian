@@ -18,7 +18,7 @@ from c7n_azure.utils import ResourceIdParser
 from c7n.filters.core import Filter, type_schema
 
 
-@resources.register('arm-resource')
+@resources.register('armresource')
 class GenericArmResource(ArmResourceManager):
 
     class resource_type(ArmResourceManager.resource_type):
