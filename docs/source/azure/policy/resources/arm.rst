@@ -12,10 +12,9 @@ Filters
     - Marked-For-Op Filter - Filter on tag that indicates a scheduled operation for a resource
 - ``resource-type`` filter
     - Filter on ARM resource types, including resource type namespaces
-    - Provide a list of resource types (case-insensitive) in a `values` array
+    - Provide a list of resource types (case-insensitive) in a ``values`` array
 
-    .. c7n-schema:: ResourceTypeFilter
-        :module: c7n_azure.resources.generic_arm_resource
+    .. c7n-schema:: azure.armresource.filters.resource-type
 
 
 Actions
