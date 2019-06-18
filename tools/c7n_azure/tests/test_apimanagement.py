@@ -20,18 +20,18 @@ class ApiManagementTest(BaseTest):
     def setUp(self):
         super(ApiManagementTest, self).setUp()
 
-    def test_aks_schema_validate(self):
+    def test_apimanagement_schema_validate(self):
         with self.sign_out_patch():
             p = self.load_policy({
-                'name': 'test-azure-aks',
+                'name': 'test-azure-apimanagement',
                 'resource': 'azure.api-management'
             }, validate=True)
             self.assertTrue(p)
 
     @arm_template('apimanagement.json')
-    def test_find_aks_by_name(self):
+    def test_find_apimanagement_by_name(self):
         p = self.load_policy({
-            'name': 'test-azure-aks',
+            'name': 'test-azure-apimanagement',
             'resource': 'azure.api-management',
             'filters': [
                 {'type': 'value',
