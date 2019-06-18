@@ -28,3 +28,4 @@ class ApiManagement(ArmResourceManager):
             'location',
             'resourceGroup'
         )
+        resource_type = 'Microsoft.ApiManagement/service'
