@@ -66,6 +66,7 @@ setup(
                       "azure-mgmt-monitor",
                       "azure-mgmt-policyinsights",
                       "azure-mgmt-eventgrid",
+                      "azure-mgmt-logic",
                       "azure-graphrbac",
                       "azure-keyvault",
                       "azure-storage-blob",
