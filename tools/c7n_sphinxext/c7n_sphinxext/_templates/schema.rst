@@ -1,8 +1,7 @@
 
 .. container:: toggle
 
-  ..
-    `raw:: html` is used because `.. container` doesn't support empty content
+  {# `raw:: html` is used because `.. container` doesn't support empty content #}
 
   .. raw:: html
      
