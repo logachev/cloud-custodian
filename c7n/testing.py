@@ -13,25 +13,25 @@
 # limitations under the License.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import json
 import datetime
 import io
+import itertools
+import json
 import logging
 import os
 import shutil
 import tempfile
 import unittest
 
-
 import mock
 import six
 import yaml
 
 from c7n import policy
-from c7n.schema import generate, validate as schema_validate
-from c7n.ctx import ExecutionContext
-from c7n.utils import reset_session_cache
 from c7n.config import Bag, Config
+from c7n.ctx import ExecutionContext
+from c7n.schema import generate, validate as schema_validate
+from c7n.utils import reset_session_cache
 
 C7N_VALIDATE = bool(os.environ.get("C7N_VALIDATE", ""))
 
@@ -239,3 +239,47 @@ def mock_datetime_now(tgt, dt):
         {},
     )
     return mock.patch.object(dt, "datetime", MockedDatetime)
+
+
+def get_doc_examples(resources):
+    policies = []
+    for resource_name, v in resources.items():
+        for k, cls in itertools.chain(v.filter_registry.items(), v.action_registry.items()):
+            if not cls.__doc__:
+                continue
+            # split on yaml and new lines
+            split_doc = [x.split('\n\n') for x in cls.__doc__.split('yaml')]
+            for item in itertools.chain.from_iterable(split_doc):
+                if 'policies:\n' in item:
+                    policies.append((item, resource_name, cls.type))
+    return policies
+
+
+def get_doc_policies(resources):
+    """ Retrieve all unique policies from the list of resources.
+    Duplicate policy is a policy that uses same name but has different set of
+    actions and/or filters.
+
+    Input a resource list.
+    Returns policies map (name->policy) and a list of duplicate policy names.
+    """
+    policies = {}
+    duplicate_names = set()
+    for ptext, resource_name, el_name in get_doc_examples(resources):
+        data = yaml.safe_load(ptext)
+        for p in data.get('policies', []):
+            if p['name'] in policies:
+                if policies[p['name']] != p:
+                    duplicate_names.add(p['name'])
+            else:
+                policies[p['name']] = p
+
+    if duplicate_names:
+        print('If you see this error, there are some policies with the same name but different '
+              'set of filters and/or actions.\n'
+              'Please make sure you\'re using unique names for different policies.\n')
+        print('Duplicate policy names:')
+        for d in duplicate_names:
+            print ('\t{0}'.format(d))
+
+    return policies, duplicate_names
