@@ -39,6 +39,6 @@ class DocsTest(BaseTest):
     @pytest.mark.skipif(skip_condition,
                         reason="Doc tests must be explicitly enabled with C7N_DOC_TEST")
     def test_policies(self):
-        policies, duplicate_names = get_doc_policies(resources) # type: dict, set
+        policies, duplicate_names = get_doc_policies(resources)
         self.load_policy_set({'policies': [v for v in policies.values()]})
         self.assertSetEqual(duplicate_names, set())

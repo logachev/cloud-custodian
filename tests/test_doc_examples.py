@@ -40,13 +40,13 @@ class DocExampleTest(BaseTest):
 
     @skipif(skip_condition, reason="Doc tests must be explicitly enabled with C7N_DOC_TEST")
     def test_doc_examples(self):
-        policies, duplicate_names = get_doc_policies(resources()) # type: dict, set
+        policies, duplicate_names = get_doc_policies(resources())
         self.load_policy_set({'policies': [v for v in policies.values()]})
 
         # TODO: This check needs to be enabled when duplicate policy names are cleaned up
         # self.assertSetEqual(duplicate_names, set())
 
-        for p in policies:
+        for p in policies.values():
             # Note max name size here is 54 if its a lambda policy
             # given our default prefix custodian- to stay under 64
             # char limit on lambda function names.

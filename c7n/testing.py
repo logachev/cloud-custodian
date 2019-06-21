@@ -280,6 +280,6 @@ def get_doc_policies(resources):
               'Please make sure you\'re using unique names for different policies.\n')
         print('Duplicate policy names:')
         for d in duplicate_names:
-            print ('\t{0}'.format(d))
+            print('\t{0}'.format(d))
 
     return policies, duplicate_names
