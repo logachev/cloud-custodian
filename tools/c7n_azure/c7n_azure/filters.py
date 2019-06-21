@@ -190,7 +190,7 @@ class TagActionFilter(Filter):
     .. code-block :: yaml
 
        policies:
-        - name: non-compliant-vms
+        - name: vm-stop-marked
           resource: azure.vm
           filters:
             - type: marked-for-op
