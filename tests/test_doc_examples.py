@@ -11,27 +11,30 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import json
 import itertools
 import os
 import sys
+import tempfile
 
-import yaml
-from parameterized import parameterized
+from c7n.config import Config
+from c7n.policy import load
+from c7n.provider import clouds
+from c7n.utils import yaml_load
 
-from c7n.provider import resources, clouds
 from .common import BaseTest
 
-try:
-    import pytest
-    skipif = pytest.mark.skipif
-except ImportError:
-    skipif = lambda func, reason="": func  # noqa E731
+import pytest
 
 
 def get_doc_examples(resources):
     policies = []
+    seen = set()
     for resource_name, v in resources.items():
         for k, cls in itertools.chain(v.filter_registry.items(), v.action_registry.items()):
+            if cls in seen:
+                continue
+            seen.add(cls)
             if not cls.__doc__:
                 continue
             # split on yaml and new lines
@@ -53,7 +56,7 @@ def get_doc_policies(resources):
     policies = {}
     duplicate_names = set()
     for ptext, resource_name, el_name in get_doc_examples(resources):
-        data = yaml.safe_load(ptext)
+        data = yaml_load(ptext)
         for p in data.get('policies', []):
             if p['name'] in policies:
                 if policies[p['name']] != p:
@@ -72,36 +75,37 @@ def get_doc_policies(resources):
     return policies, duplicate_names
 
 
-class DocExampleTest(BaseTest):
 
-    skip_condition = not (
-        # Okay slightly gross, basically if we're explicitly told via
-        # env var to run doc tests do it.
-        (os.environ.get("C7N_TEST_DOC") in ('yes', 'true') or
-         # Or for ci to avoid some tox pain, we'll auto configure here
-         # to run on the py3.6 test runner, as its the only one
-         # without additional responsibilities.
-         (os.environ.get('C7N_TEST_RUN') and
-          sys.version_info.major == 2 and
-          sys.version_info.minor == 7)))
+skip_condition = not (
+    # Okay slightly gross, basically if we're explicitly told via
+    # env var to run doc tests do it.
+    (os.environ.get("C7N_TEST_DOC") in ('yes', 'true') or
+     # Or for ci to avoid some tox pain, we'll auto configure here
+     # to run on the py3.6 test runner, as its the only one
+     # without additional responsibilities.
+     (os.environ.get('C7N_TEST_RUN') and
+      sys.version_info.major == 2 and
+      sys.version_info.minor == 7)))
 
-    providers = [[c] for c in clouds.keys()]
+@pytest.mark.skipif(skip_condition, reason="Doc tests must be explicitly enabled with C7N_DOC_TEST")
+@pytest.mark.parametrize("provider_name,provider", list(clouds.items()))
+def test_doc_examples(provider_name, provider):
 
-    @skipif(skip_condition, reason="Doc tests must be explicitly enabled with C7N_DOC_TEST")
-    @parameterized.expand(providers)
-    def test_doc_examples(self, provider):
-        policies, duplicate_names = get_doc_policies(resources(cloud_provider=provider))
-        self.load_policy_set({'policies': [v for v in policies.values()]})
+    policies, duplicate_names = get_doc_policies(provider.resources)
 
-        # TODO: This check needs to be enabled when duplicate policy names are cleaned up
-        if provider != 'aws':
-            self.assertSetEqual(duplicate_names, set())
+    with tempfile.NamedTemporaryFile() as fh:
+        fh.write(json.dumps({'policies': list(policies.values())}).encode('utf8'))
+        collection = load(Config.empty(), fh.name)
 
-        if provider == 'aws':
-            for p in policies.values():
-                # Note max name size here is 54 if its a lambda policy
-                # given our default prefix custodian- to stay under 64
-                # char limit on lambda function names.
-                if len(p['name']) >= 54 and 'mode' in p:
-                    raise ValueError(
-                        "doc policy exceeds name limit policy:%s" % (p['name']))
+    # TODO: This check needs to be enabled when duplicate policy names are cleaned up
+    if provider_name != 'aws':
+        assert not duplicate_names
+
+    for p in policies.values():
+        # Note max name size here is 54 if it a lambda policy given
+        # our default prefix custodian- to stay under 64 char limit on
+        # lambda function names.  This applies to AWS and GCP, and
+        # afaict Azure.
+        if len(p['name']) >= 54 and 'mode' in p:
+            raise ValueError(
+                "doc policy exceeds name limit policy:%s" % (p['name']))
