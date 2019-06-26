@@ -28,9 +28,9 @@ except ImportError:
     skipif = lambda func, reason="": func  # noqa E731
 
 
-def get_doc_examples():
+def get_doc_examples(resources):
     policies = []
-    for resource_name, v in resources().items():
+    for resource_name, v in resources.items():
         for k, cls in itertools.chain(v.filter_registry.items(), v.action_registry.items()):
             if not cls.__doc__:
                 continue
