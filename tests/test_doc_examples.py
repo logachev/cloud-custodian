@@ -17,14 +17,14 @@ import os
 import sys
 import tempfile
 
+import pytest
+
 from c7n.config import Config
-from c7n.policy import load
+from c7n.policy import load, PolicyCollection
 from c7n.provider import clouds
 from c7n.utils import yaml_load
 
-from .common import BaseTest
-
-import pytest
+from .common import BaseTest  # NOQA - loads providers for individual module testing
 
 
 def get_doc_examples(resources):
@@ -75,7 +75,6 @@ def get_doc_policies(resources):
     return policies, duplicate_names
 
 
-
 skip_condition = not (
     # Okay slightly gross, basically if we're explicitly told via
     # env var to run doc tests do it.
@@ -87,19 +86,19 @@ skip_condition = not (
       sys.version_info.major == 2 and
       sys.version_info.minor == 7)))
 
+
 @pytest.mark.skipif(skip_condition, reason="Doc tests must be explicitly enabled with C7N_DOC_TEST")
 @pytest.mark.parametrize("provider_name,provider", list(clouds.items()))
 def test_doc_examples(provider_name, provider):
 
     policies, duplicate_names = get_doc_policies(provider.resources)
 
-    with tempfile.NamedTemporaryFile() as fh:
+    with tempfile.NamedTemporaryFile(suffix='.json') as fh:
         fh.write(json.dumps({'policies': list(policies.values())}).encode('utf8'))
         collection = load(Config.empty(), fh.name)
+        assert isinstance(collection, PolicyCollection)
 
-    # TODO: This check needs to be enabled when duplicate policy names are cleaned up
-    if provider_name != 'aws':
-        assert not duplicate_names
+    assert not duplicate_names
 
     for p in policies.values():
         # Note max name size here is 54 if it a lambda policy given
