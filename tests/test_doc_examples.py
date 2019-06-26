@@ -91,12 +91,18 @@ skip_condition = not (
 @pytest.mark.parametrize("provider_name,provider", list(clouds.items()))
 def test_doc_examples(provider_name, provider):
 
+    t = time.time()
     policies, duplicate_names = get_doc_policies(provider.resources)
+    print("doc test provider:%s collection time: %0.2f" % (
+        provider_name, time.time() - t))
 
     with tempfile.NamedTemporaryFile(suffix='.json') as fh:
         fh.write(json.dumps({'policies': list(policies.values())}).encode('utf8'))
         fh.flush()
+        t = time.time()
         collection = load(Config.empty(), fh.name)
+        print("doc test provider:%s policies:%d validate time:%0.2f" % (
+            provider_name, len(collection), time.time() - t))
         assert isinstance(collection, PolicyCollection)
 
     assert not duplicate_names
