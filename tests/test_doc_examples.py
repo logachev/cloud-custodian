@@ -105,4 +105,3 @@ class DocExampleTest(BaseTest):
                 if len(p['name']) >= 54 and 'mode' in p:
                     raise ValueError(
                         "doc policy exceeds name limit policy:%s" % (p['name']))
-
