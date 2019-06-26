@@ -42,7 +42,7 @@ def get_doc_examples():
     return policies
 
 
-def get_doc_policies(self, resources):
+def get_doc_policies(resources):
     """ Retrieve all unique policies from the list of resources.
     Duplicate policy is a policy that uses same name but has different set of
     actions and/or filters.
