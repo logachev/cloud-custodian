@@ -95,6 +95,7 @@ def test_doc_examples(provider_name, provider):
 
     with tempfile.NamedTemporaryFile(suffix='.json') as fh:
         fh.write(json.dumps({'policies': list(policies.values())}).encode('utf8'))
+        fh.flush()
         collection = load(Config.empty(), fh.name)
         assert isinstance(collection, PolicyCollection)
 
