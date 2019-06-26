@@ -13,10 +13,9 @@
 # limitations under the License.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import json
 import datetime
 import io
-import itertools
-import json
 import logging
 import os
 import shutil
@@ -28,10 +27,10 @@ import six
 import yaml
 
 from c7n import policy
-from c7n.config import Bag, Config
-from c7n.ctx import ExecutionContext
 from c7n.schema import generate, validate as schema_validate
+from c7n.ctx import ExecutionContext
 from c7n.utils import reset_session_cache
+from c7n.config import Bag, Config
 
 C7N_VALIDATE = bool(os.environ.get("C7N_VALIDATE", ""))
 
