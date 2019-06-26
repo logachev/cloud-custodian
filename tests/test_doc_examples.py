@@ -11,12 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import atexit
 import json
 import itertools
 import os
 import sys
 import tempfile
-import time
 
 import pytest
 
@@ -92,18 +92,14 @@ skip_condition = not (
 @pytest.mark.parametrize("provider_name,provider", list(clouds.items()))
 def test_doc_examples(provider_name, provider):
 
-    t = time.time()
     policies, duplicate_names = get_doc_policies(provider.resources)
-    print("doc test provider:%s collection time: %0.2f" % (
-        provider_name, time.time() - t))
 
-    with tempfile.NamedTemporaryFile(suffix='.json') as fh:
+    with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as fh:
+        atexit.register(os.unlink, fh.name)
+
         fh.write(json.dumps({'policies': list(policies.values())}).encode('utf8'))
         fh.flush()
-        t = time.time()
         collection = load(Config.empty(), fh.name)
-        print("doc test provider:%s policies:%d validate time:%0.2f" % (
-            provider_name, len(collection), time.time() - t))
         assert isinstance(collection, PolicyCollection)
 
     assert not duplicate_names
