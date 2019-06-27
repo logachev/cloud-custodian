@@ -16,7 +16,7 @@ function cleanup {
     set +e
     rm -f mailer.yaml
     rm -f notify_policy.yaml
-    rf -rf azure-notify
+    rm -rf azure-notify
     echo "Removing resource group"
     az group delete -n ${rg_name} -y -o None
 }
@@ -30,27 +30,34 @@ storage_id=$(az storage account create -g ${rg_name} -l ${location} -n ${storage
 az storage queue create -n ${queue_name} --account-name ${storage_name} -o none
 az role assignment create --role "Storage Queue Data Contributor" --assignee ${AZURE_CLIENT_ID} --scope ${storage_id} -o None
 
+# Ensure role assignment is updated
+sleep 10s
+
 # Render custodian configuration
 eval "echo \"$(cat templates/mailer.yaml)\"" > mailer.yaml
 eval "echo \"$(cat templates/notify_policy.yaml)\"" > notify_policy.yaml
 
+r=$(curl -X "GET" "https://api.sendgrid.com/api/stats.get.json?api_user=${username}&api_key=${password}&days=1&aggregate=1")
+requests_expected=$(($(echo $r | grep -Po '"requests":\s*\d*,' | grep -Po '\d*')+1))
 
 # Run custodian
 custodian run -s=. notify_policy.yaml
 c7n-mailer -c mailer.yaml --update-lambda
 
 result=1
-max_attempts=60
+max_attempts=90
+
 for i in $(seq 1 ${max_attempts})
 do
     sleep 30s
     echo "Query sendgrid..."
-    r=$(curl -X "GET" "https://api.sendgrid.com/api/bounces.get.json?api_user=${username}&api_key=${password}&date=1")
 
-    requests=$(echo ${r} | grep -c 'Access denied')
+    r=$(curl -X "GET" "https://api.sendgrid.com/api/stats.get.json?api_user=${username}&api_key=${password}&days=1&aggregate=1")
+    requests=$(echo $r | grep -Po '"requests":\s*\d*,' | grep -Po '\d*')
+
     echo "Number of requests from sendgrid: $requests"
 
-    if [[ ${requests} -eq 1 ]]; then
+    if [[ ${requests} -eq ${requests_expected} ]]; then
         result=0
         break
     fi
