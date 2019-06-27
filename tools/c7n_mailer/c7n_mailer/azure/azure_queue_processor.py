@@ -123,3 +123,5 @@ class MailerAzureQueueProcessor(object):
                 return sendgrid_delivery.sendgrid_handler(queue_message, email_messages)
         except Exception:
             traceback.print_exc()
+
+        return True

@@ -35,12 +35,22 @@ sleep 10s
 
 # Render custodian configuration
 eval "echo \"$(cat templates/mailer.yaml)\"" > mailer.yaml
+eval "echo \"$(cat templates/mailer_sendgrid.yaml)\"" > mailer_sendgrid.yaml
 eval "echo \"$(cat templates/notify_policy.yaml)\"" > notify_policy.yaml
 
 r=$(curl -X "GET" "https://api.sendgrid.com/api/stats.get.json?api_user=${username}&api_key=${password}&days=1&aggregate=1")
-requests_expected=$(($(echo $r | grep -Po '"requests":\s*\d*,' | grep -Po '\d*')+1))
+requests_expected=$(($(echo $r | grep -Po '"requests":\s*\d*,' | grep -Po '\d*')+3))
 
 # Run custodian
+# Test sendgrid delivery
+custodian run -s=. notify_policy.yaml
+c7n-mailer -c mailer_sendgrid.yaml --run
+
+# Test SMTP delivery
+custodian run -s=. notify_policy.yaml
+c7n-mailer -c mailer.yaml --run
+
+# Test Azure Functions
 custodian run -s=. notify_policy.yaml
 c7n-mailer -c mailer.yaml --update-lambda
 
