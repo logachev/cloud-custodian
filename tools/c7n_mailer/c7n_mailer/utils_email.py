@@ -100,9 +100,6 @@ def get_mimetext_message(config, logger, message, resources, to_addrs):
         to_addrs, message, resources, logger,
         'template', 'default', config['templates_folders'])
 
-    if not body:
-        return None
-
     email_format = message['action'].get('template_format', None)
     if not email_format:
         email_format = message['action'].get(

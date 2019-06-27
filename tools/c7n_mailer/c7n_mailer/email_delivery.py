@@ -39,8 +39,6 @@ class EmailDelivery(object):
             return LdapLookup(self.config, self.logger)
         return None
 
-
-
     def get_valid_emails_from_list(self, targets):
         emails = []
         for target in targets:
