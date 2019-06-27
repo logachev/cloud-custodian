@@ -277,7 +277,6 @@ class AzureVCRBaseTest(VCRTestCase):
 
         return re.sub(regex, r"\g<prefix>" + DEFAULT_INSTRUMENTATION_KEY, s)
 
-
     @staticmethod
     def _json_extension(path):
         # A simple transformer keeps the native
