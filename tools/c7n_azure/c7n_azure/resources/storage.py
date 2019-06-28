@@ -66,10 +66,12 @@ class StorageSetNetworkRulesAction(AzureBaseAction):
 
     :example:
 
-    Find storage accounts without open ip list and restrict them.
+    Find storage accounts without any firewall rules.
 
-    Allow bypass for Azure Logging and Metrics services, allow access from specific subnets and
-    specific IP addresses.
+    Configure default-action to ``Deny`` and then allow:
+    - Azure Logging and Metrics services
+    - Two specific IPs
+    - Two subnets
 
     .. code-block:: yaml
 
