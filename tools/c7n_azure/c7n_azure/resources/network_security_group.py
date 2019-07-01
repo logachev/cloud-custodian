@@ -38,6 +38,7 @@ class NetworkSecurityGroup(ArmResourceManager):
             'resourceGroup'
         )
         resource_type = 'Microsoft.Network/networkSecurityGroups'
+        groups = ['Networking']
 
 
 DIRECTION = 'direction'

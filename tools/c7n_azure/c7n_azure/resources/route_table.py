@@ -42,3 +42,4 @@ class RouteTable(ArmResourceManager):
             'resourceGroup'
         )
         resource_type = 'Microsoft.Network/routeTables'
+        groups = ['Networking']

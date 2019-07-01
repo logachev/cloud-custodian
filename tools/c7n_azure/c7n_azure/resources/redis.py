@@ -42,3 +42,4 @@ class Redis(ArmResourceManager):
             'resourceGroup'
         )
         resource_type = 'Microsoft.Cache/Redis'
+        groups = ['Databases']

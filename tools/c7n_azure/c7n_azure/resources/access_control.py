@@ -61,7 +61,7 @@ class RoleAssignment(QueryResourceManager):
                   value: Owner
     """
 
-    class resource_type(object):
+    class resource_type(QueryResourceManager.resource_type):
         service = 'azure.mgmt.authorization'
         client = 'AuthorizationManagementClient'
         enum_spec = ('role_assignments', 'list', None)
@@ -117,7 +117,7 @@ class RoleDefinition(QueryResourceManager):
                   op: contains
     """
 
-    class resource_type(object):
+    class resource_type(QueryResourceManager.resource_type):
         service = 'azure.mgmt.authorization'
         client = 'AuthorizationManagementClient'
         get_spec = ('role_definitions', 'get_by_id', None)

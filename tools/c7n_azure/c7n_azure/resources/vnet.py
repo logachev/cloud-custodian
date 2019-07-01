@@ -24,3 +24,4 @@ class Vnet(ArmResourceManager):
         client = 'NetworkManagementClient'
         enum_spec = ('virtual_networks', 'list_all', None)
         resource_type = 'Microsoft.Network/virtualNetworks'
+        groups = ['Networking']

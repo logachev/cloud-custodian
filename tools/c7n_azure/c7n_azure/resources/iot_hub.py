@@ -29,3 +29,4 @@ class IoTHub(ArmResourceManager):
             'resourceGroup'
         )
         resource_type = 'Microsoft.Devices/IotHubs'
+        groups = ['Internet Of Things']

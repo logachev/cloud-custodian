@@ -39,6 +39,7 @@ class KeyVault(ArmResourceManager):
         client = 'KeyVaultManagementClient'
         enum_spec = ('vaults', 'list', None)
         resource_type = 'Microsoft.KeyVault/vaults'
+        groups = ['Security']
 
 
 @KeyVault.filter_registry.register('firewall-rules')

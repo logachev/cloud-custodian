@@ -29,3 +29,4 @@ class CdnProfile(ArmResourceManager):
             'resourceGroup'
         )
         resource_type = 'Microsoft.Cdn/profiles'
+        groups = ['Media']

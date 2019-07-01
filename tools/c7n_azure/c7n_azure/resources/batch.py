@@ -29,3 +29,4 @@ class Batch(ArmResourceManager):
             'resourceGroup'
         )
         resource_type = 'Microsoft.Batch/batchAccounts'
+        groups = ['Compute']

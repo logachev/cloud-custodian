@@ -13,7 +13,6 @@
 # limitations under the License.
 from __future__ import absolute_import
 
-import itertools
 import logging
 import operator
 import os
@@ -176,9 +175,19 @@ def _main(provider, output_dir, group_by):
 
     files = []
 
+    groups = {}
+
+    for r in provider_class.resources.values():
+        group = group_by(r)
+        if type(group) != list:
+            group = [group]
+        for g in group:
+            if g not in groups:
+                groups[g] = list()
+            groups[g].append(r)
+
     # Write out resources by grouped page
-    for key, group in itertools.groupby(
-            sorted(provider_class.resources.values(), key=group_by), key=group_by):
+    for key, group in sorted(groups.items()):
         rpath = os.path.join(output_dir, "%s.rst" % key)
         with open(rpath, 'w') as fh:
             t = env.get_template('provider-resource.rst')

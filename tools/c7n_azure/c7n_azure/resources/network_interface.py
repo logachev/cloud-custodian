@@ -37,6 +37,7 @@ class NetworkInterface(ArmResourceManager):
             'resourceGroup'
         )
         resource_type = 'Microsoft.Network/networkInterfaces'
+        groups = ['Networking']
 
 
 @NetworkInterface.filter_registry.register('effective-route-table')

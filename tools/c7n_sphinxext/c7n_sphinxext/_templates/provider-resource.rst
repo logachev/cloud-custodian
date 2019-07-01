@@ -1,4 +1,4 @@
-{{provider_name}}.{{key}} resources
+{{key}} resources
 {{underline(provider_name + '.' + key + ' resources', '#')}}
 
 {% if resources|length > 1 %}

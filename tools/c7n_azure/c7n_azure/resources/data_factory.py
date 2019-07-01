@@ -48,3 +48,4 @@ class DataFactory(ArmResourceManager):
             'resourceGroup'
         )
         resource_type = 'Microsoft.DataFactory/factories'
+        groups = ['Analytics']

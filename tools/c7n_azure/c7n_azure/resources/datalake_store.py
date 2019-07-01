@@ -48,3 +48,4 @@ class DataLakeStore(ArmResourceManager):
             'resourceGroup'
         )
         resource_type = 'Microsoft.DataLakeStore/accounts'
+        groups = ['Storage']

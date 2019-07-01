@@ -49,3 +49,4 @@ class CognitiveService(ArmResourceManager):
             'resourceGroup'
         )
         resource_type = 'Microsoft.CognitiveServices/accounts'
+        groups = ['AI + Machine Learning']

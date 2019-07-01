@@ -57,6 +57,7 @@ class SqlDatabase(ChildArmResourceManager):
         enum_spec = ('databases', 'list_by_server', None)
         parent_manager_name = 'sqlserver'
         resource_type = 'Microsoft.Sql/servers/databases'
+        groups = ['Databases']
 
         @classmethod
         def extra_args(cls, parent_resource):

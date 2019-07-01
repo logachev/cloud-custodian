@@ -153,6 +153,7 @@ class TypeMeta(type):
 
 @six.add_metaclass(TypeMeta)
 class TypeInfo(object):
+    groups = ['Other']
     # api client construction information
     service = ''
     client = ''
@@ -188,6 +189,9 @@ class QueryMeta(type):
 
 @six.add_metaclass(QueryMeta)
 class QueryResourceManager(ResourceManager):
+
+    class resource_type(TypeInfo):
+        pass
 
     def __init__(self, data, options):
         super(QueryResourceManager, self).__init__(data, options)

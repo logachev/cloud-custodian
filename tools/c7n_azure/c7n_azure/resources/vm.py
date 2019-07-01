@@ -35,6 +35,7 @@ class VirtualMachine(ArmResourceManager):
             'properties.hardwareProfile.vmSize',
         )
         resource_type = 'Microsoft.Compute/virtualMachines'
+        groups = ['Compute']
 
     @staticmethod
     def register(registry, _):

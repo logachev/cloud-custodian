@@ -46,3 +46,4 @@ class PublicIPAddress(ArmResourceManager):
             'properties.ipAddress'
         )
         resource_type = 'Microsoft.Network/publicIPAddresses'
+        groups = ['Networking']

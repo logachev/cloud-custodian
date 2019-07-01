@@ -29,3 +29,4 @@ class Disk(ArmResourceManager):
             'resourceGroup'
         )
         resource_type = 'Microsoft.Compute/disks'
+        groups = ['Storage']

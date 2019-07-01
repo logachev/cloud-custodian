@@ -32,10 +32,10 @@ class ApiManagement(ArmResourceManager):
                 key: properties.virtualNetworkType
                 op: eq
                 value: None
-
     """
 
     class resource_type(ArmResourceManager.resource_type):
+        groups = ['Integration']
         service = 'azure.mgmt.apimanagement'
         client = 'ApiManagementClient'
         enum_spec = ('api_management_service', 'list', None)

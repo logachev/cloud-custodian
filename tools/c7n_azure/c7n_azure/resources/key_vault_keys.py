@@ -39,6 +39,7 @@ class KeyVaultKeys(ChildResourceManager):
 
         parent_manager_name = 'keyvault'
         raise_on_exception = False
+        groups = ['Security']
 
         @classmethod
         def extra_args(cls, parent_resource):

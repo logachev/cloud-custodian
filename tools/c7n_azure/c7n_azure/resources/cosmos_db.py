@@ -51,6 +51,7 @@ class CosmosDB(ArmResourceManager):
             'kind'
         )
         resource_type = 'Microsoft.DocumentDB/databaseAccounts'
+        groups = ['Databases']
 
 
 @CosmosDB.filter_registry.register('firewall-rules')

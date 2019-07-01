@@ -27,6 +27,7 @@ class GenericArmResource(ArmResourceManager):
         enum_spec = ('resources', 'list', None)
         resource_type = 'armresource'
         enable_tag_operations = True
+        groups = ['Generic']
 
     def tag_operation_enabled(self, resource_type):
         if resource_type.lower() in arm_resource_types:

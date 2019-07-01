@@ -29,3 +29,4 @@ class KubernetesService(ArmResourceManager):
             'resourceGroup'
         )
         resource_type = 'Microsoft.ContainerService/managedClusters'
+        groups = ['Compute', 'Containers']

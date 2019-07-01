@@ -24,3 +24,4 @@ class PolicyAssignments(ArmResourceManager):
         client = 'PolicyClient'
         enum_spec = ('policy_assignments', 'list', None)
         resource_type = 'Microsoft.Authorization/policyAssignments'
+        groups = ['Subscription', 'Generic']

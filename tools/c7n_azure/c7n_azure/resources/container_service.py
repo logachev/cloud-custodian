@@ -34,10 +34,11 @@ class ContainerService(ArmResourceManager):
               op: not-equal
               value_type: normalize
               value: succeeded
-
     """
 
     class resource_type(ArmResourceManager.resource_type):
+        groups = ['Containers']
+
         service = 'azure.mgmt.containerservice'
         client = 'ContainerServiceClient'
         enum_spec = ('container_services', 'list', None)

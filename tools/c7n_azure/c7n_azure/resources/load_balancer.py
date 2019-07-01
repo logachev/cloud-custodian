@@ -27,6 +27,7 @@ class LoadBalancer(ArmResourceManager):
         client = 'NetworkManagementClient'
         enum_spec = ('load_balancers', 'list_all', None)
         resource_type = 'Microsoft.Network/loadBalancers'
+        groups = ['Networking']
 
 
 @LoadBalancer.filter_registry.register('frontend-public-ip')

@@ -47,3 +47,4 @@ class Databricks(ArmResourceManager):
             'kind'
         )
         resource_type = 'Microsoft.Databricks/workspaces'
+        groups = ['AI + Machine Learning']
