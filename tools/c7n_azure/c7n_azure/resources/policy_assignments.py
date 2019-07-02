@@ -20,8 +20,9 @@ from c7n_azure.resources.arm import ArmResourceManager
 class PolicyAssignments(ArmResourceManager):
 
     class resource_type(ArmResourceManager.resource_type):
+        doc_groups = ['Subscription', 'Generic']
+
         service = 'azure.mgmt.resource.policy'
         client = 'PolicyClient'
         enum_spec = ('policy_assignments', 'list', None)
         resource_type = 'Microsoft.Authorization/policyAssignments'
-        groups = ['Subscription', 'Generic']

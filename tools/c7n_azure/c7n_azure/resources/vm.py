@@ -24,6 +24,8 @@ from c7n.filters.related import RelatedResourceFilter
 class VirtualMachine(ArmResourceManager):
 
     class resource_type(ArmResourceManager.resource_type):
+        doc_groups = ['Compute']
+
         service = 'azure.mgmt.compute'
         client = 'ComputeManagementClient'
         enum_spec = ('virtual_machines', 'list_all', None)
@@ -35,7 +37,6 @@ class VirtualMachine(ArmResourceManager):
             'properties.hardwareProfile.vmSize',
         )
         resource_type = 'Microsoft.Compute/virtualMachines'
-        groups = ['Compute']
 
     @staticmethod
     def register(registry, _):

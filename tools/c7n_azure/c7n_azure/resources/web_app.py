@@ -20,6 +20,8 @@ from c7n_azure.resources.arm import ArmResourceManager
 class WebApp(ArmResourceManager):
 
     class resource_type(ArmResourceManager.resource_type):
+        doc_groups = ['Compute', 'Web']
+
         service = 'azure.mgmt.web'
         client = 'WebSiteManagementClient'
         enum_spec = ('web_apps', 'list', None)
@@ -31,4 +33,3 @@ class WebApp(ArmResourceManager):
             'properties.hostNames[0]'
         )
         resource_type = 'Microsoft.Web/serverFarms'
-        groups = ['Compute', 'Web']

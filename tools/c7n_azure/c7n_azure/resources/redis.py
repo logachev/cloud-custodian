@@ -33,6 +33,8 @@ class Redis(ArmResourceManager):
     """
 
     class resource_type(ArmResourceManager.resource_type):
+        doc_groups = ['Databases']
+
         service = 'azure.mgmt.redis'
         client = 'RedisManagementClient'
         enum_spec = ('redis', 'list', None)
@@ -42,4 +44,3 @@ class Redis(ArmResourceManager):
             'resourceGroup'
         )
         resource_type = 'Microsoft.Cache/Redis'
-        groups = ['Databases']

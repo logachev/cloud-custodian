@@ -51,12 +51,13 @@ class Storage(ArmResourceManager):
     """
 
     class resource_type(ArmResourceManager.resource_type):
+        doc_groups = ['Storage']
+
         service = 'azure.mgmt.storage'
         client = 'StorageManagementClient'
         enum_spec = ('storage_accounts', 'list', None)
         diagnostic_settings_enabled = False
         resource_type = 'Microsoft.Storage/storageAccounts'
-        groups = ['Storage']
 
 
 @Storage.action_registry.register('set-network-rules')

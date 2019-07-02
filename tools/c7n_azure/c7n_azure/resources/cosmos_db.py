@@ -41,6 +41,8 @@ class CosmosDB(ArmResourceManager):
     """
 
     class resource_type(ArmResourceManager.resource_type):
+        doc_groups = ['Databases']
+
         service = 'azure.mgmt.cosmosdb'
         client = 'CosmosDB'
         enum_spec = ('database_accounts', 'list', None)
@@ -51,7 +53,6 @@ class CosmosDB(ArmResourceManager):
             'kind'
         )
         resource_type = 'Microsoft.DocumentDB/databaseAccounts'
-        groups = ['Databases']
 
 
 @CosmosDB.filter_registry.register('firewall-rules')

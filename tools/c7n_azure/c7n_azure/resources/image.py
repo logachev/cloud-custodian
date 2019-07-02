@@ -36,6 +36,8 @@ class Image(ArmResourceManager):
 
     """
     class resource_type(ArmResourceManager.resource_type):
+        doc_groups = ['Compute']
+
         service = 'azure.mgmt.compute'
         client = 'ComputeManagementClient'
         enum_spec = ('images', 'list', None)
@@ -45,4 +47,3 @@ class Image(ArmResourceManager):
             'resourceGroup',
         )
         resource_type = 'Microsoft.Compute/images'
-        groups = ['Compute']

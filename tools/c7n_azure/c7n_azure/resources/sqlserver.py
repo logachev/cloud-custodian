@@ -37,11 +37,12 @@ class SqlServer(ArmResourceManager):
     """
 
     class resource_type(ArmResourceManager.resource_type):
+        doc_groups = ['Databases']
+
         service = 'azure.mgmt.sql'
         client = 'SqlManagementClient'
         enum_spec = ('servers', 'list', None)
         resource_type = 'Microsoft.Sql/servers'
-        groups = ['Databases']
 
 
 @SqlServer.filter_registry.register('firewall-rules')

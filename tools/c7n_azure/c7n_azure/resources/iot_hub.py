@@ -20,6 +20,8 @@ from c7n_azure.provider import resources
 class IoTHub(ArmResourceManager):
 
     class resource_type(ArmResourceManager.resource_type):
+        doc_groups = ['Internet Of Things']
+
         service = 'azure.mgmt.iothub'
         client = 'IotHubClient'
         enum_spec = ('iot_hub_resource', 'list_by_subscription', None)
@@ -29,4 +31,3 @@ class IoTHub(ArmResourceManager):
             'resourceGroup'
         )
         resource_type = 'Microsoft.Devices/IotHubs'
-        groups = ['Internet Of Things']

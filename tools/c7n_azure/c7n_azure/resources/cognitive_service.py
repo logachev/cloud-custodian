@@ -40,6 +40,7 @@ class CognitiveService(ArmResourceManager):
     """
 
     class resource_type(ArmResourceManager.resource_type):
+        doc_groups = ['AI + Machine Learning']
         service = 'azure.mgmt.cognitiveservices'
         client = 'CognitiveServicesManagementClient'
         enum_spec = ('accounts', 'list', None)
@@ -49,4 +50,3 @@ class CognitiveService(ArmResourceManager):
             'resourceGroup'
         )
         resource_type = 'Microsoft.CognitiveServices/accounts'
-        groups = ['AI + Machine Learning']

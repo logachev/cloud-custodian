@@ -35,7 +35,8 @@ class ApiManagement(ArmResourceManager):
     """
 
     class resource_type(ArmResourceManager.resource_type):
-        groups = ['Integration']
+        doc_groups = ['Integration']
+
         service = 'azure.mgmt.apimanagement'
         client = 'ApiManagementClient'
         enum_spec = ('api_management_service', 'list', None)

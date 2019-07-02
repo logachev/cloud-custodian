@@ -23,11 +23,12 @@ from c7n.filters.related import RelatedResourceFilter
 class LoadBalancer(ArmResourceManager):
 
     class resource_type(ArmResourceManager.resource_type):
+        doc_groups = ['Networking']
+
         service = 'azure.mgmt.network'
         client = 'NetworkManagementClient'
         enum_spec = ('load_balancers', 'list_all', None)
         resource_type = 'Microsoft.Network/loadBalancers'
-        groups = ['Networking']
 
 
 @LoadBalancer.filter_registry.register('frontend-public-ip')

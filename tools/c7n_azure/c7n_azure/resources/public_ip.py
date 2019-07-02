@@ -33,6 +33,8 @@ class PublicIPAddress(ArmResourceManager):
     """
 
     class resource_type(ArmResourceManager.resource_type):
+        doc_groups = ['Networking']
+
         service = 'azure.mgmt.network'
         client = 'NetworkManagementClient'
         enum_spec = ('public_ip_addresses', 'list_all', None)
@@ -46,4 +48,3 @@ class PublicIPAddress(ArmResourceManager):
             'properties.ipAddress'
         )
         resource_type = 'Microsoft.Network/publicIPAddresses'
-        groups = ['Networking']

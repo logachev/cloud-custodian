@@ -37,6 +37,8 @@ class Databricks(ArmResourceManager):
     """
 
     class resource_type(ArmResourceManager.resource_type):
+        doc_groups = ['AI + Machine Learning']
+
         service = 'azure.mgmt.databricks.databricks_client'
         client = 'DatabricksClient'
         enum_spec = ('workspaces', 'list_by_subscription', None)
@@ -47,4 +49,3 @@ class Databricks(ArmResourceManager):
             'kind'
         )
         resource_type = 'Microsoft.Databricks/workspaces'
-        groups = ['AI + Machine Learning']

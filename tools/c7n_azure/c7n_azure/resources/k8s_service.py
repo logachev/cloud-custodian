@@ -20,6 +20,8 @@ from c7n_azure.resources.arm import ArmResourceManager
 class KubernetesService(ArmResourceManager):
 
     class resource_type(ArmResourceManager.resource_type):
+        doc_groups = ['Compute', 'Containers']
+
         service = 'azure.mgmt.containerservice'
         client = 'ContainerServiceClient'
         enum_spec = ('managed_clusters', 'list', None)
@@ -29,4 +31,3 @@ class KubernetesService(ArmResourceManager):
             'resourceGroup'
         )
         resource_type = 'Microsoft.ContainerService/managedClusters'
-        groups = ['Compute', 'Containers']

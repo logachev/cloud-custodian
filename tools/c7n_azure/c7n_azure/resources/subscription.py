@@ -61,11 +61,12 @@ class Subscription(ResourceManager):
     """
 
     class resource_type(TypeInfo):
+        doc_groups = ['Subscription']
+
         id = 'subscriptionId'
         name = 'displayName'
         filter_name = None
         service = 'subscription'
-        groups = ['Subscription']
 
     def get_model(self):
         return self.resource_type

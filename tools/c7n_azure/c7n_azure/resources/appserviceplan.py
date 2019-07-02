@@ -40,7 +40,7 @@ class AppServicePlan(ArmResourceManager):
     """
 
     class resource_type(ArmResourceManager.resource_type):
-        groups = ['Compute', 'Web']
+        doc_groups = ['Compute', 'Web']
 
         service = 'azure.mgmt.web'
         client = 'WebSiteManagementClient'

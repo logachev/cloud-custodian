@@ -153,7 +153,7 @@ class TypeMeta(type):
 
 @six.add_metaclass(TypeMeta)
 class TypeInfo(object):
-    groups = ['Other']
+    doc_groups = None
     # api client construction information
     service = ''
     client = ''

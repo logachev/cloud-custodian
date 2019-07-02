@@ -52,12 +52,13 @@ class SqlDatabase(ChildArmResourceManager):
 
     """
     class resource_type(ChildArmResourceManager.resource_type):
+        doc_groups = ['Databases']
+
         service = 'azure.mgmt.sql'
         client = 'SqlManagementClient'
         enum_spec = ('databases', 'list_by_server', None)
         parent_manager_name = 'sqlserver'
         resource_type = 'Microsoft.Sql/servers/databases'
-        groups = ['Databases']
 
         @classmethod
         def extra_args(cls, parent_resource):
