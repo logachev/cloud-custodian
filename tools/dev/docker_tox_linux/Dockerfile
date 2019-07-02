@@ -28,13 +28,7 @@ LABEL name="custodian tox" \
 
 RUN pip3 install tox
 
-ADD . /custodian
-
-RUN mkdir /src && \
-    find /custodian -type d | while read line; do mkdir -p "/src/$(echo $line | cut -c 12-)"; done && \
-    find /custodian -type f | while read line; do ln -s "$line" "/src/$(echo $line | cut -c 12-)"; done
-
-
+ADD . /src
 WORKDIR /src
 RUN tox -e py37 --notest
 
