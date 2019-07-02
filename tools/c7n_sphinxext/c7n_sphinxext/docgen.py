@@ -186,14 +186,26 @@ def _main(provider, output_dir, group_by):
                 groups[g] = list()
             groups[g].append(r)
 
-    # Write out resources by grouped page
-    for key, group in sorted(groups.items()):
-        rpath = os.path.join(output_dir, "%s.rst" % key)
+    resource_file_name = lambda r: os.path.join(output_dir, "%s.rst" % r.type)
+
+    # Create individual resources pages
+    for r in provider_class.resources.values():
+        rpath = resource_file_name(r)
         with open(rpath, 'w') as fh:
             t = env.get_template('provider-resource.rst')
             fh.write(t.render(
                 provider_name=provider,
+                resource=r))
+
+    # Create files for all groups
+    for key, group in sorted(groups.items()):
+        rpath = os.path.join(output_dir, "group-%s.rst" % key)
+        with open(rpath, 'w') as fh:
+            t = env.get_template('provider-group.rst')
+            fh.write(t.render(
+                provider_name=provider,
                 key=key,
+                resource_files=[os.path.basename(resource_file_name(r)) for r in group],
                 resources=sorted(group, key=operator.attrgetter('type'))))
         files.append(os.path.basename(rpath))
 
