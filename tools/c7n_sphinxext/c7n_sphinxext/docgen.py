@@ -47,7 +47,6 @@ def get_environment():
     env.globals['ename'] = ElementSchema.name
     env.globals['edoc'] = ElementSchema.doc
     env.globals['eschema'] = CustodianSchema.render_schema
-    env.globals['render_resource'] = CustodianResource.render_resource
     return env
 
 
@@ -80,21 +79,6 @@ class CustodianDirective(Directive):
     @classmethod
     def resolve(cls, schema_path):
         return ElementSchema.resolve(cls.vocabulary, schema_path)
-
-
-class CustodianResource(CustodianDirective):
-
-    @classmethod
-    def render_resource(cls, resource_path):
-        resource_class = cls.resolve(resource_path)
-        provider_name, resource_name = resource_path.split('.', 1)
-        return cls._render('resource.rst',
-            variables=dict(
-                provider_name=provider_name,
-                resource_name="%s.%s" % (provider_name, resource_class.type),
-                filters=ElementSchema.elements(resource_class.filter_registry),
-                actions=ElementSchema.elements(resource_class.action_registry),
-                resource=resource_class))
 
 
 class CustodianSchema(CustodianDirective):
@@ -139,9 +123,6 @@ def setup(app):
 
     app.add_directive_to_domain(
         'py', 'c7n-schema', CustodianSchema)
-
-    app.add_directive_to_domain(
-        'py', 'c7n-resource', CustodianResource)
 
     return {'version': '0.1',
             'parallel_read_safe': True,
@@ -192,9 +173,12 @@ def _main(provider, output_dir, group_by):
     for r in provider_class.resources.values():
         rpath = resource_file_name(r)
         with open(rpath, 'w') as fh:
-            t = env.get_template('provider-resource.rst')
+            t = env.get_template('resource.rst')
             fh.write(t.render(
                 provider_name=provider,
+                resource_name="%s.%s" % (provider, r.type),
+                filters=ElementSchema.elements(r.filter_registry),
+                actions=ElementSchema.elements(r.action_registry),
                 resource=r))
 
     # Create files for all groups
