@@ -33,7 +33,6 @@ class KeyVaultKeys(ChildResourceManager):
     """Key Vault Keys Resource
 
     :example:
-
     This policy will find all Keys in `keyvault_test` and `keyvault_prod` KeyVaults
 
     .. code-block:: yaml
@@ -50,7 +49,6 @@ class KeyVaultKeys(ChildResourceManager):
                   - keyvault_prod
 
     :example:
-
     This policy will find all Keys in all KeyVaults that are older than 30 days
 
     .. code-block:: yaml
@@ -68,7 +66,6 @@ class KeyVaultKeys(ChildResourceManager):
                 value: 30
 
     :example:
-
     If your company wants to enforce usage of HSM-backed keys in the KeyVaults,
     you can use this policy to find all Keys in all KeyVaults not backed by an HSM module.
 

@@ -21,7 +21,6 @@ class IoTHub(ArmResourceManager):
     """IoT Hub Resource
 
     :example:
-
     This policy will find all IoT Hubs with 1000 or more dropped messages over the last 72 hours
 
     .. code-block:: yaml

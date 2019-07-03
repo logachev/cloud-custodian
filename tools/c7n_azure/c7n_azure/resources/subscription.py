@@ -35,7 +35,6 @@ class Subscription(ResourceManager):
     """Subscription Resource
 
     :example:
-
     This policy creates Azure Policy scoped to the current subscription if doesn't exist.
 
     .. code-block:: yaml

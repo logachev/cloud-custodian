@@ -21,7 +21,6 @@ class KubernetesService(ArmResourceManager):
     """Azure Kubernetes Service Resource
 
     :example:
-
     Returns all aks clusters that did not provision successfully
 
     .. code-block:: yaml
@@ -35,6 +34,7 @@ class KubernetesService(ArmResourceManager):
                 op: not-equal
                 value_type: normalize
                 value: succeeded
+
 
     """
 

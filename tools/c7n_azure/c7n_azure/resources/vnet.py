@@ -21,7 +21,6 @@ class Vnet(ArmResourceManager):
     """Virtual Networks Resource
 
     :example:
-
     This set of policies will find all Virtual Networks that do not have DDOS protection enabled.
 
     .. code-block:: yaml
@@ -34,7 +33,6 @@ class Vnet(ArmResourceManager):
                 key: properties.enableDdosProtection
                 op: equal
                 value: False
-
     """
 
     class resource_type(ArmResourceManager.resource_type):

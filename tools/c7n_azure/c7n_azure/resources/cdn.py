@@ -21,7 +21,6 @@ class CdnProfile(ArmResourceManager):
     """CDN Resource
 
     :example:
-
     Returns all CDNs with Standard_Verizon sku
 
     .. code-block:: yaml
@@ -35,7 +34,6 @@ class CdnProfile(ArmResourceManager):
                 op: in
                 value_type: normalize
                 value: Standard_Verizon
-
     """
 
     class resource_type(ArmResourceManager.resource_type):

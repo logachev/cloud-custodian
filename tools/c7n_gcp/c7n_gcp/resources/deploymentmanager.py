@@ -45,7 +45,6 @@ class DeleteInstanceGroupManager(MethodAction):
     :Example:
 
     .. code-block:: yaml
-
         policies:
           - name: delete-deployments
             description: Delete all deployments

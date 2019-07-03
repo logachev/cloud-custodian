@@ -21,7 +21,6 @@ class VMScaleSet(ArmResourceManager):
     """Virtual Machine Scale Set Resource
 
     :example:
-
     This policy will find all VM Scale Sets that are set to overprovision
 
     .. code-block:: yaml

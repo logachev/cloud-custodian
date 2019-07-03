@@ -21,7 +21,6 @@ class DataLakeStore(ArmResourceManager):
     """Data Lake Resource
 
     :example:
-
     This policy will find all Datalake Stores with one million or more
     write requests in the last 72 hours
 

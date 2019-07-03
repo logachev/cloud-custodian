@@ -45,7 +45,6 @@ class CosmosDB(ArmResourceManager):
     """CosmosDB Account Resource
 
     :example:
-
     This policy will find all CosmosDB with 1000 or less total requests over the last 72 hou
 
     .. code-block:: yaml
@@ -108,7 +107,6 @@ class CosmosDBDatabase(CosmosDBChildResource):
     """CosmosDB Database Resource
 
     :example:
-
     This policy will enumerate all cosmos databases
 
     .. code-block:: yaml
@@ -143,7 +141,6 @@ class CosmosDBCollection(CosmosDBChildResource):
     """CosmosDB Collection Resource
 
     :example:
-
     This policy will find all collections with Offer Throughput > 100
 
     .. code-block:: yaml
@@ -191,7 +188,6 @@ class CosmosDBOfferFilter(ValueFilter):
     Allows access to the offer on a collection or database.
 
     :example:
-
     This policy will find all collections with a V2 offer which indicates
     throughput is provisioned at the collection scope.
 

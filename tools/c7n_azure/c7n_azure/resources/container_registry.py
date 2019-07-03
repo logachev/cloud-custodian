@@ -21,7 +21,6 @@ class ContainerRegistry(ArmResourceManager):
     """Container Registry Resource
 
     :example:
-
     Returns all container registry named my-test-container-registry
 
     .. code-block:: yaml
@@ -34,7 +33,6 @@ class ContainerRegistry(ArmResourceManager):
               key: name
               op: eq
               value: my-test-container-registry
-
     """
 
     class resource_type(ArmResourceManager.resource_type):

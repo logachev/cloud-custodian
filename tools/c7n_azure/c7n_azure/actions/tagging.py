@@ -18,21 +18,19 @@ from c7n.filters.offhours import Time
 class Tag(AzureBaseAction):
     """Adds tags to Azure resources
 
-    :example:
+    :example: This policy will tag all existing resource groups with a value such as Environment
 
-    This policy will tag all existing resource groups with a value such as Environment
+        .. code-block:: yaml
 
-    .. code-block:: yaml
-
-      policies:
-        - name: azure-tag-resourcegroups
-          resource: azure.resourcegroup
-          description: |
-            Tag all existing resource groups with a value such as Environment
-          actions:
-           - type: tag
-             tag: Environment
-             value: Test
+          policies:
+            - name: azure-tag-resourcegroups
+              resource: azure.resourcegroup
+              description: |
+                Tag all existing resource groups with a value such as Environment
+              actions:
+               - type: tag
+                 tag: Environment
+                 value: Test
     """
 
     schema = utils.type_schema(
@@ -70,7 +68,6 @@ class RemoveTag(AzureBaseAction):
     """Removes tags from Azure resources
 
     :example:
-
     This policy will remove tag for all existing resource groups with a key such as Environment
 
         .. code-block:: yaml
@@ -108,7 +105,6 @@ class AutoTagUser(AzureEventAction):
     """Attempts to tag a resource with the first user who created/modified it.
 
     :example:
-
     This policy will tag all existing resource groups with the 'CreatorEmail' tag
 
     .. code-block:: yaml
@@ -280,7 +276,6 @@ class TagTrim(AzureBaseAction):
     listed to preserve.
 
     :example:
-
     .. code-block :: yaml
 
        policies:
@@ -310,7 +305,6 @@ class TagTrim(AzureBaseAction):
                  - Environment
                  - downtime
                  - custodian_status
-
     """
     max_tag_count = 15
 
@@ -369,19 +363,18 @@ class TagDelayedAction(AzureBaseAction):
 
     :example:
 
-    .. code-block :: yaml
+        .. code-block :: yaml
 
-       policies:
-        - name: vm-mark-for-stop
-          resource: azure.vm
-          filters:
-            - type: value
-              key: Name
-              value: instance-to-stop-in-four-days
-          actions:
-            - type: mark-for-op
-              op: stop
-
+           policies:
+            - name: vm-mark-for-stop
+              resource: azure.vm
+              filters:
+                - type: value
+                  key: Name
+                  value: instance-to-stop-in-four-days
+              actions:
+                - type: mark-for-op
+                  op: stop
     """
 
     schema = utils.type_schema(
