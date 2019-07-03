@@ -660,3 +660,141 @@ class ResourceLockFilter(Filter):
                         break
 
         return result
+
+
+class CostFilter(ValueFilter):
+    """
+    Filter resources by the cost consumed over a timeframe.
+    Timeframe can be either number of days before today or one of:
+
+    BillingMonthToDate
+    MonthToDate
+    TheLastBillingMonth
+    TheLastMonth
+    TheLastWeek
+    TheLastYear
+    WeekToDate
+    YearToDate
+
+
+    :examples:
+
+    SQL servers that were cost more than 2000 in the last month.
+
+    .. code-block:: yaml
+
+            policies:
+                - name: expensive sql servers
+                  resource: azure.sqlserver
+                  filters:
+                  - type: cost
+                    timeframe: TheLastMonth
+                    op: gt
+                    value: 2000
+
+    SQL servers that were cost more than 2000 in the last 30 days not including today.
+
+    .. code-block:: yaml
+
+            policies:
+                - name: expensive sql servers
+                  resource: azure.sqlserver
+                  filters:
+                  - type: cost
+                    timeframe: 30
+                    op: gt
+                    value: 2000
+    """
+
+    schema = type_schema('cost',
+        required=['timeframe'],
+        **{
+            'timeframe': {'type': 'string'},
+        },
+        rinherit=ValueFilter.schema)
+
+    schema_alias = True
+
+    preset_timeframes = [
+        'BillingMonthToDate',
+        'MonthToDate',
+        'TheLastBillingMonth',
+        'TheLastMonth',
+        'TheLastWeek',
+        'TheLastYear',
+        'WeekToDate',
+        'YearToDate']
+
+    def __init__(self, data, manager=None):
+        data['key'] = 'PreTaxCost'  # can also be Currency, but now only PreTaxCost is supported
+        super(CostFilter, self).__init__(data, manager)
+        self.client = None
+        self.cached_costs = None
+
+    def __call__(self, i):
+        if self.cached_costs is None:
+            self.cached_costs = self._query_costs()
+        id = i['id'].lower()
+        if id not in self.cached_costs:
+            return False
+
+        cost = self.cached_costs[id]
+        i['c7n:cost'] = cost
+        result = super(CostFilter, self).__call__(cost)
+        return result
+
+    def fix_wrap_rest_response(self, data):
+        '''
+        Azure REST API doesn't match the documentation and the python SDK fails to deserialize
+        the response.
+        This is a temporal workaround that converts the response into the correct form.
+        :param data: partially deserialized response that doesn't match the the spec.
+        :return: partially deserialized response that does match the the spec.
+        '''
+        type = data.get('type', None)
+        if type != 'Microsoft.CostManagement/query':
+            return data
+        data['value'] = [data]
+        data['nextLink'] = data['properties']['nextLink']
+        return data
+
+    def _query_costs(self):
+        client = self.manager.get_client('azure.mgmt.costmanagement.CostManagementClient')
+        from azure.mgmt.costmanagement.models import QueryDefinition, QueryDataset, \
+            QueryAggregation, QueryGrouping, QueryTimePeriod
+
+        aggregation = {'totalCost': QueryAggregation(name='PreTaxCost')}
+
+        grouping = [QueryGrouping(type='Dimension', name='ResourceId')]
+
+        dataset = QueryDataset(grouping=grouping, aggregation=aggregation)
+
+        timeframe = self.data['timeframe']
+        time_period = None
+
+        if timeframe not in CostFilter.preset_timeframes:
+            from c7n_azure.utils import utcnow
+            end_time = utcnow() - timedelta(days=1)
+            start_time = end_time - timedelta(days=timeframe)
+            timeframe = 'Custom'
+            start_time = start_time.replace(hour=0, minute=0, second=0, microsecond=0)
+            end_time = end_time.replace(hour=0, minute=0, second=0, microsecond=0)
+            time_period = QueryTimePeriod(from_property=start_time, to=end_time)
+
+        definition = QueryDefinition(timeframe=timeframe, time_period=time_period, dataset=dataset)
+
+        subscription_id = self.manager.get_session().subscription_id
+
+        scope = '/subscriptions/' + subscription_id
+
+        query = client.query.usage_by_scope(scope, definition)
+
+        if hasattr(query, '_derserializer'):
+            original = query._derserializer._deserialize
+            query._derserializer._deserialize = lambda target, data: \
+                original(target, self.fix_wrap_rest_response(data))
+
+        result = list(query)[0]
+        result = [{result.columns[i].name: v for i, v in enumerate(row)} for row in result.rows]
+        result = {r['ResourceId'].lower(): r for r in result}
+        return result
