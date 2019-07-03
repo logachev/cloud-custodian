@@ -15,7 +15,8 @@
 import six
 from c7n_azure.actions.delete import DeleteAction
 from c7n_azure.actions.lock import LockAction
-from c7n_azure.actions.tagging import Tag, AutoTagUser, RemoveTag, TagTrim, TagDelayedAction
+from c7n_azure.actions.tagging import (Tag, AutoTagUser, RemoveTag, TagTrim, TagDelayedAction, \
+                                       AutoTagDate)
 from c7n_azure.filters import (MetricFilter, TagActionFilter,
                                DiagnosticSettingsFilter, PolicyCompliantFilter, ResourceLockFilter)
 from c7n_azure.provider import resources
@@ -96,6 +97,7 @@ class ArmResourceManager(QueryResourceManager):
                     klass.action_registry.register('tag', Tag)
                     klass.action_registry.register('untag', RemoveTag)
                     klass.action_registry.register('auto-tag-user', AutoTagUser)
+                    klass.action_registry.register('auto-tag-date', AutoTagDate)
                     klass.action_registry.register('tag-trim', TagTrim)
                     klass.filter_registry.register('marked-for-op', TagActionFilter)
                     klass.action_registry.register('mark-for-op', TagDelayedAction)
