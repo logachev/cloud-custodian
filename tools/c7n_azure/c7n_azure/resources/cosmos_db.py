@@ -81,6 +81,8 @@ class CosmosDB(ArmResourceManager):
 class CosmosDBChildResource(ChildResourceManager):
 
     class resource_type(ChildTypeInfo):
+        doc_groups = ['Databases']
+
         parent_spec = ('cosmosdb', True)
         parent_manager_name = 'cosmosdb'
         raise_on_exception = False

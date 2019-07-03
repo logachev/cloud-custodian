@@ -183,6 +183,7 @@ def _main(provider, output_dir, group_by):
 
     # Create files for all groups
     for key, group in sorted(groups.items()):
+        group = sorted(group, key=operator.attrgetter('type'))
         rpath = os.path.join(output_dir, "group-%s.rst" % key)
         with open(rpath, 'w') as fh:
             t = env.get_template('provider-group.rst')
@@ -190,7 +191,7 @@ def _main(provider, output_dir, group_by):
                 provider_name=provider,
                 key=key,
                 resource_files=[os.path.basename(resource_file_name(r)) for r in group],
-                resources=sorted(group, key=operator.attrgetter('type'))))
+                resources=group))
         files.append(os.path.basename(rpath))
 
     # Write out common provider filters & actions
