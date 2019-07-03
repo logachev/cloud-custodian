@@ -28,12 +28,7 @@ LABEL name="custodian tox" \
 
 RUN pip3 install tox
 
-ADD . /custodian
-
-RUN mkdir /src && \
-    find /custodian -type d | while read line; do mkdir -p "/src/$(echo $line | cut -c 12-)"; done && \
-    find /custodian -type f | while read line; do ln -s "$line" "/src/$(echo $line | cut -c 12-)"; done
-
+ADD . /src
 WORKDIR /src
 RUN tox -e py37 --notest
 
@@ -41,4 +36,4 @@ ARG TOX_ENV=py37
 
 # Setup for EntryPoint
 ENV LC_ALL="C.UTF-8" LANG="C.UTF-8" TOX_ENV_ENV=$TOX_ENV
-ENTRYPOINT tox -e $TOX_ENV_ENV
+ENTRYPOINT tox -e $TOX_ENV_ENVg

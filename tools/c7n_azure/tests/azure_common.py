@@ -20,7 +20,6 @@ import re
 import msrest.polling
 from azure_serializer import AzureSerializer
 from c7n_azure import utils, constants
-from c7n_azure.entry import initialize_azure
 from c7n_azure.session import Session
 from c7n_azure.utils import ThreadHelper
 from mock import patch

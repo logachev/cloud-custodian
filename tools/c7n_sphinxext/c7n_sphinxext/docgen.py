@@ -142,6 +142,9 @@ def main(provider, output_dir, group_by):
         pdb.post_mortem(sys.exc_info()[-1])
 
 
+def get_resource_file_name(output_dir, r):
+    return os.path.join(output_dir, "%s.rst" % r.type)
+
 def _main(provider, output_dir, group_by):
     """Generate RST docs for a given cloud provider's resources
     """
@@ -167,11 +170,9 @@ def _main(provider, output_dir, group_by):
                 groups[g] = list()
             groups[g].append(r)
 
-    resource_file_name = lambda r: os.path.join(output_dir, "%s.rst" % r.type)
-
     # Create individual resources pages
     for r in provider_class.resources.values():
-        rpath = resource_file_name(r)
+        rpath = resource_file_name(output_dir, r)
         with open(rpath, 'w') as fh:
             t = env.get_template('resource.rst')
             fh.write(t.render(
@@ -190,7 +191,7 @@ def _main(provider, output_dir, group_by):
             fh.write(t.render(
                 provider_name=provider,
                 key=key,
-                resource_files=[os.path.basename(resource_file_name(r)) for r in group],
+                resource_files=[os.path.basename(resource_file_name(output_dir, r)) for r in group],
                 resources=group))
         files.append(os.path.basename(rpath))
 
