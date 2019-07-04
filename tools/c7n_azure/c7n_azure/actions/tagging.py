@@ -178,7 +178,8 @@ class AutoTagBase(AzureEventAction):
             query_filter = " and ".join([
                 "eventTimestamp ge '%s'" % start_time,
                 "resourceGroupName eq '%s'" % resource['name'],
-                "eventChannels eq 'Operation'"
+                "eventChannels eq 'Operation'",
+                "resourceType eq '%s'" % resource_type
             ])
         # other Azure resources
         else:
@@ -186,7 +187,8 @@ class AutoTagBase(AzureEventAction):
             query_filter = " and ".join([
                 "eventTimestamp ge '%s'" % start_time,
                 "resourceUri eq '%s'" % resource['id'],
-                "eventChannels eq 'Operation'"
+                "eventChannels eq 'Operation'",
+                "resourceType eq '%s'" % resource_type
             ])
 
         # fetch activity logs
@@ -317,14 +319,13 @@ class AutoTagDate(AutoTagBase):
     def __init__(self, data=None, manager=None, log_dir=None):
         super(AutoTagDate, self).__init__(data, manager, log_dir)
         self.log = logging.getLogger('custodian.azure.actions.auto-tag-date')
-        self.format = self.data.get('format', '%m/%d/%Y')
+        self.format = self.data.get('format', '%m.%d.%Y')
 
     def validate(self):
         super(AutoTagDate, self).validate()
         try:
             datetime.datetime.now().strftime(self.format)
         except Exception as e:
-            print(e)
             raise PolicyValidationError("'%s' string has invalid datetime format." % self.format)
 
     def _get_tag_value_from_event(self, event):
