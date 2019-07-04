@@ -116,6 +116,9 @@ class DependencyManager(object):
             wheel = Wheel(f)
             wheel.install(paths, ScriptMaker(None, None), lib_only=True)
 
+        # Ensure there is no top level __init__.py
+        os.remove(os.path.join(install_folder, 'azure', '__init__.py'))
+
     @staticmethod
     def _get_file_hash(filepath):
         hasher = hashlib.sha256()
