@@ -48,7 +48,7 @@ class DependencyManager(object):
         regex = "^[^<>~=]*"
         for i, val in enumerate(res):
             pname = re.match(regex, val)
-            if sum(pname.group(0).lower() in e.lower() for e in res) > 1:
+            if sum(pname.group(0).lower() == re.match(regex, e.lower()).group(0) for e in res) > 1:
                 logger.debug("removing duplicate dependency:" + val)
                 res.pop(i)
         return sorted(res)
