@@ -145,6 +145,7 @@ def main(provider, output_dir, group_by):
 def resource_file_name(output_dir, r):
     return os.path.join(output_dir, "%s.rst" % r.type)
 
+
 def _main(provider, output_dir, group_by):
     """Generate RST docs for a given cloud provider's resources
     """
