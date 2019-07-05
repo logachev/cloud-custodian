@@ -142,7 +142,7 @@ def main(provider, output_dir, group_by):
         pdb.post_mortem(sys.exc_info()[-1])
 
 
-def get_resource_file_name(output_dir, r):
+def resource_file_name(output_dir, r):
     return os.path.join(output_dir, "%s.rst" % r.type)
 
 def _main(provider, output_dir, group_by):
@@ -163,12 +163,10 @@ def _main(provider, output_dir, group_by):
 
     for r in provider_class.resources.values():
         group = group_by(r)
-        if type(group) != list:
+        if not isinstance(group, list):
             group = [group]
         for g in group:
-            if g not in groups:
-                groups[g] = list()
-            groups[g].append(r)
+            groups.setdefault(g, []).append(r)
 
     # Create individual resources pages
     for r in provider_class.resources.values():
