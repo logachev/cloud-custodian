@@ -9,6 +9,7 @@ from c7n_azure.actions.base import AzureBaseAction, AzureEventAction
 from c7n_azure.tags import TagHelper
 from c7n_azure.utils import StringUtils
 from dateutil import tz as tzutils
+from msrest import Deserializer
 
 from c7n import utils
 from c7n.exceptions import PolicyValidationError
@@ -316,6 +317,8 @@ class AutoTagDate(AutoTagBase):
     schema = type_schema('auto-tag-date', rinherit=AutoTagBase.schema,
                          **{'format': {'type': 'string'}})
 
+    event_time_path = jmespath.compile(constants.EVENT_GRID_EVENT_TIME_PATH)
+
     def __init__(self, data=None, manager=None, log_dir=None):
         super(AutoTagDate, self).__init__(data, manager, log_dir)
         self.log = logging.getLogger('custodian.azure.actions.auto-tag-date')
@@ -329,7 +332,8 @@ class AutoTagDate(AutoTagBase):
             raise PolicyValidationError("'%s' string has invalid datetime format." % self.format)
 
     def _get_tag_value_from_event(self, event):
-        return "event_date"
+        event_time = Deserializer.deserialize_iso(self.event_time_path.search(event))
+        return event_time.strftime(self.format)
 
     def _get_tag_value_from_resource(self, resource):
         first_op = self._get_first_event(resource)
