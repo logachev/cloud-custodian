@@ -18,7 +18,7 @@ import logging
 import re
 
 from azure_common import BaseTest, arm_template
-from c7n_azure.actions.tagging import AutoTagUser
+from c7n_azure.actions.tagging import AutoTagBase
 from c7n_azure.session import Session
 from mock import patch
 
@@ -878,7 +878,7 @@ class TagsTest(BaseTest):
         policy.push(event, None)
 
         after_tags = self.get_tags()
-        self.assertEqual(after_tags['CreatorEmail'], AutoTagUser.default_user)
+        self.assertEqual(after_tags['CreatorEmail'], AutoTagBase.default_value)
 
     @arm_template('vm.json')
     def test_auto_tag_user_event_grid_sp_event_missing_info(self):
@@ -923,7 +923,7 @@ class TagsTest(BaseTest):
         policy.push(event, None)
 
         after_tags = self.get_tags()
-        self.assertEqual(after_tags['CreatorEmail'], AutoTagUser.default_user)
+        self.assertEqual(after_tags['CreatorEmail'], AutoTagBase.default_value)
 
     def test_tag_trim_space_must_be_btwn_0_and_15(self):
         with self.assertRaises(FilterValidationError):

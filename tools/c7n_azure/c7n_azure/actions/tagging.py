@@ -108,6 +108,7 @@ class RemoveTag(AzureBaseAction):
 
 class AutoTagBase(AzureEventAction):
 
+    default_value = "Unknown"
     query_select = "eventTimestamp, operationName"
     max_query_days = 90
 
@@ -121,7 +122,6 @@ class AutoTagBase(AzureEventAction):
 
     def __init__(self, data=None, manager=None, log_dir=None):
         super(AutoTagBase, self).__init__(data, manager, log_dir)
-        self.default_value = "unknown"
 
     @abstractmethod
     def _get_tag_value_from_event(self, event):
