@@ -733,12 +733,16 @@ class CostFilter(ValueFilter):
         if self.cached_costs is None:
             self.cached_costs = self._query_costs()
         id = i['id'].lower()
-        if id not in self.cached_costs:
+
+        costs = [self.cached_costs[k] for k in self.cached_costs.keys() if id == k or id + '/' in k]
+
+        if not costs:
             return False
 
-        cost = self.cached_costs[id]
-        i['c7n:cost'] = cost
-        result = super(CostFilter, self).__call__(cost)
+        total_cost = costs[0]
+        total_cost['PreTaxCost'] = sum(c['PreTaxCost'] for c in costs)
+        i['c7n:cost'] = total_cost
+        result = super(CostFilter, self).__call__(total_cost)
         return result
 
     def fix_wrap_rest_response(self, data):
