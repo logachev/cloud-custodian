@@ -742,6 +742,7 @@ class CostFilter(ValueFilter):
 
         total_cost = costs[0]
         total_cost['PreTaxCost'] = sum(c['PreTaxCost'] for c in costs)
+        total_cost.pop('ResourceId')
         i['c7n:cost'] = total_cost
         result = super(CostFilter, self).__call__(total_cost)
         return result
@@ -793,7 +794,8 @@ class CostFilter(ValueFilter):
                 original(target, self.fix_wrap_rest_response(data))
 
         result_list = list(query)[0]
-        result_list = [{result_list.columns[i].name: v for i, v in enumerate(row)} for row in result_list.rows]
+        result_list = [{result_list.columns[i].name: v for i, v in enumerate(row)}
+                       for row in result_list.rows]
 
         result = {}
         rid = 'ResourceId'
