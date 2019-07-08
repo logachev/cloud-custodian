@@ -732,9 +732,10 @@ class CostFilter(ValueFilter):
     def __call__(self, i):
         if self.cached_costs is None:
             self.cached_costs = self._query_costs()
-        id = i['id'].lower()
+        id = i['id'].lower() + "/"
 
-        costs = [self.cached_costs[k] for k in self.cached_costs.keys() if id == k or id + '/' in k]
+        costs_rg = self.cached_costs.get(ResourceIdParser.get_resource_group(id), {})
+        costs = [costs_rg[k] for k in costs_rg.keys() if (k + '/').startswith(id)]
 
         if not costs:
             return False
@@ -791,7 +792,15 @@ class CostFilter(ValueFilter):
             query._derserializer._deserialize = lambda target, data: \
                 original(target, self.fix_wrap_rest_response(data))
 
-        result = list(query)[0]
-        result = [{result.columns[i].name: v for i, v in enumerate(row)} for row in result.rows]
-        result = {r['ResourceId'].lower(): r for r in result}
+        result_list = list(query)[0]
+        result_list = [{result_list.columns[i].name: v for i, v in enumerate(row)} for row in result_list.rows]
+
+        result = {}
+        rid = 'ResourceId'
+        for r in result_list:
+            r[rid] = r[rid].lower()
+            if r[rid] == '':
+                continue
+            result.setdefault(ResourceIdParser.get_resource_group(r[rid]), {})[r[rid]] = r
+
         return result
