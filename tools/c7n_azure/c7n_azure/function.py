@@ -25,7 +25,7 @@ from c7n_azure.utils import ResourceIdParser
 
 try:
     import azure.functions as func
-    from azure.functions.queue import QueueMessage
+    from azure.functions import QueueMessage
 except ImportError:
     pass
 
@@ -42,7 +42,7 @@ def main(input):
     event = None
     subscription_id = None
 
-    if type(input) is QueueMessage:
+    if isinstance(input, QueueMessage):
         if input.dequeue_count > max_dequeue_count:
             return
         event = input.get_json()
