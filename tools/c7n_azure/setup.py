@@ -70,6 +70,7 @@ setup(
                       "azure-mgmt-eventgrid",
                       "azure-mgmt-logic",
                       "azure-cosmos",
+                      "azure-functions",
                       "azure-graphrbac",
                       "azure-keyvault",
                       "azure-storage-blob",
