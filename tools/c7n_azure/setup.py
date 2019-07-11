@@ -25,7 +25,8 @@ if path.exists(readme):
     with open(readme, encoding='utf-8') as f:
         long_description = f.read()
 
-# azure-functions are required if running in Azure Functions mode which is not supported for Python 2.7
+# azure-functions are required if running in Azure Functions
+# mode which is not supported for Python 2.7
 extra_dependencies = ["azure-functions"] if sys.version_info[0] >= 3 else []
 
 setup(
