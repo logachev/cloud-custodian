@@ -23,11 +23,17 @@ import types
 import jwt
 from azure.common.credentials import (BasicTokenAuthentication,
                                       ServicePrincipalCredentials)
+from azure.keyvault import KeyVaultAuthentication, AccessToken
+from azure.keyvault import KeyVaultClient, KeyVaultId
 from c7n_azure import constants
 from c7n_azure.utils import (ResourceIdParser, StringUtils, custodian_azure_send_override,
                              ManagedGroupHelper)
 from msrestazure.azure_active_directory import MSIAuthentication
-from azure.keyvault import KeyVaultAuthentication, AccessToken
+
+try:
+    from functools import lru_cache
+except ImportError:
+    from backports.functools_lru_cache import lru_cache
 
 try:
     from azure.cli.core._profile import Profile
@@ -62,7 +68,32 @@ class Session(object):
         self._initialize_session()
         return self._auth_params
 
+    @lru_cache()
+    def _get_keyvault_secret(self, client_id, keyvault_secret_id):
+        secret_id = KeyVaultId.parse_secret_id(keyvault_secret_id)  # type: azure.keyvault.SecretId
+        access_token = None
+
+        # Use UAI if client_id is provided
+        if client_id:
+            access_token = MSIAuthentication(
+                client_id=client_id,
+                resource=constants.RESOURCE_VAULT).token['access_token']
+        else:
+            access_token = MSIAuthentication(
+                resource=constants.RESOURCE_VAULT).token['access_token']
+        credentials = KeyVaultAuthentication(lambda _1, _2, _3: access_token)
+
+        kv_client = KeyVaultClient(credentials)
+        return kv_client.get_secret(secret_id.vault, secret_id.name, secret_id.version)
+
     def _authenticate(self):
+        client_id = self._auth_params.get('client_id')
+        keyvault_secret_id = self._auth_params.get('keyvault_secret_id')
+
+        # If user provided KeyVault secret, we will pull auth params information from it
+        if keyvault_secret_id:
+            self._auth_params = json.load(self._get_keyvault_secret(client_id, keyvault_secret_id))
+
         client_id = self._auth_params.get('client_id')
         client_secret = self._auth_params.get('client_secret')
         access_token = self._auth_params.get('access_token')
@@ -141,6 +172,7 @@ class Session(object):
                 'tenant_id': os.environ.get(constants.ENV_TENANT_ID),
                 'use_msi': bool(os.environ.get(constants.ENV_USE_MSI)),
                 'subscription_id': os.environ.get(constants.ENV_SUB_ID),
+                'keyvault_secret_id': os.environ.get(constants.ENV_KEYVAULT_SECRET),
                 'enable_cli_auth': True
             }
 
