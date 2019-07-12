@@ -31,6 +31,7 @@ from c7n_azure.constants import (FUNCTION_EVENT_TRIGGER_MODE,
 from c7n_azure.functionapp_utils import FunctionAppUtilities
 from c7n_azure.storage_utils import StorageUtilities
 from c7n_azure.utils import ResourceIdParser, StringUtils
+import c7n_azure.azure_functions.FunctionDeployer as azf
 
 
 class AzureFunctionMode(ServerlessExecutionMode):
@@ -90,6 +91,7 @@ class AzureFunctionMode(ServerlessExecutionMode):
                          }
                     ]
                 },
+                'functionAppPrefix': {'type': 'string'}
             },
             'execution-options': {'type': 'object'}
         }
@@ -106,7 +108,6 @@ class AzureFunctionMode(ServerlessExecutionMode):
         self.policy_name = self.policy.data['name'].replace(' ', '-').lower()
         self.function_params = None
         self.function_app = None
-        self.target_subscription_ids = []
 
     def get_function_app_params(self):
         session = local_session(self.policy.session_factory)
@@ -137,7 +138,7 @@ class AzureFunctionMode(ServerlessExecutionMode):
         sub_id = session.get_subscription_id()
 
         target_sub_name = session.get_function_target_subscription_name()
-        function_suffix = StringUtils.naming_hash(rg_name + target_sub_name)
+        function_suffix = StringUtils.naming_hash(rg_name + target_sub_name + service_plan['name'] + service_plan['sku_tier'])
 
         storage_suffix = StringUtils.naming_hash(rg_name + sub_id)
 
@@ -159,8 +160,7 @@ class AzureFunctionMode(ServerlessExecutionMode):
                 'resource_group_name': rg_name
             })
 
-        function_app_name = FunctionAppUtilities.get_function_name(self.policy_name,
-            function_suffix)
+        function_app_name = provision_options.get('functionAppPrefix', 'custodian') + '-' + function_suffix
         FunctionAppUtilities.validate_function_name(function_app_name)
 
         params = FunctionAppUtilities.FunctionAppInfrastructureParameters(
@@ -209,25 +209,10 @@ class AzureFunctionMode(ServerlessExecutionMode):
         self.target_subscription_ids = session.get_function_target_subscription_ids()
 
         self.function_params = self.get_function_app_params()
-        self.function_app = FunctionAppUtilities.deploy_function_app(self.function_params)
 
     def get_logs(self, start, end):
         """Retrieve logs for the policy"""
         raise NotImplementedError("subclass responsibility")
-
-    def build_functions_package(self, queue_name=None, target_subscription_ids=None):
-        self.log.info("Building function package for %s" % self.function_params.function_app_name)
-
-        package = FunctionPackage(self.policy_name, target_subscription_ids=target_subscription_ids)
-        package.build(self.policy.data,
-                      modules=['c7n', 'c7n-azure', 'applicationinsights'],
-                      non_binary_packages=['pyyaml', 'pycparser', 'tabulate', 'pyrsistent'],
-                      excluded_packages=['azure-cli-core', 'distlib', 'future', 'futures'],
-                      queue_name=queue_name)
-        package.close()
-
-        self.log.info("Function package built, size is %dMB" % (package.pkg.size / (1024 * 1024)))
-        return package
 
 
 @execution.register(FUNCTION_TIME_TRIGGER_MODE)
@@ -240,8 +225,7 @@ class AzurePeriodicMode(AzureFunctionMode, PullMode):
 
     def provision(self):
         super(AzurePeriodicMode, self).provision()
-        package = self.build_functions_package(target_subscription_ids=self.target_subscription_ids)
-        FunctionAppUtilities.publish_functions_package(self.function_params, package)
+        azf.add_function(self.policy_name, self.policy.data, None, self.function_params)
 
     def run(self, event=None, lambda_context=None):
         """Run the actual policy."""
@@ -278,8 +262,7 @@ class AzureEventGridMode(AzureFunctionMode):
         queue_name = re.sub(r'(-{2,})+', '-', self.function_params.function_app_name.lower())
         storage_account = self._create_storage_queue(queue_name, session)
         self._create_event_subscription(storage_account, queue_name, session)
-        package = self.build_functions_package(queue_name=queue_name)
-        FunctionAppUtilities.publish_functions_package(self.function_params, package)
+        azf.add_function(self.policy_name, self.policy.data, queue_name, self.function_params)
 
     def run(self, event=None, lambda_context=None):
         """Run the actual policy."""

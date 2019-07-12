@@ -18,6 +18,7 @@ from c7n.provider import Provider, clouds
 from c7n.registry import PluginRegistry
 from c7n.utils import local_session
 from .session import Session
+from c7n_azure.azure_functions.FunctionDeployer import deploy
 
 
 @clouds.register('azure')
@@ -40,6 +41,10 @@ class Azure(Provider):
         return partial(Session,
                        subscription_id=options.account_id,
                        authorization_file=options.authorization_file)
+
+    def finish(self):
+        # Deploy all scheduled Azure Functions
+        deploy()
 
 
 resources = Azure.resources

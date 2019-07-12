@@ -102,12 +102,14 @@ def policy_command(f):
             provider_policies.setdefault(p.provider_name, []).append(p)
 
         policies = PolicyCollection.from_data({}, options)
+        providers = set()
         for provider_name in provider_policies:
             provider = clouds[provider_name]()
             p_options = provider.initialize(options)
             policies += provider.initialize_policies(
                 PolicyCollection(provider_policies[provider_name], p_options),
                 p_options)
+            providers.add(provider)
 
         if len(policies) == 0:
             _print_no_policies_warning(options, all_policies)
@@ -134,7 +136,7 @@ def policy_command(f):
             p.expand_variables(p.get_variables())
             p.validate()
 
-        return f(options, list(policies))
+        return f(options, list(policies), providers)
 
     return _load_policies
 
@@ -252,7 +254,7 @@ def validate(options):
 
 
 @policy_command
-def run(options, policies):
+def run(options, policies, providers):
     exit_code = 0
 
     # AWS - Sanity check that we have an assumable role before executing policies
@@ -274,12 +276,14 @@ def run(options, policies):
             log.exception(
                 "Error while executing policy %s, continuing" % (
                     policy.name))
+    for p in providers:
+        p.finish()
     if exit_code != 0:
         sys.exit(exit_code)
 
 
 @policy_command
-def report(options, policies):
+def report(options, policies, providers):
     from c7n.reports import report as do_report
     if len(policies) == 0:
         log.error('Error: must supply at least one policy')
@@ -295,10 +299,12 @@ def report(options, policies):
     begin_date = datetime.now() - delta
     do_report(
         policies, begin_date, options, sys.stdout, raw_output_fh=options.raw)
+    for p in providers:
+        p.finish()
 
 
 @policy_command
-def logs(options, policies):
+def logs(options, policies, providers):
     if len(policies) != 1:
         log.error("Log subcommand requires exactly one policy")
         sys.exit(1)
@@ -312,6 +318,8 @@ def logs(options, policies):
             time.strftime(
                 "%Y-%m-%d %H:%M:%S", time.localtime(e['timestamp'] / 1000)),
             e['message']))
+    for p in providers:
+        p.finish()
 
 
 def _schema_get_docstring(starting_class):
@@ -543,7 +551,7 @@ def _metrics_get_endpoints(options):
 
 
 @policy_command
-def metrics_cmd(options, policies):
+def metrics_cmd(options, policies, providers):
     log.warning("metrics command is deprecated, and will be removed in future")
     policies = [p for p in policies if p.provider_name == 'aws']
     start, end = _metrics_get_endpoints(options)
@@ -552,6 +560,8 @@ def metrics_cmd(options, policies):
         log.info('Getting %s metrics', p)
         data[p.name] = p.get_metrics(start, end, options.period)
     print(dumps(data, indent=2))
+    for p in providers:
+        p.finish()
 
 
 def version_cmd(options):

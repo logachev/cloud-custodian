@@ -34,28 +34,22 @@ from c7n_azure.session import Session
 
 class FunctionPackage(object):
 
-    def __init__(self, name, function_path=None, target_subscription_ids=None):
+    def __init__(self, function_path=None):
         self.log = logging.getLogger('custodian.azure.function_package')
         self.pkg = None
-        self.name = name
         self.function_path = function_path or os.path.join(
             os.path.dirname(os.path.realpath(__file__)), 'function.py')
         self.enable_ssl_cert = not distutils.util.strtobool(
             os.environ.get(ENV_CUSTODIAN_DISABLE_SSL_CERT_VERIFICATION, 'no'))
 
-        if target_subscription_ids is not None:
-            self.target_subscription_ids = target_subscription_ids
-        else:
-            self.target_subscription_ids = [None]
-
         if not self.enable_ssl_cert:
             self.log.warning('SSL Certificate Validation is disabled')
 
-    def _add_functions_required_files(self, policy, queue_name=None):
+    def _add_functions_required_files(self, policy):
         s = local_session(Session)
 
-        for target_subscription_id in self.target_subscription_ids:
-            name = self.name + ("_" + target_subscription_id if target_subscription_id else "")
+        for target_subscription_id in policy['target_subscription_ids']:
+            name = policy['name'] + ("_" + target_subscription_id if target_subscription_id else "")
             # generate and add auth
             self.pkg.add_contents(dest=name + '/auth.json',
                                   contents=s.get_functions_auth_string(target_subscription_id))
@@ -65,21 +59,25 @@ class FunctionPackage(object):
 
             self.pkg.add_contents(dest=name + '/__init__.py', contents='')
 
-            if policy:
-                config_contents = self.get_function_config(policy, queue_name)
-                policy_contents = self._get_policy(policy)
-                self.pkg.add_contents(dest=name + '/function.json',
-                                      contents=config_contents)
+            config_contents = self.get_function_config(policy['data'], policy['queue_name'])
+            policy_contents = self._get_policy(policy['data'])
+            self.pkg.add_contents(dest=name + '/function.json',
+                                  contents=config_contents)
 
-                self.pkg.add_contents(dest=name + '/config.json',
-                                      contents=policy_contents)
-                self._add_host_config(policy['mode']['type'])
-            else:
-                self._add_host_config(None)
+            self.pkg.add_contents(dest=name + '/config.json',
+                                  contents=policy_contents)
 
-    def _add_host_config(self, mode):
+    def _add_policies(self, policies):
+        include_extension_bundle = any(p['data']['mode']['type'] == FUNCTION_EVENT_TRIGGER_MODE
+                                       for p in policies)
+        self._add_host_config(include_extension_bundle)
+
+        for p in policies:
+            self._add_functions_required_files(p)
+
+    def _add_host_config(self, include_extension_bundle):
         config = copy.deepcopy(FUNCTION_HOST_CONFIG)
-        if mode == FUNCTION_EVENT_TRIGGER_MODE:
+        if include_extension_bundle:
             config['extensionBundle'] = FUNCTION_EXTENSION_BUNDLE_CONFIG
         self.pkg.add_contents(dest='host.json', contents=json.dumps(config))
 
@@ -123,7 +121,7 @@ class FunctionPackage(object):
         c7n_azure_root = os.path.dirname(__file__)
         return os.path.join(c7n_azure_root, 'cache')
 
-    def build(self, policy, modules, non_binary_packages, excluded_packages, queue_name=None,):
+    def build(self, policies, modules, non_binary_packages, excluded_packages):
 
         wheels_folder = os.path.join(self.cache_folder, 'wheels')
         wheels_install_folder = os.path.join(self.cache_folder, 'dependencies')
@@ -182,8 +180,7 @@ class FunctionPackage(object):
         self.pkg.add_modules(lambda f: (exclude in f),
                              [m.replace('-', '_') for m in modules])
 
-        # add config and policy
-        self._add_functions_required_files(policy, queue_name)
+        self._add_policies(policies)
 
     def wait_for_status(self, deployment_creds, retries=10, delay=15):
         for r in range(retries):
