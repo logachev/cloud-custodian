@@ -139,11 +139,10 @@ class SessionTest(BaseTest):
 
                 auth = s.get_functions_auth_string(CUSTOM_SUBSCRIPTION_ID)
 
-                expected = {"credentials":
-                            {"client_id": "client",
-                             "secret": "secret",
-                             "tenant": "tenant"},
-                            "subscription": CUSTOM_SUBSCRIPTION_ID}
+                expected = {"client_id": "client",
+                            "client_secret": "secret",
+                            "tenant_id": "tenant",
+                            "subscription_id": CUSTOM_SUBSCRIPTION_ID}
 
                 self.assertEqual(json.loads(auth), expected)
 
@@ -165,13 +164,10 @@ class SessionTest(BaseTest):
 
                 auth = s.get_functions_auth_string('000000-5106-4743-99b0-c129bfa71a47')
 
-                expected = """{
-                               "credentials": {
-                                 "client_id": "functionclient",
-                                 "secret": "functionsecret",
-                                 "tenant": "functiontenant"
-                               },
-                               "subscription": "000000-5106-4743-99b0-c129bfa71a47"
+                expected = """{"client_id": "functionclient",
+                               "client_secret": "functionsecret",
+                               "tenant_id": "functiontenant",
+                               "subscription_id": "000000-5106-4743-99b0-c129bfa71a47"
                              }"""
 
                 self.assertEqual(json.loads(auth), json.loads(expected))
