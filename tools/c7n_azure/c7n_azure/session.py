@@ -75,16 +75,16 @@ class Session(object):
 
         # Use UAI if client_id is provided
         if client_id:
-            access_token = MSIAuthentication(
+            access_token = AccessToken(token=MSIAuthentication(
                 client_id=client_id,
-                resource=constants.RESOURCE_VAULT).token['access_token']
+                resource=constants.RESOURCE_VAULT).token['access_token'])
         else:
-            access_token = MSIAuthentication(
-                resource=constants.RESOURCE_VAULT).token['access_token']
+            access_token = AccessToken(token=MSIAuthentication(
+                resource=constants.RESOURCE_VAULT).token['access_token'])
         credentials = KeyVaultAuthentication(lambda _1, _2, _3: access_token)
 
         kv_client = KeyVaultClient(credentials)
-        return kv_client.get_secret(secret_id.vault, secret_id.name, secret_id.version)
+        return kv_client.get_secret(secret_id.vault, secret_id.name, secret_id.version).value
 
     def _authenticate(self):
         client_id = self._auth_params.get('client_id')
@@ -92,7 +92,7 @@ class Session(object):
 
         # If user provided KeyVault secret, we will pull auth params information from it
         if keyvault_secret_id:
-            self._auth_params = json.load(self._get_keyvault_secret(client_id, keyvault_secret_id))
+            self._auth_params = json.loads(self._get_keyvault_secret(client_id, keyvault_secret_id))
 
         client_id = self._auth_params.get('client_id')
         client_secret = self._auth_params.get('client_secret')
