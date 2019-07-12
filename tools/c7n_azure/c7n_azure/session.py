@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import copy
 import importlib
 import inspect
 import json
@@ -56,15 +55,20 @@ class Session(object):
         self._is_token_auth = False
         self._is_cli_auth = False
         self.authorization_file = authorization_file
-        self.auth_params = {}
+        self._auth_params = {}
+
+    @property
+    def auth_params(self):
+        self._initialize_session()
+        return self._auth_params
 
     def _authenticate(self):
-        client_id = self.auth_params.get('client_id')
-        client_secret = self.auth_params.get('client_secret')
-        access_token = self.auth_params.get('access_token')
-        tenant_id = self.auth_params.get('tenant_id')
-        use_msi = self.auth_params.get('use_msi')
-        subscription_id = self.auth_params.get('subscription_id')
+        client_id = self._auth_params.get('client_id')
+        client_secret = self._auth_params.get('client_secret')
+        access_token = self._auth_params.get('access_token')
+        tenant_id = self._auth_params.get('tenant_id')
+        use_msi = self._auth_params.get('use_msi')
+        subscription_id = self._auth_params.get('subscription_id')
 
         if access_token and subscription_id:
             self.log.info("Creating session with Token Authentication")
@@ -96,13 +100,16 @@ class Session(object):
                 self.credentials = MSIAuthentication(
                     resource=self.resource_namespace)
 
-        elif self.auth_params.get('enable_cli_auth'):
+        elif self._auth_params.get('enable_cli_auth'):
             self.log.info("Creating session with Azure CLI Authentication")
             self._is_cli_auth = True
-            (self.credentials,
-             self.subscription_id,
-             self.tenant_id) = Profile().get_login_credentials(
-                resource=self.resource_namespace)
+            try:
+                (self.credentials,
+                 self.subscription_id,
+                 self.tenant_id) = Profile().get_login_credentials(
+                    resource=self.resource_namespace)
+            except Exception:
+                self.log.error('Unable to authenticate with Azure')
 
         self.log.info("Session using Subscription ID: %s" % self.subscription_id)
 
@@ -124,22 +131,22 @@ class Session(object):
         if self.authorization_file:
             self.log.info("Using file for authentication parameters")
             with open(self.authorization_file) as json_file:
-                self.auth_params = json.load(json_file)
+                self._auth_params = json.load(json_file)
         else:
             self.log.info("Using environment variables for authentication parameters")
-            self.auth_params = {
+            self._auth_params = {
                 'client_id': os.environ.get(constants.ENV_CLIENT_ID),
                 'client_secret': os.environ.get(constants.ENV_CLIENT_SECRET),
                 'access_token': os.environ.get(constants.ENV_ACCESS_TOKEN),
                 'tenant_id': os.environ.get(constants.ENV_TENANT_ID),
-                'use_msi': os.environ.get(constants.ENV_USE_MSI),
+                'use_msi': bool(os.environ.get(constants.ENV_USE_MSI)),
                 'subscription_id': os.environ.get(constants.ENV_SUB_ID),
                 'enable_cli_auth': True
             }
 
         # Let provided id parameter override everything else
         if self.subscription_id_override is not None:
-            self.auth_params['subscription_id'] = self.subscription_id_override
+            self._auth_params['subscription_id'] = self.subscription_id_override
 
         self._authenticate()
 
@@ -284,7 +291,7 @@ class Session(object):
 
         required_params = ['client_id', 'client_secret', 'tenant_id']
 
-        function_auth_params = {k: v for k, v in self.auth_params.items()
+        function_auth_params = {k: v for k, v in self._auth_params.items()
                                 if k in required_params}
         function_auth_params['subscription_id'] = target_subscription_id
 
