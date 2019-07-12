@@ -26,12 +26,12 @@ from c7n_azure.function import main as functionMain
 from mock import patch
 
 
-@unittest.skipIf(sys.version_info < (3, 6), "Functions is not supported in this version")
 class FunctionTest(BaseTest):
 
     body = '{"data": "test body data",' \
            ' "subject": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test"}'
 
+    @unittest.skipIf(sys.version_info < (3, 6), "Functions is not supported in this version")
     @patch('c7n_azure.handler.run')
     def test_queue_message_dequeue_count_less_than_max(self, mock_handler_run):
         input = QueueMessage(body=self.body,
@@ -41,6 +41,7 @@ class FunctionTest(BaseTest):
 
         mock_handler_run.assert_called_once()
 
+    @unittest.skipIf(sys.version_info < (3, 6), "Functions is not supported in this version")
     @patch('c7n_azure.handler.run')
     def test_queue_message_dequeue_count_above_max(self, mock_handler_run):
         input = QueueMessage(body=self.body,
@@ -49,3 +50,8 @@ class FunctionTest(BaseTest):
         functionMain(input)
 
         mock_handler_run.assert_not_called()
+
+    @unittest.skipIf(sys.version_info >= (3, 0), "Functions expected to work in this versions")
+    def test_import_raise(self):
+        with self.assertRaises(ImportError):
+            import c7n_azure.function  # noqa: F401
