@@ -28,7 +28,7 @@ from msrestazure.azure_active_directory import MSIAuthentication
 from azure_common import BaseTest, DEFAULT_SUBSCRIPTION_ID, DEFAULT_TENANT_ID
 from c7n_azure import constants
 from c7n_azure.session import Session
-from mock import patch
+from mock import patch, MagicMock, PropertyMock, Mock
 
 CUSTOM_SUBSCRIPTION_ID = '00000000-5106-4743-99b0-c129bfa71a47'
 
@@ -36,6 +36,7 @@ CUSTOM_SUBSCRIPTION_ID = '00000000-5106-4743-99b0-c129bfa71a47'
 class SessionTest(BaseTest):
 
     authorization_file = os.path.join(os.path.dirname(__file__), 'data', 'test_auth_file.json')
+    authorization_file_kv = os.path.join(os.path.dirname(__file__), 'data', 'test_auth_file_kv.json')
     authorization_file_full = os.path.join(os.path.dirname(__file__),
                                            'data',
                                            'test_auth_file_full.json')
@@ -243,10 +244,8 @@ class SessionTest(BaseTest):
         client._client.send()
         self.assertTrue(mock.called)
 
-    def test_compare_auth_params(self):
-        env_params = {}
-        file_params = {}
-
+    @patch.object(Session, '_get_keyvault_secret', return_value='{}')
+    def test_compare_auth_params(self, _1):
         with patch.dict(os.environ,
                         {
                             constants.ENV_TENANT_ID: 'tenant',
@@ -254,7 +253,9 @@ class SessionTest(BaseTest):
                             constants.ENV_CLIENT_ID: 'client',
                             constants.ENV_CLIENT_SECRET: 'secret',
                             constants.ENV_USE_MSI: 'true',
-                            constants.ENV_ACCESS_TOKEN: 'access_token'
+                            constants.ENV_ACCESS_TOKEN: 'access_token',
+                            constants.ENV_KEYVAULT_CLIENT_ID: 'kv_client',
+                            constants.ENV_KEYVAULT_SECRET_ID: 'kv_secret'
                         }, clear=True):
             env_params = Session().auth_params
 
@@ -263,3 +264,37 @@ class SessionTest(BaseTest):
         self.assertTrue(env_params.pop('enable_cli_auth'))
         self.assertFalse(file_params.pop('enable_cli_auth', None))
         self.assertEqual(env_params, file_params)
+
+    @patch.object(Session, '_get_keyvault_secret',
+                  return_value='{"client_id": "client", "client_secret": "secret"}')
+    def test_kv_patch(self, _1):
+        with patch.dict(os.environ,
+                        {
+                            constants.ENV_TENANT_ID: 'tenant',
+                            constants.ENV_SUB_ID: DEFAULT_SUBSCRIPTION_ID,
+                            constants.ENV_KEYVAULT_CLIENT_ID: 'kv_client',
+                            constants.ENV_KEYVAULT_SECRET_ID: 'kv_secret'
+                        }, clear=True):
+            with patch('azure.common.credentials.ServicePrincipalCredentials.__init__',
+                       autospec=True, return_value=None):
+                auth_params = Session().auth_params
+            self.assertEqual(auth_params.get('tenant_id'), 'tenant')
+            self.assertEqual(auth_params.get('subscription_id'), DEFAULT_SUBSCRIPTION_ID)
+            self.assertEqual(auth_params.get('keyvault_client_id'), 'kv_client')
+            self.assertEqual(auth_params.get('keyvault_secret_id'), 'kv_secret')
+            self.assertEqual(auth_params.get('client_id'), 'client')
+            self.assertEqual(auth_params.get('client_secret'), 'secret')
+
+    @patch('msrestazure.azure_active_directory.MSIAuthentication')
+    def test_get_keyvault_secret(self, msi_mock):
+        mock = Mock()
+        mock.value = '{"client_id": "client", "client_secret": "secret"}'
+        with patch('azure.common.credentials.ServicePrincipalCredentials.__init__', return_value=None), \
+             patch('azure.keyvault.v7_0.KeyVaultClient.get_secret', return_value=mock):
+
+            reload(sys.modules['c7n_azure.session'])
+
+            auth_params = Session(authorization_file=self.authorization_file_kv).auth_params
+            self.assertEqual(auth_params.get('client_id'), 'client')
+            self.assertEqual(auth_params.get('client_secret'), 'secret')
+
