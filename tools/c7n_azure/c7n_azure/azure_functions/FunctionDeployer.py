@@ -6,10 +6,10 @@ from c7n_azure.function_package import FunctionPackage
 function_apps = {}
 policies_map = {}
 
-target_subscription_ids = local_session(Session).get_target_subscription_ids()
 
 def add_function(policy_name, policy_data, queue_name, function_app_params):
 
+    target_subscription_ids = local_session(Session).get_function_target_subscription_ids()
     function_apps.setdefault(function_app_params.function_app_name, function_app_params)
     policies_map.setdefault(function_app_params.function_app_name, []).append(
         {
@@ -20,9 +20,11 @@ def add_function(policy_name, policy_data, queue_name, function_app_params):
         }
     )
 
+
 def _provision_function_apps():
     for _, f in function_apps.items():
         FunctionAppUtilities.deploy_function_app(f)
+
 
 def _deploy_policies_to_function_app(function_app_name):
     policies = policies_map[function_app_name]
@@ -35,6 +37,7 @@ def _deploy_policies_to_function_app(function_app_name):
     package.close()
 
     FunctionAppUtilities.publish_functions_package(function_apps[function_app_name], package)
+
 
 def deploy():
     _provision_function_apps()
