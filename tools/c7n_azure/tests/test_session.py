@@ -36,7 +36,10 @@ CUSTOM_SUBSCRIPTION_ID = '00000000-5106-4743-99b0-c129bfa71a47'
 class SessionTest(BaseTest):
 
     authorization_file = os.path.join(os.path.dirname(__file__), 'data', 'test_auth_file.json')
+<<<<<<< HEAD
     authorization_file_kv = os.path.join(os.path.dirname(__file__), 'data', 'test_auth_file_kv.json')
+=======
+>>>>>>> master
     authorization_file_full = os.path.join(os.path.dirname(__file__),
                                            'data',
                                            'test_auth_file_full.json')
@@ -297,4 +300,3 @@ class SessionTest(BaseTest):
             auth_params = Session(authorization_file=self.authorization_file_kv).auth_params
             self.assertEqual(auth_params.get('client_id'), 'client')
             self.assertEqual(auth_params.get('client_secret'), 'secret')
-

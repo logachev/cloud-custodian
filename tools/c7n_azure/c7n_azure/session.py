@@ -188,6 +188,47 @@ class Session(object):
             self.log.error('Unable to authenticate with Azure.')
             sys.exit(1)
 
+    def _initialize_session(self):
+        """
+        Creates a session using available authentication type.
+
+        Auth priority:
+        1. Token Auth
+        2. Tenant Auth
+        3. Azure CLI Auth
+
+        """
+
+        # Only run once
+        if self.credentials is not None:
+            return
+
+        if self.authorization_file:
+            self.log.info("Using file for authentication parameters")
+            with open(self.authorization_file) as json_file:
+                self._auth_params = json.load(json_file)
+        else:
+            self.log.info("Using environment variables for authentication parameters")
+            self._auth_params = {
+                'client_id': os.environ.get(constants.ENV_CLIENT_ID),
+                'client_secret': os.environ.get(constants.ENV_CLIENT_SECRET),
+                'access_token': os.environ.get(constants.ENV_ACCESS_TOKEN),
+                'tenant_id': os.environ.get(constants.ENV_TENANT_ID),
+                'use_msi': bool(os.environ.get(constants.ENV_USE_MSI)),
+                'subscription_id': os.environ.get(constants.ENV_SUB_ID),
+                'enable_cli_auth': True
+            }
+
+        # Let provided id parameter override everything else
+        if self.subscription_id_override is not None:
+            self._auth_params['subscription_id'] = self.subscription_id_override
+
+        self._authenticate()
+
+        if self.credentials is None:
+            self.log.error('Unable to authenticate with Azure.')
+            sys.exit(1)
+
         # TODO: cleanup this workaround when issue resolved.
         # https://github.com/Azure/azure-sdk-for-python/issues/5096
         if self.resource_namespace == constants.RESOURCE_VAULT:
