@@ -28,7 +28,7 @@ from msrestazure.azure_active_directory import MSIAuthentication
 from azure_common import BaseTest, DEFAULT_SUBSCRIPTION_ID, DEFAULT_TENANT_ID
 from c7n_azure import constants
 from c7n_azure.session import Session
-from mock import patch, MagicMock, PropertyMock, Mock
+from mock import patch
 
 CUSTOM_SUBSCRIPTION_ID = '00000000-5106-4743-99b0-c129bfa71a47'
 
@@ -36,10 +36,8 @@ CUSTOM_SUBSCRIPTION_ID = '00000000-5106-4743-99b0-c129bfa71a47'
 class SessionTest(BaseTest):
 
     authorization_file = os.path.join(os.path.dirname(__file__), 'data', 'test_auth_file.json')
-<<<<<<< HEAD
-    authorization_file_kv = os.path.join(os.path.dirname(__file__), 'data', 'test_auth_file_kv.json')
-=======
->>>>>>> master
+    authorization_file_kv = os.path.join(os.path.dirname(__file__), 'data',
+                                         'test_auth_file_kv.json')
     authorization_file_full = os.path.join(os.path.dirname(__file__),
                                            'data',
                                            'test_auth_file_full.json')
@@ -247,8 +245,9 @@ class SessionTest(BaseTest):
         client._client.send()
         self.assertTrue(mock.called)
 
-    @patch.object(Session, '_get_keyvault_secret', return_value='{}')
+    @patch('c7n_azure.utils.get_keyvault_secret', return_value='{}')
     def test_compare_auth_params(self, _1):
+        reload(sys.modules['c7n_azure.session'])
         with patch.dict(os.environ,
                         {
                             constants.ENV_TENANT_ID: 'tenant',
@@ -268,9 +267,10 @@ class SessionTest(BaseTest):
         self.assertFalse(file_params.pop('enable_cli_auth', None))
         self.assertEqual(env_params, file_params)
 
-    @patch.object(Session, '_get_keyvault_secret',
-                  return_value='{"client_id": "client", "client_secret": "secret"}')
+    @patch('c7n_azure.utils.get_keyvault_secret',
+           return_value='{"client_id": "client", "client_secret": "secret"}')
     def test_kv_patch(self, _1):
+        reload(sys.modules['c7n_azure.session'])
         with patch.dict(os.environ,
                         {
                             constants.ENV_TENANT_ID: 'tenant',
@@ -285,18 +285,5 @@ class SessionTest(BaseTest):
             self.assertEqual(auth_params.get('subscription_id'), DEFAULT_SUBSCRIPTION_ID)
             self.assertEqual(auth_params.get('keyvault_client_id'), 'kv_client')
             self.assertEqual(auth_params.get('keyvault_secret_id'), 'kv_secret')
-            self.assertEqual(auth_params.get('client_id'), 'client')
-            self.assertEqual(auth_params.get('client_secret'), 'secret')
-
-    @patch('msrestazure.azure_active_directory.MSIAuthentication')
-    def test_get_keyvault_secret(self, msi_mock):
-        mock = Mock()
-        mock.value = '{"client_id": "client", "client_secret": "secret"}'
-        with patch('azure.common.credentials.ServicePrincipalCredentials.__init__', return_value=None), \
-             patch('azure.keyvault.v7_0.KeyVaultClient.get_secret', return_value=mock):
-
-            reload(sys.modules['c7n_azure.session'])
-
-            auth_params = Session(authorization_file=self.authorization_file_kv).auth_params
             self.assertEqual(auth_params.get('client_id'), 'client')
             self.assertEqual(auth_params.get('client_secret'), 'secret')

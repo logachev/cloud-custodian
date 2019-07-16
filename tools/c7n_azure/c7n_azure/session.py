@@ -23,17 +23,11 @@ import types
 import jwt
 from azure.common.credentials import (BasicTokenAuthentication,
                                       ServicePrincipalCredentials)
-from azure.keyvault import KeyVaultAuthentication, AccessToken
-from azure.keyvault import KeyVaultClient, KeyVaultId
 from c7n_azure import constants
 from c7n_azure.utils import (ResourceIdParser, StringUtils, custodian_azure_send_override,
                              ManagedGroupHelper)
+from c7n_azure.utils import get_keyvault_secret
 from msrestazure.azure_active_directory import MSIAuthentication
-
-try:
-    from functools import lru_cache
-except ImportError:
-    from backports.functools_lru_cache import lru_cache
 
 try:
     from azure.cli.core._profile import Profile
@@ -68,32 +62,15 @@ class Session(object):
         self._initialize_session()
         return self._auth_params
 
-    @lru_cache()
-    def _get_keyvault_secret(self, keyvault_client_id, keyvault_secret_id):
-        secret_id = KeyVaultId.parse_secret_id(keyvault_secret_id)  # type: azure.keyvault.SecretId
-        access_token = None
-
-        # Use UAI if client_id is provided
-        if keyvault_client_id:
-            msi = MSIAuthentication(
-                client_id=keyvault_client_id,
-                resource=constants.RESOURCE_VAULT)
-        else:
-            msi = MSIAuthentication(
-                resource=constants.RESOURCE_VAULT)
-        access_token = AccessToken(token=msi.token['access_token'])
-        credentials = KeyVaultAuthentication(lambda _1, _2, _3: access_token)
-
-        kv_client = KeyVaultClient(credentials)
-        return kv_client.get_secret(secret_id.vault, secret_id.name, secret_id.version).value
-
     def _authenticate(self):
         keyvault_client_id = self._auth_params.get('keyvault_client_id')
         keyvault_secret_id = self._auth_params.get('keyvault_secret_id')
 
         # If user provided KeyVault secret, we will pull auth params information from it
         if keyvault_secret_id:
-            self._auth_params.update(json.loads(self._get_keyvault_secret(keyvault_client_id, keyvault_secret_id)))
+            self._auth_params.update(
+                json.loads(
+                    get_keyvault_secret(keyvault_client_id, keyvault_secret_id)))
 
         client_id = self._auth_params.get('client_id')
         client_secret = self._auth_params.get('client_secret')
@@ -187,53 +164,6 @@ class Session(object):
         if self.credentials is None:
             self.log.error('Unable to authenticate with Azure.')
             sys.exit(1)
-
-    def _initialize_session(self):
-        """
-        Creates a session using available authentication type.
-
-        Auth priority:
-        1. Token Auth
-        2. Tenant Auth
-        3. Azure CLI Auth
-
-        """
-
-        # Only run once
-        if self.credentials is not None:
-            return
-
-        if self.authorization_file:
-            self.log.info("Using file for authentication parameters")
-            with open(self.authorization_file) as json_file:
-                self._auth_params = json.load(json_file)
-        else:
-            self.log.info("Using environment variables for authentication parameters")
-            self._auth_params = {
-                'client_id': os.environ.get(constants.ENV_CLIENT_ID),
-                'client_secret': os.environ.get(constants.ENV_CLIENT_SECRET),
-                'access_token': os.environ.get(constants.ENV_ACCESS_TOKEN),
-                'tenant_id': os.environ.get(constants.ENV_TENANT_ID),
-                'use_msi': bool(os.environ.get(constants.ENV_USE_MSI)),
-                'subscription_id': os.environ.get(constants.ENV_SUB_ID),
-                'enable_cli_auth': True
-            }
-
-        # Let provided id parameter override everything else
-        if self.subscription_id_override is not None:
-            self._auth_params['subscription_id'] = self.subscription_id_override
-
-        self._authenticate()
-
-        if self.credentials is None:
-            self.log.error('Unable to authenticate with Azure.')
-            sys.exit(1)
-
-        # TODO: cleanup this workaround when issue resolved.
-        # https://github.com/Azure/azure-sdk-for-python/issues/5096
-        if self.resource_namespace == constants.RESOURCE_VAULT:
-            access_token = AccessToken(token=self.get_bearer_token())
-            self.credentials = KeyVaultAuthentication(lambda _1, _2, _3: access_token)
 
     def get_session_for_resource(self, resource):
         return Session(
