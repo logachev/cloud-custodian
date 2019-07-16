@@ -23,6 +23,7 @@ import types
 import jwt
 from azure.common.credentials import (BasicTokenAuthentication,
                                       ServicePrincipalCredentials)
+from azure.keyvault import KeyVaultAuthentication, AccessToken
 from c7n_azure import constants
 from c7n_azure.utils import (ResourceIdParser, StringUtils, custodian_azure_send_override,
                              ManagedGroupHelper)
@@ -164,6 +165,12 @@ class Session(object):
         if self.credentials is None:
             self.log.error('Unable to authenticate with Azure.')
             sys.exit(1)
+
+        # TODO: cleanup this workaround when issue resolved.
+        # https://github.com/Azure/azure-sdk-for-python/issues/5096
+        if self.resource_namespace == constants.RESOURCE_VAULT:
+            access_token = AccessToken(token=self.get_bearer_token())
+            self.credentials = KeyVaultAuthentication(lambda _1, _2, _3: access_token)
 
     def get_session_for_resource(self, resource):
         return Session(
