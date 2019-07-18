@@ -14,10 +14,12 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import datetime
-from azure.mgmt.compute.models import VirtualMachineUpdate
+
 from azure_common import BaseTest, arm_template
 from c7n_azure.session import Session
 from mock import patch
+
+import tools_tags as tools
 
 
 class FunctionalActionsTagsTest(BaseTest):
@@ -26,11 +28,30 @@ class FunctionalActionsTagsTest(BaseTest):
     vm_name = 'cctestvm'
     DAYS = 10
 
+    initial_tags = {}
+
     client = Session().client('azure.mgmt.compute.ComputeManagementClient')
 
-    def setUp(self):
-        super(FunctionalActionsTagsTest, self).setUp()
-        self._set_tags({})
+    @classmethod
+    def setUpClass(cls, *args, **kwargs):
+        super(FunctionalActionsTagsTest, cls).setUpClass(*args, **kwargs)
+        cls.client = Session().client('azure.mgmt.compute.ComputeManagementClient')
+
+        try:
+            cls.initial_tags = tools.get_tags(cls.client, cls.rg_name, cls.vm_name)
+            tools.set_tags(cls.client, cls.rg_name, cls.vm_name, {})
+        except Exception:
+            # Can fail without real auth
+            pass
+
+    @classmethod
+    def tearDownClass(cls, *args, **kwargs):
+        super(FunctionalActionsTagsTest, cls).tearDownClass(*args, **kwargs)
+        try:
+            tools.set_tags(cls.client, cls.rg_name, cls.vm_name, cls.initial_tags)
+        except Exception:
+            # Can fail without real auth
+            pass
 
     @arm_template('vm.json')
     def test_tag(self):
@@ -71,12 +92,10 @@ class FunctionalActionsTagsTest(BaseTest):
         self.assertIsNotNone(self._get_tags().get('cctest_date'))
 
     def _get_tags(self):
-        return self.client.virtual_machines.get(self.rg_name, self.vm_name).tags
+        return tools.get_tags(self.client, self.rg_name, self.vm_name)
 
     def _set_tags(self, tags):
-        self.client.virtual_machines.update(self.rg_name,
-                                            self.vm_name,
-                                            VirtualMachineUpdate(tags=tags))
+        tools.set_tags(self.client, self.rg_name, self.vm_name, tags)
 
     def _run_policy(self, actions):
         return self.load_policy({

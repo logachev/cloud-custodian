@@ -14,6 +14,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from azure.mgmt.compute.models import VirtualMachineUpdate
 from azure.mgmt.resource.resources.models import GenericResource
 
 
@@ -62,3 +63,11 @@ def get_tags_parameter(update_tags_mock):
     assert(len(update_tags_mock.call_args_list) == 1)
     assert(len(update_tags_mock.call_args_list[0][0]) == 3)
     return update_tags_mock.call_args_list[0][0][2]
+
+
+def get_tags(client, rg_name, vm_name):
+    return client.virtual_machines.get(rg_name, vm_name).tags
+
+
+def set_tags(client, rg_name, vm_name, tags):
+    client.virtual_machines.update(rg_name, vm_name, VirtualMachineUpdate(tags=tags))
