@@ -308,7 +308,7 @@ class AutoTagDate(AutoTagBase):
     .. code-block:: yaml
 
         policies:
-          - name: azure-auto-tag-creator
+          - name: azure-auto-tag-created-date
             resource: azure.resourcegroup
             description: |
               Tag all existing resource groups with the 'CreatedDate' tag

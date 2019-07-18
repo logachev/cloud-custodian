@@ -13,6 +13,8 @@
 # limitations under the License.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import copy
+
 import tools_tags as tools
 from azure.mgmt.monitor.models import EventData
 from azure_common import BaseTest
@@ -60,7 +62,7 @@ class ActionsAutotagBaseTest(BaseTest):
         self.assertEqual(result, self.events[-1])
 
     def test_get_first_element_resource_group(self):
-        events = self.events.copy()
+        events = copy.copy(self.events)
         for e in events:
             e.operation_name.value = 'Microsoft.Resources/subscriptions/resourcegroups/write'
 
