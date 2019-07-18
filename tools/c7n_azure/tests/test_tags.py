@@ -13,20 +13,12 @@
 # limitations under the License.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import datetime
-import logging
-import re
-
-from azure_common import BaseTest, arm_template
-from c7n_azure.actions.tagging import AutoTagBase
-from c7n_azure.session import Session
-from mock import patch, Mock, PropertyMock
-
-from c7n.exceptions import PolicyValidationError
-from c7n.filters import FilterValidationError
+from azure_common import BaseTest
+from mock import patch, Mock
 
 from c7n_azure.tags import TagHelper
 import tools_tags as tools
+
 
 class TagsTest(BaseTest):
 

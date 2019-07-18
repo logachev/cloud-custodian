@@ -116,10 +116,11 @@ class TagsTest(BaseTest):
         self._test_event(event, 'cloud@custodian.com')
 
     def test_auto_tag_user_event_grid_service_admin_event(self):
-        event = self._get_event(evidence={'role': 'Subscription Admin'},
-                                claims={
-                                    'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress':
-                                        'cloud@custodian.com', })
+        event = self._get_event(
+            evidence={'role': 'Subscription Admin'},
+            claims={
+                'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress':
+                    'cloud@custodian.com', })
         self._test_event(event, 'cloud@custodian.com')
 
     def test_auto_tag_user_event_grid_sp_event(self):

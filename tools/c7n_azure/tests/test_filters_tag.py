@@ -37,10 +37,10 @@ class TagsTest(BaseTest):
 
         resources = [tools.get_resource({'Pythontest': 'ItWorks', 'Another-Tag-1': 'value1'})]
 
-        config= [({'tag:Pythontest': 'present'}, 1),
-                 ({'tag:Pythontest': 'absent'}, 0),
-                 ({'tag:Pythontest': 'ItWorks'}, 1),
-                 ({'tag:Pythontest': 'ItDoesntWork'}, 0)]
+        config = [({'tag:Pythontest': 'present'}, 1),
+                  ({'tag:Pythontest': 'absent'}, 0),
+                  ({'tag:Pythontest': 'ItWorks'}, 1),
+                  ({'tag:Pythontest': 'ItDoesntWork'}, 0)]
 
         for c in config:
             f = self._get_filter(c[0])

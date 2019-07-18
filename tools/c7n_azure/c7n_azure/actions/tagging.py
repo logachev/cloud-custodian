@@ -166,6 +166,10 @@ class AutoTagBase(AzureEventAction):
         TagHelper.add_tags(self, resource, {self.tag_key: tag_value})
 
     def _get_first_event(self, resource):
+
+        if 'c7n:first_iam_event' in resource:
+            return resource['c7n:first_iam_event']
+
         # Makes patching this easier
         from c7n_azure.utils import utcnow
 
@@ -205,6 +209,7 @@ class AutoTagBase(AzureEventAction):
             if l.operation_name.value and l.operation_name.value.lower() == operation_name.lower():
                 first_event = l
 
+        resource['c7n:first_iam_event'] = first_event
         return first_event
 
 
