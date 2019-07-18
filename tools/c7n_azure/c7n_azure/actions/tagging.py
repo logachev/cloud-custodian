@@ -329,7 +329,7 @@ class AutoTagDate(AutoTagBase):
         try:
             datetime.datetime.now().strftime(self.format)
         except Exception as e:
-            raise PolicyValidationError("'%s' string has invalid datetime format." % self.format)
+            raise FilterValidationError("'%s' string has invalid datetime format." % self.format)
 
     def _get_tag_value_from_event(self, event):
         event_time = Deserializer.deserialize_iso(self.event_time_path.search(event))
@@ -489,14 +489,14 @@ class TagDelayedAction(AzureBaseAction):
     def validate(self):
         op = self.data.get('op')
         if self.manager and op not in self.manager.action_registry.keys():
-            raise PolicyValidationError(
+            raise FilterValidationError(
                 "mark-for-op specifies invalid op:%s in %s" % (
                     op, self.manager.data))
 
         self.tz = tzutils.gettz(
             Time.TZ_ALIASES.get(self.data.get('tz', 'utc')))
         if not self.tz:
-            raise PolicyValidationError(
+            raise FilterValidationError(
                 "Invalid timezone specified %s in %s" % (
                     self.tz, self.manager.data))
         return self
