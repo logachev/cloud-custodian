@@ -13,13 +13,9 @@
 # limitations under the License.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import datetime
-
+import tools_tags as tools
 from azure_common import BaseTest, arm_template
 from c7n_azure.session import Session
-from mock import patch
-
-import tools_tags as tools
 
 
 class FunctionalFiltersTagsTest(BaseTest):
@@ -66,12 +62,6 @@ class FunctionalFiltersTagsTest(BaseTest):
     def test_marked_for_op(self):
         resources = self._run_policy([{'type': 'marked-for-op', 'op': 'delete'}])
         self.assertEqual(len(resources), 1)
-
-    def _get_tags(self):
-        return tools.get_tags(self.client, self.rg_name, self.vm_name)
-
-    def _set_tags(self, tags):
-        tools.set_tags(self.client, self.rg_name, self.vm_name, tags)
 
     def _run_policy(self, filters):
         return self.load_policy({

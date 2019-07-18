@@ -13,15 +13,12 @@
 # limitations under the License.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import datetime
+
 import tools_tags as tools
 from azure_common import BaseTest, arm_template
-from mock import Mock
-
 from c7n_azure.filters import TagActionFilter
-
-from c7n.filters.core import ValueFilter
-
-import datetime
+from mock import Mock
 
 
 class TagsTest(BaseTest):
@@ -40,12 +37,12 @@ class TagsTest(BaseTest):
     def test_tag_filter(self):
         date = self.get_test_date().strftime('%Y-%m-%d')
         date_future = (self.get_test_date() + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
-        resources = [tools.get_resource({'custodian_status': 'TTL: delete@{0}'.format(date)}),
-                     tools.get_resource({'custom_status': 'TTL: delete@{0}'.format(date)}),
-                     tools.get_resource({'custodian_status': 'TTL: delete@{0}'.format(date_future)})]
+        resources = [tools.get_resource({'custodian_status': 'TTL: stop@{0}'.format(date)}),
+                     tools.get_resource({'custom_status': 'TTL: stop@{0}'.format(date)}),
+                     tools.get_resource({'custodian_status': 'TTL: stop@{0}'.format(date_future)})]
 
-        config = [({'op': 'delete'}, 1),
-                  ({'op': 'delete', 'tag': 'custom_status'}, 1)]
+        config = [({'op': 'stop'}, 1),
+                  ({'op': 'stop', 'tag': 'custom_status'}, 1)]
 
         for c in config:
             f = self._get_filter(c[0])

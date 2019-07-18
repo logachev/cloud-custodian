@@ -333,7 +333,7 @@ class AutoTagDate(AutoTagBase):
         super(AutoTagDate, self).validate()
         try:
             datetime.datetime.now().strftime(self.format)
-        except Exception as e:
+        except Exception:
             raise FilterValidationError("'%s' string has invalid datetime format." % self.format)
 
     def _get_tag_value_from_event(self, event):
