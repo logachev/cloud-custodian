@@ -37,9 +37,11 @@ class ActionsAutotagBaseTest(BaseTest):
     def __init__(self, *args, **kwargs):
         super(ActionsAutotagBaseTest, self).__init__(*args, **kwargs)
 
-        self.events = [EventData.from_dict(self.event_dict) for i in range(5)]
+        self.events = []
         for i in range(5):
-            self.events[i].id = self.events[i].id + str(i)
+            event = EventData.from_dict(self.event_dict)
+            event.id = event.id + str(i)
+            self.events.append(event)
 
     def test_get_first_element_resource(self):
         client_mock = Mock()
