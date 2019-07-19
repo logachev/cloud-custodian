@@ -18,7 +18,7 @@ from datetime import timedelta
 
 import six
 from azure.mgmt.costmanagement.models import QueryDefinition, QueryDataset, \
-    QueryAggregation, QueryGrouping, QueryTimePeriod, TimeframeType
+    QueryAggregation, QueryGrouping, QueryTimePeriod, TimeframeType, QueryFilter, QueryComparisonExpression
 from azure.mgmt.policyinsights import PolicyInsightsClient
 
 from c7n_azure.tags import TagHelper
@@ -730,12 +730,12 @@ class CostFilter(ValueFilter):
         self.cached_costs = None
 
     def __call__(self, i):
-        if self.cached_costs is None:
+        if not self.cached_costs:
             self.cached_costs = self._query_costs()
+
         id = i['id'].lower() + "/"
 
-        costs_rg = self.cached_costs.get(ResourceIdParser.get_resource_group(id), {})
-        costs = [costs_rg[k] for k in costs_rg.keys() if (k + '/').startswith(id)]
+        costs = [k.copy() for k in self.cached_costs if (k['ResourceId'] + '/').startswith(id)]
 
         if not costs:
             return False
@@ -763,13 +763,24 @@ class CostFilter(ValueFilter):
         return data
 
     def _query_costs(self):
+        is_resource_group = self.manager.type == 'resourcegroup'
+
         client = self.manager.get_client('azure.mgmt.costmanagement.CostManagementClient')
 
         aggregation = {'totalCost': QueryAggregation(name='PreTaxCost')}
 
-        grouping = [QueryGrouping(type='Dimension', name='ResourceId')]
+        grouping = [QueryGrouping(type='Dimension',
+                                  name='ResourceGroupName' if is_resource_group else 'ResourceId')]
 
-        dataset = QueryDataset(grouping=grouping, aggregation=aggregation)
+        query_filter = None
+        if not is_resource_group:
+            query_filter = QueryFilter(
+                dimension=QueryComparisonExpression(name='ResourceType',
+                                                    operator='In',
+                                                    values=[self.manager.resource_type.resource_type]))
+            query_filter._attribute_map['dimension']['key'] = 'dimensions'
+
+        dataset = QueryDataset(grouping=grouping, aggregation=aggregation, filter=query_filter)
 
         timeframe = self.data['timeframe']
         time_period = None
@@ -797,12 +808,9 @@ class CostFilter(ValueFilter):
         result_list = [{result_list.columns[i].name: v for i, v in enumerate(row)}
                        for row in result_list.rows]
 
-        result = {}
-        rid = 'ResourceId'
         for r in result_list:
-            r[rid] = r[rid].lower()
-            if r[rid] == '':
-                continue
-            result.setdefault(ResourceIdParser.get_resource_group(r[rid]), {})[r[rid]] = r
+            if 'ResourceGroupName' in r:
+                r['ResourceId'] = scope + '/resourcegroups/' + r.pop('ResourceGroupName')
+            r['ResourceId'] = r['ResourceId'].lower()
 
-        return result
+        return result_list
