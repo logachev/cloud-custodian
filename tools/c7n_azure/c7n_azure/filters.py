@@ -778,7 +778,8 @@ class CostFilter(ValueFilter):
                 dimension=QueryComparisonExpression(name='ResourceType',
                                                     operator='In',
                                                     values=[self.manager.resource_type.resource_type]))
-            query_filter._attribute_map['dimension']['key'] = 'dimensions'
+            if 'dimension' in query_filter._attribute_map:
+                query_filter._attribute_map['dimension']['key'] = 'dimensions'
 
         dataset = QueryDataset(grouping=grouping, aggregation=aggregation, filter=query_filter)
 
