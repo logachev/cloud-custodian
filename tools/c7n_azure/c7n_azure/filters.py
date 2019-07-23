@@ -669,6 +669,11 @@ class ResourceLockFilter(Filter):
 class CostFilter(ValueFilter):
     """
     Filter resources by the cost consumed over a timeframe.
+
+    Total cost for the resource includes costs for all of it child resources if billed
+    separately (e.g. SQL Server and SQL Server Databases). Warning message is logged if we detect
+    different currencies.
+
     Timeframe can be either number of days before today or one of:
 
     WeekToDate,
@@ -741,9 +746,14 @@ class CostFilter(ValueFilter):
         if not costs:
             return False
 
-        total_cost = costs[0]
-        total_cost['PreTaxCost'] = sum(c['PreTaxCost'] for c in costs)
-        total_cost.pop('ResourceId')
+        if any(c['Currency'] != costs[0]['Currency'] for c in costs):
+            self.log.warning('Detected different currencies for the resource {0}. Costs array: {1}'
+                             .format(i['id'], costs))
+
+        total_cost = {
+            'PreTaxCost': sum(c['PreTaxCost'] for c in costs),
+            'Currency': costs[0]['Currency']
+        }
         i['c7n:cost'] = total_cost
         result = super(CostFilter, self).__call__(total_cost)
         return result

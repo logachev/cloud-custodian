@@ -142,7 +142,7 @@ class CostFilterTest(BaseTest):
                 '_cost': cost}
 
     def _get_costs(self, resources):
-        rows = [[r['id'], r['_cost']] for r in resources]
+        rows = [[r['id'], r['_cost'], 'USD'] for r in resources]
         cost = {
             'columns': [
                 Column('ResourceId'),
