@@ -1,0 +1,10 @@
+provision-options:
+  service-plan:
+    name: cloud-custodian
+    resource-group-name: kiril-deployer-1
+    sku-tier: Standard
+    sku-name: S2
+  function-app-prefix: kiril-func-1
+policies:
+  - s:\custodian\policies\policy1.yml
+  - s:\custodian\policies\policy2.yml
