@@ -335,8 +335,6 @@ class BaseTest(TestUtils, AzureVCRBaseTest):
             self._subscription_patch.start()
             self.addCleanup(self._subscription_patch.stop)
 
-
-
     def get_test_date(self, tz=None):
         header_date = self.cassette.responses[0]['headers'].get('date') \
             if self.cassette.responses else None

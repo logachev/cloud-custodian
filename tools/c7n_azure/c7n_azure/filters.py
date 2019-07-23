@@ -18,7 +18,8 @@ from datetime import timedelta
 
 import six
 from azure.mgmt.costmanagement.models import QueryDefinition, QueryDataset, \
-    QueryAggregation, QueryGrouping, QueryTimePeriod, TimeframeType, QueryFilter, QueryComparisonExpression
+    QueryAggregation, QueryGrouping, QueryTimePeriod, TimeframeType, QueryFilter, \
+    QueryComparisonExpression
 from azure.mgmt.policyinsights import PolicyInsightsClient
 
 from c7n_azure.tags import TagHelper
@@ -763,9 +764,10 @@ class CostFilter(ValueFilter):
         return data
 
     def _query_costs(self):
-        is_resource_group = self.manager.type == 'resourcegroup'
+        manager = self.manager
+        is_resource_group = manager.type == 'resourcegroup'
 
-        client = self.manager.get_client('azure.mgmt.costmanagement.CostManagementClient')
+        client = manager.get_client('azure.mgmt.costmanagement.CostManagementClient')
 
         aggregation = {'totalCost': QueryAggregation(name='PreTaxCost')}
 
@@ -777,7 +779,7 @@ class CostFilter(ValueFilter):
             query_filter = QueryFilter(
                 dimension=QueryComparisonExpression(name='ResourceType',
                                                     operator='In',
-                                                    values=[self.manager.resource_type.resource_type]))
+                                                    values=[manager.resource_type.resource_type]))
             if 'dimension' in query_filter._attribute_map:
                 query_filter._attribute_map['dimension']['key'] = 'dimensions'
 
@@ -794,7 +796,7 @@ class CostFilter(ValueFilter):
 
         definition = QueryDefinition(timeframe=timeframe, time_period=time_period, dataset=dataset)
 
-        subscription_id = self.manager.get_session().get_subscription_id()
+        subscription_id = manager.get_session().get_subscription_id()
 
         scope = '/subscriptions/' + subscription_id
 
