@@ -748,13 +748,13 @@ class CostFilter(ValueFilter):
         return result
 
     def fix_wrap_rest_response(self, data):
-        '''
+        """
         Azure REST API doesn't match the documentation and the python SDK fails to deserialize
         the response.
         This is a temporal workaround that converts the response into the correct form.
         :param data: partially deserialized response that doesn't match the the spec.
         :return: partially deserialized response that does match the the spec.
-        '''
+        """
         type = data.get('type', None)
         if type != 'Microsoft.CostManagement/query':
             return data
@@ -794,7 +794,7 @@ class CostFilter(ValueFilter):
 
         definition = QueryDefinition(timeframe=timeframe, time_period=time_period, dataset=dataset)
 
-        subscription_id = self.manager.get_session().subscription_id
+        subscription_id = self.manager.get_session().get_subscription_id()
 
         scope = '/subscriptions/' + subscription_id
 
