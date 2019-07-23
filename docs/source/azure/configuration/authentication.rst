@@ -115,13 +115,13 @@ You must set `AZURE_SUBSCRIPTION_ID` as with the other authentication types.
 Azure Key Vault Integration
 ---------------------------
 
-If you run Custodian inside Azure VM, AKS, ACI or Azure Function you can leverage Azure Key Vault to store
-Service Principal credentials. You can store json-formatted authentication file as a Key Vault secret.
-It will be used to extend your local authentication options. It is recommended to configure Subscription ID
-and Tenant ID locally and store SP credentials in Azure Key Vault.
+If you run Custodian inside Azure VM, AKS, ACI or Azure Functions you can leverage Azure Key Vault to store
+Service Principal credentials. You can store the json-formatted authentication file as a Key Vault secret.
+It will be used to extend your local authentication options. It is recommended to configure **Subscription ID**
+and **Tenant ID** locally and store SP credentials in Azure Key Vault.
 
 Cloud Custodian leverages Managed Service Identity or User Assigned Identity to access Key Vault and retrieve
-extended configuration.
+the extended configuration.
 
 Example of the secret stored in a Key Vault:
 
