@@ -76,6 +76,18 @@ class CostFilterTest(BaseTest):
         self._verify_expected_call(usage_by_scope, 1, True)
         self.assertEqual(len(result), 1)
 
+    def test_child_resources(self):
+        resources = [self._get_resource('vm1', 0),
+                     self._get_resource('vm1/child1', 300),
+                     self._get_resource('vm1/child2', 3000)]
+        f = self._get_filter({'timeframe': 'TheLastWeek', 'op': 'eq', 'value': 3300}, resources)
+
+        result = f.process(resources, None)
+
+        usage_by_scope = f.manager.get_client.return_value.query.usage_by_scope
+        self._verify_expected_call(usage_by_scope, 'TheLastWeek', False)
+        self.assertEqual(len(result), 1)
+
     def _verify_expected_call(self, mock, timeframe, resource_group):
         subscription_id = self.session.get_subscription_id()
 
