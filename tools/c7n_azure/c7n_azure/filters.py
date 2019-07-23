@@ -36,6 +36,7 @@ from c7n.filters.core import PolicyValidationError
 from c7n.filters.offhours import Time, OffHour, OnHour
 from c7n.utils import chunks
 from c7n.utils import type_schema
+from c7n.utils import get_annotation_prefix
 
 scalar_ops = {
     'eq': operator.eq,
@@ -754,7 +755,7 @@ class CostFilter(ValueFilter):
             'PreTaxCost': sum(c['PreTaxCost'] for c in costs),
             'Currency': costs[0]['Currency']
         }
-        i['c7n:cost'] = total_cost
+        i[get_annotation_prefix('cost')] = total_cost
         result = super(CostFilter, self).__call__(total_cost)
         return result
 
