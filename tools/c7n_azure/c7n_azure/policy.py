@@ -184,7 +184,11 @@ class AzureFunctionMode(ServerlessExecutionMode):
         else:
             # get nested keys
             for key in properties.keys():
-                value = settings.get(StringUtils.snake_to_camel(key), properties[key])
+                d = StringUtils.snake_to_dashes(key)
+                if d in settings:
+                    value = settings[d]
+                else:
+                    value = settings.get(StringUtils.snake_to_camel(key), properties[key])
                 if isinstance(value, dict):
                     result[key] = \
                         AzureFunctionMode.extract_properties({'v': value}, 'v', properties[key])

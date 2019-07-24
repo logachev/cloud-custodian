@@ -93,6 +93,11 @@ class StringUtils(object):
         return components[0] + ''.join(x.title() for x in components[1:])
 
     @staticmethod
+    def snake_to_dashes(string):
+        components = string.split('_')
+        return '-'.join(components)
+
+    @staticmethod
     def naming_hash(val, length=8):
         if isinstance(val, six.string_types):
             val = val.encode('utf8')
