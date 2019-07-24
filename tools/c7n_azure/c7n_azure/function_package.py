@@ -47,11 +47,14 @@ class FunctionPackage(object):
             self.log.warning('SSL Certificate Validation is disabled')
 
     def _add_functions_required_files(self, policy):
+        auth_data = copy.copy(self.auth_data)
         for target_subscription_id in policy['target_subscription_ids']:
             name = policy['name'] + ("_" + target_subscription_id if target_subscription_id else "")
+            auth_data['subscription_id'] = target_subscription_id
+
             # generate and add auth
             self.pkg.add_contents(dest=name + '/auth.json',
-                                  contents=self.auth_data)
+                                  contents=json.dumps(auth_data))
 
             self.pkg.add_file(self.function_path,
                               dest=name + '/function.py')
