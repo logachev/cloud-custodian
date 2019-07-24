@@ -13,25 +13,24 @@
 # limitations under the License.
 
 import logging
-import re
 import sys
 import time
 
-import six
-from azure.mgmt.eventgrid.models import \
-    StorageQueueEventSubscriptionDestination, StringInAdvancedFilter, EventSubscriptionFilter
+from c7n_azure.constants import (FUNCTION_EVENT_TRIGGER_MODE,
+                                 FUNCTION_TIME_TRIGGER_MODE)
+from c7n_azure.functionapp_utils import FunctionAppUtilities
+from c7n_azure.utils import StringUtils
 
 from c7n import utils
 from c7n.actions import EventAction
 from c7n.policy import PullMode, ServerlessExecutionMode, execution
 from c7n.utils import local_session
-from c7n_azure.azure_events import AzureEvents, AzureEventSubscription
-from c7n_azure.function_package import FunctionPackage
-from c7n_azure.constants import (FUNCTION_EVENT_TRIGGER_MODE,
-                                 FUNCTION_TIME_TRIGGER_MODE)
-from c7n_azure.functionapp_utils import FunctionAppUtilities
-from c7n_azure.storage_utils import StorageUtilities
-from c7n_azure.utils import ResourceIdParser, StringUtils
+
+try:
+    from c7n_azure.azure_functions.deployer import deploy, extract_properties
+except Exception:
+    deploy = None
+    extract_properties = None
 
 
 class AzureFunctionMode(ServerlessExecutionMode):
@@ -115,7 +114,7 @@ class AzureFunctionMode(ServerlessExecutionMode):
         provision_options = self.policy.data['mode'].get('provision-options', {})
 
         # Service plan is parsed first, location might be shared with storage & insights
-        service_plan = AzureFunctionMode.extract_properties(
+        service_plan = extract_properties(
             provision_options,
             'servicePlan',
             {
@@ -142,7 +141,7 @@ class AzureFunctionMode(ServerlessExecutionMode):
 
         storage_suffix = StringUtils.naming_hash(rg_name + sub_id)
 
-        storage_account = AzureFunctionMode.extract_properties(
+        storage_account = extract_properties(
             provision_options,
             'storageAccount',
             {
@@ -151,7 +150,7 @@ class AzureFunctionMode(ServerlessExecutionMode):
                 'resource_group_name': rg_name
             })
 
-        app_insights = AzureFunctionMode.extract_properties(
+        app_insights = extract_properties(
             provision_options,
             'appInsights',
             {
@@ -173,31 +172,6 @@ class AzureFunctionMode(ServerlessExecutionMode):
 
         return params
 
-    @staticmethod
-    def extract_properties(options, name, properties):
-        settings = options.get(name, {})
-        result = {}
-        # str type implies settings is a resource id
-        if isinstance(settings, six.string_types):
-            result['id'] = settings
-            result['name'] = ResourceIdParser.get_resource_name(settings)
-            result['resource_group_name'] = ResourceIdParser.get_resource_group(settings)
-        else:
-            # get nested keys
-            for key in properties.keys():
-                d = StringUtils.snake_to_dashes(key)
-                if d in settings:
-                    value = settings[d]
-                else:
-                    value = settings.get(StringUtils.snake_to_camel(key), properties[key])
-                if isinstance(value, dict):
-                    result[key] = \
-                        AzureFunctionMode.extract_properties({'v': value}, 'v', properties[key])
-                else:
-                    result[key] = value
-
-        return result
-
     def run(self, event=None, lambda_context=None):
         """Run the actual policy."""
         raise NotImplementedError("subclass responsibility")
@@ -210,29 +184,13 @@ class AzureFunctionMode(ServerlessExecutionMode):
         if sys.version_info[0] < 3:
             self.log.error("Python 2.7 is not supported for deploying Azure Functions.")
             sys.exit(1)
-
-        self.target_subscription_ids = session.get_function_target_subscription_ids()
-
-        self.function_params = self.get_function_app_params()
-        self.function_app = FunctionAppUtilities.deploy_function_app(self.function_params)
+        deploy(self.get_function_app_params(),
+               [self.policy],
+               session.get_functions_auth_string(None))
 
     def get_logs(self, start, end):
         """Retrieve logs for the policy"""
         raise NotImplementedError("subclass responsibility")
-
-    def build_functions_package(self, queue_name=None, target_subscription_ids=None):
-        self.log.info("Building function package for %s" % self.function_params.function_app_name)
-
-        package = FunctionPackage(self.policy_name, target_sub_ids=target_subscription_ids)
-        package.build(self.policy.data,
-                      modules=['c7n', 'c7n-azure', 'applicationinsights'],
-                      non_binary_packages=['pyyaml', 'pycparser', 'tabulate', 'pyrsistent'],
-                      excluded_packages=['azure-cli-core', 'distlib', 'future', 'futures'],
-                      queue_name=queue_name)
-        package.close()
-
-        self.log.info("Function package built, size is %dMB" % (package.pkg.size / (1024 * 1024)))
-        return package
 
 
 @execution.register(FUNCTION_TIME_TRIGGER_MODE)
@@ -242,11 +200,6 @@ class AzurePeriodicMode(AzureFunctionMode, PullMode):
     schema = utils.type_schema(FUNCTION_TIME_TRIGGER_MODE,
                                schedule={'type': 'string'},
                                rinherit=AzureFunctionMode.schema)
-
-    def provision(self):
-        super(AzurePeriodicMode, self).provision()
-        package = self.build_functions_package(target_subscription_ids=self.target_subscription_ids)
-        FunctionAppUtilities.publish_functions_package(self.function_params, package)
 
     def run(self, event=None, lambda_context=None):
         """Run the actual policy."""
@@ -274,17 +227,6 @@ class AzureEventGridMode(AzureFunctionMode):
                                }},
                                required=['events'],
                                rinherit=AzureFunctionMode.schema)
-
-    def provision(self):
-        super(AzureEventGridMode, self).provision()
-        session = local_session(self.policy.session_factory)
-
-        # queue name is restricted to lowercase letters, numbers, and single hyphens
-        queue_name = re.sub(r'(-{2,})+', '-', self.function_params.function_app_name.lower())
-        storage_account = self._create_storage_queue(queue_name, session)
-        self._create_event_subscription(storage_account, queue_name, session)
-        package = self.build_functions_package(queue_name=queue_name)
-        FunctionAppUtilities.publish_functions_package(self.function_params, package)
 
     def run(self, event=None, lambda_context=None):
         """Run the actual policy."""
@@ -329,39 +271,3 @@ class AzureEventGridMode(AzureFunctionMode):
     def get_logs(self, start, end):
         """Retrieve logs for the policy"""
         raise NotImplementedError("error - not implemented")
-
-    def _create_storage_queue(self, queue_name, session):
-        self.log.info("Creating storage queue")
-        storage_client = session.client('azure.mgmt.storage.StorageManagementClient')
-        storage_account = storage_client.storage_accounts.get_properties(
-            self.function_params.storage_account['resource_group_name'],
-            self.function_params.storage_account['name'])
-
-        try:
-            StorageUtilities.create_queue_from_storage_account(storage_account, queue_name, session)
-            self.log.info("Storage queue creation succeeded")
-            return storage_account
-        except Exception as e:
-            self.log.error('Queue creation failed with error: %s' % e)
-            raise SystemExit
-
-    def _create_event_subscription(self, storage_account, queue_name, session):
-        self.log.info('Creating event grid subscription')
-        destination = StorageQueueEventSubscriptionDestination(resource_id=storage_account.id,
-                                                               queue_name=queue_name)
-
-        # filter specific events
-        subscribed_events = AzureEvents.get_event_operations(
-            self.policy.data['mode'].get('events'))
-        advance_filter = StringInAdvancedFilter(key='Data.OperationName', values=subscribed_events)
-        event_filter = EventSubscriptionFilter(advanced_filters=[advance_filter])
-
-        for subscription_id in self.target_subscription_ids:
-            try:
-                AzureEventSubscription.create(destination, queue_name,
-                                              subscription_id, session, event_filter)
-                self.log.info('Event grid subscription creation succeeded: subscription_id=%s' %
-                              subscription_id)
-            except Exception as e:
-                self.log.error('Event Subscription creation failed with error: %s' % e)
-                raise SystemExit

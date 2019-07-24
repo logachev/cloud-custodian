@@ -2,21 +2,20 @@ import argparse
 import json
 import logging
 
+import six
 import yaml
 from azure.mgmt.eventgrid.models import \
     StorageQueueEventSubscriptionDestination, StringInAdvancedFilter, EventSubscriptionFilter
 from c7n_azure.azure_events import AzureEvents, AzureEventSubscription
 from c7n_azure.function_package import FunctionPackage
 from c7n_azure.functionapp_utils import FunctionAppUtilities
-from c7n_azure.policy import AzureFunctionMode
 from c7n_azure.session import Session
 from c7n_azure.storage_utils import StorageUtilities
-from c7n_azure.utils import StringUtils
+from c7n_azure.utils import ResourceIdParser, StringUtils
 
 from c7n.commands import policy_command
 from c7n.config import Config
 from c7n.utils import local_session
-
 
 logging.basicConfig(
     level=logging.INFO,
@@ -36,9 +35,38 @@ def load_policies(policies_files):
     return _load_policies_internal(config)
 
 
+def extract_properties(options, name, properties):
+    settings = options.get(name, {})
+    result = {}
+    # str type implies settings is a resource id
+    if isinstance(settings, six.string_types):
+        result['id'] = settings
+        result['name'] = ResourceIdParser.get_resource_name(settings)
+        result['resource_group_name'] = ResourceIdParser.get_resource_group(settings)
+    else:
+        # get nested keys
+        for key in properties.keys():
+            d = StringUtils.snake_to_dashes(key)
+            if d in settings:
+                value = settings[d]
+            else:
+                value = settings.get(StringUtils.snake_to_camel(key), properties[key])
+            if isinstance(value, dict):
+                result[key] = \
+                    extract_properties({'v': value}, 'v', properties[key])
+            else:
+                result[key] = value
+
+    return result
+
+
+def get_queue_name(policy_name):
+    return policy_name.replace('_', '-')
+
+
 def get_functionapp_config(provision_options, subscription_id, target_subscription_name):
     # Service plan is parsed first, location might be shared with storage & insights
-    service_plan = AzureFunctionMode.extract_properties(
+    service_plan = extract_properties(
         provision_options,
         'service-plan',
         {
@@ -62,7 +90,7 @@ def get_functionapp_config(provision_options, subscription_id, target_subscripti
         rg_name + target_subscription_name + service_plan['name'] + service_plan['sku_tier'])
     storage_suffix = StringUtils.naming_hash(rg_name + subscription_id)
 
-    storage_account = AzureFunctionMode.extract_properties(
+    storage_account = extract_properties(
         provision_options,
         'storageAccount',
         {
@@ -71,7 +99,7 @@ def get_functionapp_config(provision_options, subscription_id, target_subscripti
             'resource_group_name': rg_name
         })
 
-    app_insights = AzureFunctionMode.extract_properties(
+    app_insights = extract_properties(
         provision_options,
         'appInsights',
         {
@@ -106,7 +134,7 @@ def process_policies(policies):
 
         if p.data['mode']['type'] == 'azure-event-grid':
             policy_target_subscription_ids = [None]
-            queue_name = p.name
+            queue_name = get_queue_name(p.name)
 
             event_subscriptions.append({'queue_name': queue_name,
                                         'events': p.data['mode'].get('events'),
@@ -162,6 +190,23 @@ def create_event_subscriptions(storage_account, event_subscriptions):
                 exit(1)
 
 
+def deploy(function_app_config, policies, auth_data):
+    FunctionAppUtilities.deploy_function_app(function_app_config)
+
+    function_policies, event_subscriptions = process_policies(policies)
+
+    create_event_subscriptions(function_app_config.storage_account, event_subscriptions)
+
+    package = FunctionPackage(auth_data=auth_data)
+    package.build(function_policies,
+                  modules=['c7n', 'c7n-azure', 'applicationinsights'],
+                  non_binary_packages=['pyyaml', 'pycparser', 'tabulate', 'pyrsistent'],
+                  excluded_packages=['azure-cli-core', 'distlib', 'future', 'futures'])
+    package.close()
+
+    FunctionAppUtilities.publish_functions_package(function_app_config, package)
+
+
 def main():
 
     parser = argparse.ArgumentParser(description='Deploy c7n-azure into Azure Functions.')
@@ -187,20 +232,7 @@ def main():
                                                  subscription_id=session.get_subscription_id(),
                                                  target_subscription_name=session.get_function_target_subscription_name())
 
-    FunctionAppUtilities.deploy_function_app(function_app_config)
-
-    function_policies, event_subscriptions = process_policies(policies)
-
-    create_event_subscriptions(function_app_config.storage_account, event_subscriptions)
-
-    package = FunctionPackage(auth_data=auth_data)
-    package.build(function_policies,
-                  modules=['c7n', 'c7n-azure', 'applicationinsights'],
-                  non_binary_packages=['pyyaml', 'pycparser', 'tabulate', 'pyrsistent'],
-                  excluded_packages=['azure-cli-core', 'distlib', 'future', 'futures'])
-    package.close()
-
-    FunctionAppUtilities.publish_functions_package(function_app_config, package)
+    deploy(function_app_config, policies, auth_data)
 
 
 if __name__ == '__main__':

@@ -305,7 +305,7 @@ class Session(object):
 
         function_auth_params = {k: v for k, v in self._auth_params.items()
                                 if k in required_params}
-        function_auth_params['subscription_id'] = target_subscription_id
+        #function_auth_params['subscription_id'] = target_subscription_id
 
         # Use dedicated function env vars if available
         if all(k in os.environ for k in function_auth_variables):
@@ -319,4 +319,4 @@ class Session(object):
                 "Service Principal credentials are the only "
                 "supported auth mechanism for deploying functions.")
 
-        return json.dumps(function_auth_params, indent=2)
+        return function_auth_params
