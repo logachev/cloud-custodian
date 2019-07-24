@@ -62,7 +62,6 @@ class FunctionAppDeploymentUnit(DeploymentUnit):
                                                               FUNCTION_EXT_VERSION))
         site_config.app_settings.append(azure_name_value_pair('FUNCTIONS_WORKER_RUNTIME', 'python'))
         site_config.app_settings.append(azure_name_value_pair('FUNCTIONS_WORKER_PROCESS_COUNT', '10'))
-        site_config.app_settings.append(azure_name_value_pair('PYTHONDONTWRITEBYTECODE', '1'))
 
         return self.client.web_apps.create_or_update(params['resource_group_name'],
                                                      params['name'],

@@ -27,7 +27,7 @@ session = local_session(Session)
 
 def load_policies(policies_files):
     @policy_command
-    def _load_policies_internal(options, policies, providers):
+    def _load_policies_internal(options, policies):
         return policies
 
     config = Config.empty()
