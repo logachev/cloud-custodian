@@ -35,8 +35,13 @@ def load_policies(policies_files):
     return _load_policies_internal(config)
 
 
-def extract_properties(options, name, properties):
-    settings = options.get(name, {})
+def extract_properties(options, names, properties):
+    settings = {}
+    for n in names:
+        if n in options:
+            settings = options[n]
+            break
+
     result = {}
     # str type implies settings is a resource id
     if isinstance(settings, six.string_types):
@@ -64,11 +69,14 @@ def get_queue_name(policy_name):
     return policy_name.replace('_', '-')
 
 
-def get_functionapp_config(provision_options, subscription_id, target_subscription_name):
+def get_function_app_params(provision_options):
+    subscription_id = session.get_subscription_id()
+    target_subscription_name = session.get_function_target_subscription_name()
+
     # Service plan is parsed first, location might be shared with storage & insights
     service_plan = extract_properties(
         provision_options,
-        'service-plan',
+        ['service-plan', 'servicePlan'],
         {
             'name': 'cloud-custodian',
             'location': 'eastus',
@@ -92,7 +100,7 @@ def get_functionapp_config(provision_options, subscription_id, target_subscripti
 
     storage_account = extract_properties(
         provision_options,
-        'storageAccount',
+        ['storage-account', 'storageAccount'],
         {
             'name': 'custodian' + storage_suffix,
             'location': location,
@@ -101,15 +109,15 @@ def get_functionapp_config(provision_options, subscription_id, target_subscripti
 
     app_insights = extract_properties(
         provision_options,
-        'appInsights',
+        ['app-insights', 'appInsights'],
         {
             'name': service_plan['name'],
             'location': location,
             'resource_group_name': rg_name
         })
 
-    function_app_name = provision_options.get('function-app-prefix',
-                                              'custodian') + '-' + function_suffix
+    function_prefix = provision_options.get('function-app-prefix', 'custodian')
+    function_app_name = FunctionAppUtilities.get_function_name(function_prefix, function_suffix)
     FunctionAppUtilities.validate_function_name(function_app_name)
 
     params = FunctionAppUtilities.FunctionAppInfrastructureParameters(
@@ -228,9 +236,7 @@ def main():
 
     policies = load_policies(config['policies'])
 
-    function_app_config = get_functionapp_config(provision_options=config['provision-options'],
-                                                 subscription_id=session.get_subscription_id(),
-                                                 target_subscription_name=session.get_function_target_subscription_name())
+    function_app_config = get_function_app_params(config['provision-options'])
 
     deploy(function_app_config, policies, auth_data)
 

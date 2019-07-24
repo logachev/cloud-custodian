@@ -18,8 +18,6 @@ import time
 
 from c7n_azure.constants import (FUNCTION_EVENT_TRIGGER_MODE,
                                  FUNCTION_TIME_TRIGGER_MODE)
-from c7n_azure.functionapp_utils import FunctionAppUtilities
-from c7n_azure.utils import StringUtils
 
 from c7n import utils
 from c7n.actions import EventAction
@@ -27,7 +25,8 @@ from c7n.policy import PullMode, ServerlessExecutionMode, execution
 from c7n.utils import local_session
 
 try:
-    from c7n_azure.azure_functions.deployer import deploy, extract_properties
+    from c7n_azure.azure_functions.deployer import deploy, extract_properties, \
+        get_function_app_params
 except Exception:
     deploy = None
     extract_properties = None
@@ -108,70 +107,6 @@ class AzureFunctionMode(ServerlessExecutionMode):
         self.function_app = None
         self.target_subscription_ids = []
 
-    def get_function_app_params(self):
-        session = local_session(self.policy.session_factory)
-
-        provision_options = self.policy.data['mode'].get('provision-options', {})
-
-        # Service plan is parsed first, location might be shared with storage & insights
-        service_plan = extract_properties(
-            provision_options,
-            'servicePlan',
-            {
-                'name': 'cloud-custodian',
-                'location': 'eastus',
-                'resource_group_name': 'cloud-custodian',
-                'sku_tier': 'Dynamic',  # consumption plan
-                'sku_name': 'Y1',
-                'auto_scale': {
-                    'enabled': False,
-                    'min_capacity': 1,
-                    'max_capacity': 2,
-                    'default_capacity': 1
-                }
-            })
-
-        # Metadata used for automatic naming
-        location = service_plan.get('location', 'eastus')
-        rg_name = service_plan['resource_group_name']
-        sub_id = session.get_subscription_id()
-
-        target_sub_name = session.get_function_target_subscription_name()
-        function_suffix = StringUtils.naming_hash(rg_name + target_sub_name)
-
-        storage_suffix = StringUtils.naming_hash(rg_name + sub_id)
-
-        storage_account = extract_properties(
-            provision_options,
-            'storageAccount',
-            {
-                'name': self.default_storage_name + storage_suffix,
-                'location': location,
-                'resource_group_name': rg_name
-            })
-
-        app_insights = extract_properties(
-            provision_options,
-            'appInsights',
-            {
-                'name': service_plan['name'],
-                'location': location,
-                'resource_group_name': rg_name
-            })
-
-        function_app_name = FunctionAppUtilities.get_function_name(self.policy_name,
-                                                                   function_suffix)
-        FunctionAppUtilities.validate_function_name(function_app_name)
-
-        params = FunctionAppUtilities.FunctionAppInfrastructureParameters(
-            app_insights=app_insights,
-            service_plan=service_plan,
-            storage_account=storage_account,
-            function_app_resource_group_name=service_plan['resource_group_name'],
-            function_app_name=function_app_name)
-
-        return params
-
     def run(self, event=None, lambda_context=None):
         """Run the actual policy."""
         raise NotImplementedError("subclass responsibility")
@@ -184,7 +119,11 @@ class AzureFunctionMode(ServerlessExecutionMode):
         if sys.version_info[0] < 3:
             self.log.error("Python 2.7 is not supported for deploying Azure Functions.")
             sys.exit(1)
-        deploy(self.get_function_app_params(),
+
+        provision_options = self.policy.data['mode'].get('provision-options', {})
+        provision_options['function-app-prefix'] = self.policy.name
+
+        deploy(get_function_app_params(provision_options),
                [self.policy],
                session.get_functions_auth_string(None))
 
