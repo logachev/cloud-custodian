@@ -49,7 +49,7 @@ class AzurePythonPackageArchive(PythonPackageArchive):
 
 class FunctionPackage(object):
 
-    def __init__(self, name, function_path=None, target_sub_ids=None, cache_override_path=None, auth_data=None):
+    def __init__(self, function_path=None, cache_override_path=None, auth_data=None):
         self.log = logging.getLogger('custodian.azure.function_package')
         self.pkg = None
         self.function_path = function_path or os.path.join(
@@ -59,11 +59,6 @@ class FunctionPackage(object):
             os.environ.get(ENV_CUSTODIAN_DISABLE_SSL_CERT_VERIFICATION, 'no'))
 
         self.auth_data = auth_data
-
-        if target_sub_ids is not None:
-            self.target_sub_ids = target_sub_ids
-        else:
-            self.target_sub_ids = [None]
 
         if not self.enable_ssl_cert:
             self.log.warning('SSL Certificate Validation is disabled')
@@ -77,10 +72,6 @@ class FunctionPackage(object):
             # generate and add auth
             self.pkg.add_contents(dest=name + '/auth.json',
                                   contents=json.dumps(auth_data))
-
-            # generate and add auth
-            self.pkg.add_contents(dest=name + '/auth.json',
-                                  contents=s.get_functions_auth_string(target_sub_id))
 
             self.pkg.add_file(self.function_path,
                               dest=name + '/function.py')

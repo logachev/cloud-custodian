@@ -57,9 +57,6 @@ class Provider(object):
     def get_session_factory(self, options):
         """Get a credential/session factory for api usage."""
 
-    def finish(self):
-        """Perform provider specific execution finish operations if needed."""
-        pass
 
 def resources(cloud_provider=None):
     results = {}

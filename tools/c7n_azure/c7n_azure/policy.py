@@ -32,7 +32,6 @@ from c7n_azure.constants import (FUNCTION_EVENT_TRIGGER_MODE,
 from c7n_azure.functionapp_utils import FunctionAppUtilities
 from c7n_azure.storage_utils import StorageUtilities
 from c7n_azure.utils import ResourceIdParser, StringUtils
-import c7n_azure.azure_functions.FunctionDeployer as azf
 
 
 class AzureFunctionMode(ServerlessExecutionMode):
@@ -92,7 +91,6 @@ class AzureFunctionMode(ServerlessExecutionMode):
                          }
                     ]
                 },
-                'functionAppPrefix': {'type': 'string'}
             },
             'execution-options': {'type': 'object'}
         }
@@ -244,7 +242,6 @@ class AzurePeriodicMode(AzureFunctionMode, PullMode):
 
     def provision(self):
         super(AzurePeriodicMode, self).provision()
-        azf.add_function(self.policy_name, self.policy.data, None, self.function_params)
 
     def run(self, event=None, lambda_context=None):
         """Run the actual policy."""
@@ -281,7 +278,6 @@ class AzureEventGridMode(AzureFunctionMode):
         queue_name = re.sub(r'(-{2,})+', '-', self.function_params.function_app_name.lower())
         storage_account = self._create_storage_queue(queue_name, session)
         self._create_event_subscription(storage_account, queue_name, session)
-        azf.add_function(self.policy_name, self.policy.data, queue_name, self.function_params)
 
     def run(self, event=None, lambda_context=None):
         """Run the actual policy."""
