@@ -239,9 +239,9 @@ class AzureModeCommon:
         resource_id = '/'.join([t + '/[^/]+' for t in types[1:]])
         rx = '/subscriptions/[^/]+/resourceGroups/[^/]+/providers/{0}/{1}'.format(types[0],
                                                                                   resource_id)
-        resources = policy.resource_manager.get_resources(re.search(rx,
-                                                                    event['subject'],
-                                                                    re.IGNORECASE)[0])
+        resources = policy.resource_manager.get_resources([re.search(rx,
+                                                                     event['subject'],
+                                                                     re.IGNORECASE)[0]])
 
         resources = policy.resource_manager.filter_resources(
             resources, event)
