@@ -21,7 +21,7 @@ from c7n.utils import type_schema
 
 from c7n_azure.provider import resources
 from c7n_azure.resources.arm import ArmResourceManager
-from c7n_azure.utils import StringUtils, PortsRangeHelper
+from c7n_azure.utils import StringUtils, PortsRangeHelper, ResourceIdParser
 
 from msrestazure.azure_exceptions import CloudError
 
@@ -85,6 +85,15 @@ class NetworkSecurityGroup(ArmResourceManager):
             'resourceGroup'
         )
         resource_type = 'Microsoft.Network/networkSecurityGroups'
+
+    def get_resources(self, resource_ids):
+        resource_client = self.get_client('azure.mgmt.network.NetworkManagementClient')
+        data = [
+            resource_client.network_security_groups.get(ResourceIdParser.get_resource_group(rid),
+                                                        ResourceIdParser.get_resource_name(rid))
+            for rid in resource_ids
+        ]
+        return [r.serialize(True) for r in data]
 
 
 DIRECTION = 'direction'

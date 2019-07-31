@@ -84,7 +84,9 @@ class AzureContainerEventMode(AzureContainerHostMode):
         super(AzureContainerEventMode, self).provision()
 
     def run(self, event=None, lambda_context=None):
-        return AzureModeCommon.run_for_event(self.policy, event)
+        return AzureModeCommon.run_for_event(self.manager.resource_type.resource_type,
+                                             self.policy,
+                                             event)
 
     def get_logs(self, start, end):
         """Retrieve logs for the policy"""
