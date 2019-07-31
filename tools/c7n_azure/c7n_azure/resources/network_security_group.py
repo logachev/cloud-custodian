@@ -86,15 +86,6 @@ class NetworkSecurityGroup(ArmResourceManager):
         )
         resource_type = 'Microsoft.Network/networkSecurityGroups'
 
-    def get_resources(self, resource_ids):
-        resource_client = self.get_client('azure.mgmt.network.NetworkManagementClient')
-        data = [
-            resource_client.network_security_groups.get(ResourceIdParser.get_resource_group(rid),
-                                                        ResourceIdParser.get_resource_name(rid))
-            for rid in resource_ids
-        ]
-        return [r.serialize(True) for r in data]
-
 
 DIRECTION = 'direction'
 PORTS = 'ports'
