@@ -233,9 +233,9 @@ class AzureFunctionMode(ServerlessExecutionMode):
 class AzureModeCommon:
     """ Utility methods shared across a variety of modes """
     @staticmethod
-    def run_for_event(resource_type, policy, event=None):
+    def run_for_event(policy, event=None):
 
-        types = resource_type.split('/')
+        types = policy.resource_manager.resource_type.resource_type.split('/')
         resource_id = '/'.join([t + '/[^/]+' for t in types[1:]])
         rx = '/subscriptions/[^/]+/resourceGroups/[^/]+/providers/{0}/{1}'.format(types[0],
                                                                                   resource_id)
@@ -327,9 +327,7 @@ class AzureEventGridMode(AzureFunctionMode):
 
     def run(self, event=None, lambda_context=None):
         """Run the actual policy."""
-        return AzureModeCommon.run_for_event(self.manager.resource_type.resource_type,
-                                             self.policy,
-                                             event)
+        return AzureModeCommon.run_for_event(self.policy, event)
 
     def get_logs(self, start, end):
         """Retrieve logs for the policy"""
