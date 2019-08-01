@@ -235,6 +235,10 @@ class AzureModeCommon:
 
     @staticmethod
     def extract_resource_id(policy, event):
+        """
+        Searches for a resource id in the events resource id
+        that will match the policy resource type.
+        """
         expected_type = policy.resource_manager.resource_type.resource_type
 
         if expected_type == 'Microsoft.Resources/subscriptions/resourceGroups':
@@ -246,7 +250,7 @@ class AzureModeCommon:
             extract_regex = '/subscriptions/[^/]+/resourceGroups/[^/]+/providers/{0}/{1}'\
                 .format(types[0], types_regex)
 
-        return re.search(extract_regex, event['subject'], re.IGNORECASE)[0]
+        return re.search(extract_regex, event['subject'], re.IGNORECASE).group()
 
     @staticmethod
     def run_for_event(policy, event=None):
