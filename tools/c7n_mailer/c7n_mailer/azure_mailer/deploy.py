@@ -35,7 +35,7 @@ def cache_path():
     return os.path.join(os.path.dirname(__file__), 'cache')
 
 
-def build_function_package(config, function_name):
+def build_function_package(config, function_name, sub_id):
     schedule = config.get('function_schedule', '0 */10 * * * *')
 
     cache_override_path = cache_path()
@@ -44,6 +44,7 @@ def build_function_package(config, function_name):
     package = FunctionPackage(
         function_name,
         os.path.join(os.path.dirname(__file__), 'function.py'),
+        target_sub_ids=[sub_id],
         cache_override_path=cache_override_path)
 
     package.build(None,
@@ -125,7 +126,7 @@ def provision(config):
     FunctionAppUtilities.deploy_function_app(params)
 
     log.info("Building function package for %s" % function_app_name)
-    package = build_function_package(config, function_name)
+    package = build_function_package(config, function_name, sub_id)
 
     log.info("Function package built, size is %dMB" % (package.pkg.size / (1024 * 1024)))
 
