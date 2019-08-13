@@ -25,16 +25,8 @@ sys.path.append(dirname(function_directory))
 from c7n_azure import handler, entry
 from c7n_azure.utils import ResourceIdParser
 
-<<<<<<< HEAD
 if sys.version_info[0] >= 3:
     from azure.functions import QueueMessage
-=======
-try:
-    import azure.functions as func
-    from azure.functions.queue import QueueMessage
-except ImportError:
-    pass
->>>>>>> Update azure-functions
 
 max_dequeue_count = 3
 
