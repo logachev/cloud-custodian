@@ -220,7 +220,7 @@ class DecryptTests(unittest.TestCase):
         utils.decrypt({'queue_url': 'aws', 'test': 'test'}, Mock(), Mock(), 'test')
         kms_decrypt_mock.assert_called_once()
 
-    @patch('c7n_mailer.azure.utils.azure_decrypt')
+    @patch('c7n_mailer.azure_mailer.utils.azure_decrypt')
     def test_azure_decrypt(self, azure_decrypt_mock):
         utils.decrypt({'queue_url': 'asq://', 'test': 'test'}, Mock(), Mock(), 'test')
         azure_decrypt_mock.assert_called_once()

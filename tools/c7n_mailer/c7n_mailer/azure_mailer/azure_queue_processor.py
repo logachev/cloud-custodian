@@ -100,7 +100,7 @@ class MailerAzureQueueProcessor(object):
         from c7n_mailer.slack_delivery import SlackDelivery
         slack_delivery = SlackDelivery(self.config,
                                        self.logger,
-                                       SendGridDelivery(self.config, self.logger))
+                                       SendGridDelivery(self.config, self.session, self.logger))
         slack_messages = slack_delivery.get_to_addrs_slack_messages_map(queue_message)
         try:
             self.logger.info('Sending message to Slack.')
