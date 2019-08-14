@@ -348,7 +348,7 @@ def resource_format(resource, resource_type):
 
 
 def get_provider(mailer_config):
-    if mailer_config.get('queue_url', '').startswith('asq'):
+    if mailer_config.get('queue_url', '').startswith('asq://'):
         return Providers.Azure
 
     return Providers.AWS

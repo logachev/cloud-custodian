@@ -18,11 +18,12 @@ AZURE_KV_SECRET_SCHEMA = {
     'type': 'object',
     'properties': {
         'secret': {'type': 'string'}
-    }
+    },
+    'required': ['secret'],
+    'additionalProperties': False
 }
 
 SECURED_STRING_SCHEMA = {
-    'type': 'object',
     'oneOf': [
         {'type': 'string'},
         AZURE_KV_SECRET_SCHEMA
