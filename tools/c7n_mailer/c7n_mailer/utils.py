@@ -381,7 +381,8 @@ def decrypt(config, logger, session, encrypted_field):
     if config.get(encrypted_field):
         provider = get_provider(config)
         if provider == Providers.Azure:
-            return config[encrypted_field]
+            from c7n_mailer.azure_mailer.utils import azure_decrypt
+            return azure_decrypt(config, logger, session, encrypted_field)
         elif provider == Providers.AWS:
             return kms_decrypt(config, logger, session, encrypted_field)
         else:
