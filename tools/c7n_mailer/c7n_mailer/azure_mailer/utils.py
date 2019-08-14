@@ -15,8 +15,6 @@
 from c7n_azure.constants import RESOURCE_VAULT
 from azure.keyvault import KeyVaultId
 
-secret_prefix = 'secret://'
-
 
 def azure_decrypt(config, logger, session, encrypted_field):
     data = config[encrypted_field]  # type: str
