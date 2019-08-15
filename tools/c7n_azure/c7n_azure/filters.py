@@ -884,11 +884,28 @@ class CostFilter(ValueFilter):
 
 class ParentFilter(Filter):
     """
+    Meta filter that allows you to filter child resources by applying filters to their
+    parent resources.
+
+    You can use any filter supported by corresponding parent resource type.
+
+    :examples:
+
+    Find Azure KeyVault Keys from Key Vaults with ``owner:ProjectA`` tag.
+
+    .. code-block:: yaml
+
+        policies:
+          - name: kv-keys-from-tagged-keyvaults
+            resource: azure.keyvault-keys
+            filters:
+              - type: parent
+                filter:
+                  "tag:owner": ProjectA
     """
 
     schema = type_schema(
         'parent', filter={'type': 'object'}, required=['type'])
-
     schema_alias = True
 
     def __init__(self, data, manager=None):
@@ -901,4 +918,6 @@ class ParentFilter(Filter):
     def process(self, resources, event=None):
         parent_resources = self.parent_filter.process(self.parent_manager.resources())
         parent_resources_ids = [p['id'] for p in parent_resources]
-        return [r for r in resources if r[self.manager.resource_type.parent_key] in parent_resources_ids]
+
+        parent_key = self.manager.resource_type.parent_key
+        return [r for r in resources if r[parent_key] in parent_resources_ids]
