@@ -880,3 +880,25 @@ class CostFilter(ValueFilter):
             r['ResourceId'] = r['ResourceId'].lower()
 
         return result_list
+
+
+class ParentFilter(Filter):
+    """
+    """
+
+    schema = type_schema(
+        'parent', filter={'type': 'object'}, required=['type'])
+
+    schema_alias = True
+
+    def __init__(self, data, manager=None):
+        super(ParentFilter, self).__init__(data, manager)
+        self.parent_manager = self.manager.get_parent_manager()
+        self.parent_filter = self.parent_manager.filter_registry.factory(
+            self.data['filter'],
+            self.parent_manager)
+
+    def process(self, resources, event=None):
+        parent_resources = self.parent_filter.process(self.parent_manager.resources())
+        parent_resources_ids = [p['id'] for p in parent_resources]
+        return [r for r in resources if r[self.manager.resource_type.parent_key] in parent_resources_ids]
