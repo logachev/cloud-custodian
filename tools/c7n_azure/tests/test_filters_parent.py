@@ -53,21 +53,24 @@ class ParentFilterTest(BaseTest):
         }, validate=True))
 
     def test_verify_parent_filter(self):
-        manager = KeyVaultKeys(ExecutionContext(
+        manager = KeyVaultKeys(
+            ExecutionContext(
                 None,
                 Bag(name="xyz", provider_name='azure'),
                 Config.empty()
-            ), {
-            'name': 'test-policy',
-            'resource': 'azure.keyvault-keys',
-            'filters': [
-                {'type': 'parent',
-                 'filter': {
-                     'type': 'value',
-                     'key': 'name',
-                     'op': 'glob',
-                     'value': 'cctestkv*'
-                 }}]})
+            ),
+            {
+                'name': 'test-policy',
+                'resource': 'azure.keyvault-keys',
+                'filters': [
+                    {'type': 'parent',
+                     'filter': {
+                         'type': 'value',
+                         'key': 'name',
+                         'op': 'glob',
+                         'value': 'cctestkv*'
+                     }}]}
+        )
 
         self.assertEqual(len(manager.filters), 1)
 

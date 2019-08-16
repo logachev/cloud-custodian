@@ -16,8 +16,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import azure.keyvault.http_bearer_challenge_cache as kv_cache
 from azure_common import BaseTest, arm_template, cassette_name
 
-from c7n.utils import reset_session_cache
-
 
 class ParentFilterFunctionalTest(BaseTest):
 
