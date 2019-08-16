@@ -214,9 +214,21 @@ class QueryResourceManager(ResourceManager):
         return self.data.get('source', 'describe-azure')
 
     def resources(self, query=None):
-        key = self.get_cache_key(query)
-        resources = self.augment(self.source.get_resources(query))
-        self._cache.save(key, resources)
+        cache_key = self.get_cache_key(query)
+
+        resources = None
+        if self._cache.load():
+            resources = self._cache.get(cache_key)
+            if resources is not None:
+                self.log.debug("Using cached %s: %d" % (
+                    "%s.%s" % (self.__class__.__module__,
+                               self.__class__.__name__),
+                    len(resources)))
+
+        if resources is None:
+            resources = self.augment(self.source.get_resources(query))
+            self._cache.save(cache_key, resources)
+
         return self.filter_resources(resources)
 
     def get_resources(self, resource_ids, **params):

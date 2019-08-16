@@ -39,11 +39,10 @@ class ParentFilterFunctionalTest(BaseTest):
                      'op': 'glob',
                      'value': 'cckeyvault1*'
                  }}]
-        }, validate=True)
+        }, validate=True, cache=True)
 
         resources = p.run()
         self.assertEqual(len(resources), 2)
-        reset_session_cache()
 
     @arm_template('keyvault.json')
     @cassette_name('keyvault-keys')
@@ -59,8 +58,7 @@ class ParentFilterFunctionalTest(BaseTest):
                      'op': 'glob',
                      'value': 'cckeyvault2*'
                  }}]
-        }, validate=True)
+        }, validate=True, cache=True)
 
         resources = p.run()
         self.assertEqual(len(resources), 0)
-        reset_session_cache()
