@@ -901,7 +901,9 @@ class ParentFilter(Filter):
             filters:
               - type: parent
                 filter:
-                  "tag:owner": ProjectA
+                  type: value
+                  key: tags.owner
+                  value: ProjectA
     """
 
     schema = type_schema(
