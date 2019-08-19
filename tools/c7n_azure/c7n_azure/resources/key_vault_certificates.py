@@ -40,9 +40,9 @@ class KeyVaultCertificates(ChildResourceManager):
             filters:
               - type: value
                 key: attributes.exp
-                value_type: age
-                op: gt
-                value: -30
+                value_type: expiration
+                op: lt
+                value: 30
 
     """
 
