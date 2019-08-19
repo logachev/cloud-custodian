@@ -389,6 +389,7 @@ You can store your secrets in Azure Key Vault secrets and reference them from th
 ```yaml
     plaintext_secret: <raw_secret>
     secured_string:
+        type: azure.keyvault
         secret: https://your-vault.vault.azure.net/secrets/your-secret
 ```
 
