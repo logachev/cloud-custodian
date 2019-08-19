@@ -17,9 +17,10 @@ from ruamel import yaml
 AZURE_KV_SECRET_SCHEMA = {
     'type': 'object',
     'properties': {
+        'type': {'enum': ['azure.keyvault']},
         'secret': {'type': 'string'}
     },
-    'required': ['secret'],
+    'required': ['type', 'secret'],
     'additionalProperties': False
 }
 
