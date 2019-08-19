@@ -26,7 +26,7 @@ class KeyVaultCertificatesTest(BaseTest):
     def test_key_vault_certificates_schema_validate(self):
         p = self.load_policy({
             'name': 'test-key-vault',
-            'resource': 'azure.keyvault-certificates',
+            'resource': 'azure.keyvault-certificate',
         }, validate=True)
         self.assertTrue(p)
 
@@ -34,7 +34,7 @@ class KeyVaultCertificatesTest(BaseTest):
     def test_key_vault_certificates_keyvault(self):
         p = self.load_policy({
             'name': 'test-key-vault',
-            'resource': 'azure.keyvault-certificates',
+            'resource': 'azure.keyvault-certificate',
             'filters': [
                 {
                     'type': 'parent',

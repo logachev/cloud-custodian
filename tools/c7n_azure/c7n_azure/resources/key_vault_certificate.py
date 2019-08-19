@@ -22,9 +22,9 @@ from c7n_azure.utils import generate_key_vault_url
 log = logging.getLogger('custodian.azure.keyvault.certificates')
 
 
-@resources.register('keyvault-certificates')
-class KeyVaultCertificates(ChildResourceManager):
-    """Key Vault Certificates Resource
+@resources.register('keyvault-certificate')
+class KeyVaultCertificate(ChildResourceManager):
+    """Key Vault Certificate Resource
 
     :example:
 
@@ -36,7 +36,7 @@ class KeyVaultCertificates(ChildResourceManager):
           - name: keyvault-certificates
             description:
               List all certificates expiring in next 30 days
-            resource: azure.keyvault-certificates
+            resource: azure.keyvault-certificate
             filters:
               - type: value
                 key: attributes.exp
