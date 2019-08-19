@@ -14,17 +14,17 @@
                     "message": "OK"
                 },
                 "headers": {
-                    "date": [
-                        "Mon, 19 Aug 2019 19:59:15 GMT"
-                    ],
                     "content-type": [
                         "application/json; charset=utf-8"
                     ],
                     "content-length": [
-                        "269"
+                        "514"
                     ],
                     "cache-control": [
                         "no-cache"
+                    ],
+                    "date": [
+                        "Mon, 19 Aug 2019 21:00:06 GMT"
                     ]
                 },
                 "body": {
@@ -55,20 +55,20 @@
                     "message": "Unauthorized"
                 },
                 "headers": {
-                    "date": [
-                        "Mon, 19 Aug 2019 19:59:16 GMT"
+                    "www-authenticate": [
+                        "Bearer authorization=\"https://login.windows.net/72f988bf-86f1-41af-91ab-2d7cd011db47\", resource=\"https://vault.azure.net\""
                     ],
                     "content-type": [
                         "application/json; charset=utf-8"
                     ],
-                    "cache-control": [
-                        "no-cache"
-                    ],
                     "content-length": [
                         "87"
                     ],
-                    "www-authenticate": [
-                        "Bearer authorization=\"https://login.windows.net/72f988bf-86f1-41af-91ab-2d7cd011db47\", resource=\"https://vault.azure.net\""
+                    "cache-control": [
+                        "no-cache"
+                    ],
+                    "date": [
+                        "Mon, 19 Aug 2019 21:00:07 GMT"
                     ]
                 },
                 "body": {
@@ -94,17 +94,17 @@
                     "message": "OK"
                 },
                 "headers": {
-                    "date": [
-                        "Mon, 19 Aug 2019 19:59:16 GMT"
-                    ],
                     "content-type": [
                         "application/json; charset=utf-8"
+                    ],
+                    "content-length": [
+                        "816"
                     ],
                     "cache-control": [
                         "no-cache"
                     ],
-                    "content-length": [
-                        "816"
+                    "date": [
+                        "Mon, 19 Aug 2019 21:00:07 GMT"
                     ]
                 },
                 "body": {

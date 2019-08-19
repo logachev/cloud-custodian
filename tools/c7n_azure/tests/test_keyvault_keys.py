@@ -13,10 +13,15 @@
 # limitations under the License.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import azure.keyvault.http_bearer_challenge_cache as kv_cache
 from azure_common import BaseTest, arm_template
 
 
 class KeyVaultKeyTest(BaseTest):
+
+    def tearDown(self, *args, **kwargs):
+        super(KeyVaultKeyTest, self).tearDown(*args, **kwargs)
+        kv_cache._cache = {}
 
     def test_key_vault_keys_schema_validate(self):
         p = self.load_policy({

@@ -13,12 +13,17 @@
 # limitations under the License.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import azure.keyvault.http_bearer_challenge_cache as kv_cache
 from azure_common import BaseTest, arm_template
 
 
 class KeyVaultCertificatesTest(BaseTest):
 
-    def test_key_vault_keys_schema_validate(self):
+    def tearDown(self, *args, **kwargs):
+        super(KeyVaultCertificatesTest, self).tearDown(*args, **kwargs)
+        kv_cache._cache = {}
+
+    def test_key_vault_certificates_schema_validate(self):
         p = self.load_policy({
             'name': 'test-key-vault',
             'resource': 'azure.keyvault-certificates',
@@ -26,7 +31,7 @@ class KeyVaultCertificatesTest(BaseTest):
         self.assertTrue(p)
 
     @arm_template('keyvault.json')
-    def test_key_vault_keys_keyvault(self):
+    def test_key_vault_certificates_keyvault(self):
         p = self.load_policy({
             'name': 'test-key-vault',
             'resource': 'azure.keyvault-certificates',
