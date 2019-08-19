@@ -14,17 +14,17 @@
                     "message": "OK"
                 },
                 "headers": {
-                    "content-length": [
-                        "539"
-                    ],
-                    "cache-control": [
-                        "no-cache"
-                    ],
                     "date": [
-                        "Mon, 19 Aug 2019 19:48:31 GMT"
+                        "Mon, 19 Aug 2019 19:59:15 GMT"
                     ],
                     "content-type": [
                         "application/json; charset=utf-8"
+                    ],
+                    "content-length": [
+                        "269"
+                    ],
+                    "cache-control": [
+                        "no-cache"
                     ]
                 },
                 "body": {
@@ -33,13 +33,6 @@
                             {
                                 "id": "/subscriptions/ea42f556-5106-4743-99b0-c129bfa71a47/resourceGroups/test_keyvault/providers/Microsoft.KeyVault/vaults/cckeyvault1c6ra5qqpkhceo",
                                 "name": "cckeyvault1c6ra5qqpkhceo",
-                                "type": "Microsoft.KeyVault/vaults",
-                                "location": "southcentralus",
-                                "tags": {}
-                            },
-                            {
-                                "id": "/subscriptions/ea42f556-5106-4743-99b0-c129bfa71a47/resourceGroups/test_keyvault-no-policies/providers/Microsoft.KeyVault/vaults/cckeyvault2kme24fgeaqvqk",
-                                "name": "cckeyvault2kme24fgeaqvqk",
                                 "type": "Microsoft.KeyVault/vaults",
                                 "location": "southcentralus",
                                 "tags": {}
@@ -62,20 +55,20 @@
                     "message": "Unauthorized"
                 },
                 "headers": {
+                    "date": [
+                        "Mon, 19 Aug 2019 19:59:16 GMT"
+                    ],
+                    "content-type": [
+                        "application/json; charset=utf-8"
+                    ],
+                    "cache-control": [
+                        "no-cache"
+                    ],
                     "content-length": [
                         "87"
                     ],
                     "www-authenticate": [
                         "Bearer authorization=\"https://login.windows.net/72f988bf-86f1-41af-91ab-2d7cd011db47\", resource=\"https://vault.azure.net\""
-                    ],
-                    "date": [
-                        "Mon, 19 Aug 2019 19:48:31 GMT"
-                    ],
-                    "cache-control": [
-                        "no-cache"
-                    ],
-                    "content-type": [
-                        "application/json; charset=utf-8"
                     ]
                 },
                 "body": {
@@ -101,17 +94,17 @@
                     "message": "OK"
                 },
                 "headers": {
-                    "content-length": [
-                        "816"
-                    ],
                     "date": [
-                        "Mon, 19 Aug 2019 19:48:31 GMT"
+                        "Mon, 19 Aug 2019 19:59:16 GMT"
+                    ],
+                    "content-type": [
+                        "application/json; charset=utf-8"
                     ],
                     "cache-control": [
                         "no-cache"
                     ],
-                    "content-type": [
-                        "application/json; charset=utf-8"
+                    "content-length": [
+                        "816"
                     ]
                 },
                 "body": {
@@ -161,84 +154,6 @@
                             }
                         ],
                         "nextLink": null
-                    }
-                }
-            }
-        },
-        {
-            "request": {
-                "method": "GET",
-                "uri": "https://cckeyvault2kme24fgeaqvqk.vault.azure.net/keys?api-version=7.0",
-                "body": "",
-                "headers": {}
-            },
-            "response": {
-                "status": {
-                    "code": 401,
-                    "message": "Unauthorized"
-                },
-                "headers": {
-                    "content-length": [
-                        "87"
-                    ],
-                    "www-authenticate": [
-                        "Bearer authorization=\"https://login.windows.net/72f988bf-86f1-41af-91ab-2d7cd011db47\", resource=\"https://vault.azure.net\""
-                    ],
-                    "date": [
-                        "Mon, 19 Aug 2019 19:48:31 GMT"
-                    ],
-                    "cache-control": [
-                        "no-cache"
-                    ],
-                    "content-type": [
-                        "application/json; charset=utf-8"
-                    ]
-                },
-                "body": {
-                    "data": {
-                        "error": {
-                            "code": "Unauthorized",
-                            "message": "Request is missing a Bearer or PoP token."
-                        }
-                    }
-                }
-            }
-        },
-        {
-            "request": {
-                "method": "GET",
-                "uri": "https://cckeyvault2kme24fgeaqvqk.vault.azure.net/keys?api-version=7.0",
-                "body": "",
-                "headers": {}
-            },
-            "response": {
-                "status": {
-                    "code": 403,
-                    "message": "Forbidden"
-                },
-                "headers": {
-                    "content-length": [
-                        "370"
-                    ],
-                    "date": [
-                        "Mon, 19 Aug 2019 19:48:31 GMT"
-                    ],
-                    "cache-control": [
-                        "no-cache"
-                    ],
-                    "content-type": [
-                        "application/json; charset=utf-8"
-                    ]
-                },
-                "body": {
-                    "data": {
-                        "error": {
-                            "code": "Forbidden",
-                            "message": "Access denied. Caller was not found on any access policy.\r\nCaller: appid=04b07795-8ddb-461a-bbee-02f9e1bf7b46;oid=139efc82-0e5b-4998-b30a-ce40b9b942db;numgroups=78;iss=https://sts.windows.net/72f988bf-86f1-41af-91ab-2d7cd011db47/\r\nVault: cckeyvault2kme24fgeaqvqk;location=southcentralus",
-                            "innererror": {
-                                "code": "AccessDenied"
-                            }
-                        }
                     }
                 }
             }
