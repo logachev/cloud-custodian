@@ -8,39 +8,37 @@ IFS=$'\n\t'
 resourceLocation="South Central US"
 templateDirectory="$( cd "$( dirname "$0" )" && pwd )"
 
-azureTenantId=$(az account show --query tenantId)
-azureTenantId=${azureTenantId//\"}
+deploy_resource() {
+  rgName="test_$filenameNoExtension"
+
+  az group create --name $rgName --location $resourceLocation
+
+  if [[ "$1" =~ "keyvault.json" ]]; then
+    azureAdUserObjectId=$(az ad signed-in-user show --query objectId  --output tsv)
+
+    az group deployment create --resource-group $rgName --template-file $file \
+        --parameters "userObjectId=$azureAdUserObjectId"
+
+    vault_name=$(az keyvault list --resource-group $rgName --query [0].name --output tsv)
+    az keyvault key create --vault-name $vault_name --name cctestrsa --kty RSA
+    az keyvault key create --vault-name $vault_name --name cctestec --kty EC
+  elif [[ "$1" =~ "aks.json" ]]; then
+    az group deployment create --resource-group $rgName --template-file $file --parameters client_id=$AZURE_CLIENT_ID client_secret=$AZURE_CLIENT_SECRET --mode Complete
+  else
+    az group deployment create --resource-group $rgName --template-file $file --mode Complete
+  fi
+
+}
 
 # Create resource groups and deploy for each template file
 for file in "$templateDirectory"/*.json; do
   fileName=${file##*/}
   filenameNoExtension=${fileName%.*}
-  rgName="test_$filenameNoExtension"
 
-  if [ $# -eq 0 ] || [[ "$@" =~ "$filenameNoExtension" ]]; then
-
-      az group create --name $rgName --location $resourceLocation
-      if [[ "$filenameNoExtension" =~ "keyvault-no-policies" ]]; then
-        az group deployment create --resource-group $rgName --template-file $file \
-            --parameters "tenantId=$azureTenantId"
-      elif [[ "$filenameNoExtension" =~ "keyvault" ]]; then
-        azureAdUserObjectId=$(az ad signed-in-user show --query objectId)
-        azureAdUserObjectId=${azureAdUserObjectId//\"}
-
-        az group deployment create --resource-group $rgName --template-file $file \
-            --parameters "tenantId=$azureTenantId" \
-                         "userObjectId=$azureAdUserObjectId"
-
-        vault_name=$(az keyvault list --resource-group $rgName --query [0].name | tr -d '"')
-        az keyvault key create --vault-name $vault_name --name cctestrsa --kty RSA
-        az keyvault key create --vault-name $vault_name --name cctestec --kty EC
-      elif [[ "$filenameNoExtension" =~ "aks" ]]; then
-        az group deployment create --resource-group $rgName --template-file $file --parameters client_id=$AZURE_CLIENT_ID client_secret=$AZURE_CLIENT_SECRET --mode Complete --no-wait
-      else
-        az group deployment create --resource-group $rgName --template-file $file --mode Complete --no-wait
-      fi
+  if [ $# -eq 0 ] || [[ "$@" == "$filenameNoExtension" ]]; then
+    deploy_resource ${file}
   else
-    echo "Skipping $rgName"
+    echo "Skipping ${filenameNoExtension}"
   fi
 done
 
@@ -52,12 +50,12 @@ if [ $# -eq 0 ] || [[ "$@" =~ "containerservice" ]]; then
 else
   echo "Skipping $rgName"
 fi
-
-# Deploy Azure Policy Assignment
-if [ $# -eq 0 ] || [[ "$@" =~ "policyassignment" ]]; then
-  # 06a78e20-9358-41c9-923c-fb736d382a4d is an id for 'Audit VMs that do not use managed disks' policy
-  az policy assignment create --display-name cctestpolicy --name cctestpolicy --policy '06a78e20-9358-41c9-923c-fb736d382a4d'
-else
-  echo "Skipping policyassignment"
-fi
+#
+## Deploy Azure Policy Assignment
+#if [ $# -eq 0 ] || [[ "$@" =~ "policyassignment" ]]; then
+#  # 06a78e20-9358-41c9-923c-fb736d382a4d is an id for 'Audit VMs that do not use managed disks' policy
+#  az policy assignment create --display-name cctestpolicy --name cctestpolicy --policy '06a78e20-9358-41c9-923c-fb736d382a4d'
+#else
+#  echo "Skipping policyassignment"
+#fi
 
