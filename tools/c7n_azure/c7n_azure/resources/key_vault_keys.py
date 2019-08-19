@@ -103,6 +103,7 @@ class KeyVaultKeys(ChildResourceManager):
             return {'vault_base_url': generate_key_vault_url(parent_resource['name'])}
 
     def augment(self, resources):
+        resources = super(KeyVaultKeys, self).augment(resources)
         # When KeyVault contains certificates, it creates corresponding key and secret objects to
         # store cert data. They are managed by KeyVault it is not possible to do any actions.
         return [r for r in resources if not r.get('managed')]
