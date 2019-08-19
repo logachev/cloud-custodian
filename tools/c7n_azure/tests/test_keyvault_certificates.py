@@ -14,20 +14,14 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from azure_common import BaseTest, arm_template
-from c7n_azure.session import Session
-from c7n.utils import local_session, reset_session_cache
 
 
-class KeyVaultKeyTest(BaseTest):
+class KeyVaultCertificatesTest(BaseTest):
 
     def test_key_vault_keys_schema_validate(self):
         p = self.load_policy({
             'name': 'test-key-vault',
-            'resource': 'azure.keyvault-keys',
-            'filters': [
-                {'type': 'keyvault', 'vaults': ['kv1', 'kv2']},
-                {'type': 'key-type', 'key-types': ['RSA', 'RSA-HSM', 'EC', 'EC-HSM']}
-            ]
+            'resource': 'azure.keyvault-certificates',
         }, validate=True)
         self.assertTrue(p)
 
@@ -35,7 +29,7 @@ class KeyVaultKeyTest(BaseTest):
     def test_key_vault_keys_keyvault(self):
         p = self.load_policy({
             'name': 'test-key-vault',
-            'resource': 'azure.keyvault-keys',
+            'resource': 'azure.keyvault-certificates',
             'filters': [
                 {
                     'type': 'parent',
@@ -50,19 +44,3 @@ class KeyVaultKeyTest(BaseTest):
         }, validate=True, cache=True)
         resources = p.run()
         self.assertEqual(len(resources), 2)
-
-    @arm_template('keyvault.json')
-    def test_key_vault_keys_type(self):
-        p = self.load_policy({
-            'name': 'test-key-vault',
-            'resource': 'azure.keyvault-keys',
-            'filters': [
-                {
-                    'type': 'key-type',
-                    'key-types': ['RSA', 'RSA-HSM']
-                },
-            ]
-        }, validate=True, cache=True)
-        resources = p.run()
-        self.assertEqual(len(resources), 1)
-        self.assertTrue(resources[0]['c7n:kty'].lower(), 'rsa')

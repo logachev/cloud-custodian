@@ -14,17 +14,17 @@
                     "message": "OK"
                 },
                 "headers": {
-                    "content-length": [
-                        "539"
+                    "content-type": [
+                        "application/json; charset=utf-8"
                     ],
                     "cache-control": [
                         "no-cache"
                     ],
                     "date": [
-                        "Mon, 19 Aug 2019 19:48:31 GMT"
+                        "Mon, 19 Aug 2019 19:47:04 GMT"
                     ],
-                    "content-type": [
-                        "application/json; charset=utf-8"
+                    "content-length": [
+                        "539"
                     ]
                 },
                 "body": {
@@ -52,7 +52,7 @@
         {
             "request": {
                 "method": "GET",
-                "uri": "https://cckeyvault1c6ra5qqpkhceo.vault.azure.net/keys?api-version=7.0",
+                "uri": "https://cckeyvault1c6ra5qqpkhceo.vault.azure.net/certificates?api-version=7.0",
                 "body": "",
                 "headers": {}
             },
@@ -65,17 +65,17 @@
                     "content-length": [
                         "87"
                     ],
-                    "www-authenticate": [
-                        "Bearer authorization=\"https://login.windows.net/72f988bf-86f1-41af-91ab-2d7cd011db47\", resource=\"https://vault.azure.net\""
-                    ],
-                    "date": [
-                        "Mon, 19 Aug 2019 19:48:31 GMT"
-                    ],
                     "cache-control": [
                         "no-cache"
                     ],
                     "content-type": [
                         "application/json; charset=utf-8"
+                    ],
+                    "www-authenticate": [
+                        "Bearer authorization=\"https://login.windows.net/72f988bf-86f1-41af-91ab-2d7cd011db47\", resource=\"https://vault.azure.net\""
+                    ],
+                    "date": [
+                        "Mon, 19 Aug 2019 19:47:05 GMT"
                     ]
                 },
                 "body": {
@@ -91,7 +91,7 @@
         {
             "request": {
                 "method": "GET",
-                "uri": "https://cckeyvault1c6ra5qqpkhceo.vault.azure.net/keys?api-version=7.0",
+                "uri": "https://cckeyvault1c6ra5qqpkhceo.vault.azure.net/certificates?api-version=7.0",
                 "body": "",
                 "headers": {}
             },
@@ -101,63 +101,45 @@
                     "message": "OK"
                 },
                 "headers": {
-                    "content-length": [
-                        "816"
-                    ],
-                    "date": [
-                        "Mon, 19 Aug 2019 19:48:31 GMT"
+                    "content-type": [
+                        "application/json; charset=utf-8"
                     ],
                     "cache-control": [
                         "no-cache"
                     ],
-                    "content-type": [
-                        "application/json; charset=utf-8"
+                    "date": [
+                        "Mon, 19 Aug 2019 19:47:05 GMT"
+                    ],
+                    "content-length": [
+                        "495"
                     ]
                 },
                 "body": {
                     "data": {
                         "value": [
                             {
-                                "kid": "https://cckeyvault1c6ra5qqpkhceo.vault.azure.net/keys/cctest1",
+                                "id": "https://cckeyvault1c6ra5qqpkhceo.vault.azure.net/certificates/cctest1",
+                                "x5t": "PqWxMOXkyDs1PkY9PH7VVugNLGk",
                                 "attributes": {
                                     "enabled": true,
                                     "nbf": 1566243128,
                                     "exp": 1597866128,
                                     "created": 1566243729,
-                                    "updated": 1566243729,
-                                    "recoveryLevel": "Purgeable"
+                                    "updated": 1566243729
                                 },
-                                "managed": true
+                                "subject": ""
                             },
                             {
-                                "kid": "https://cckeyvault1c6ra5qqpkhceo.vault.azure.net/keys/cctest2",
+                                "id": "https://cckeyvault1c6ra5qqpkhceo.vault.azure.net/certificates/cctest2",
+                                "x5t": "Wkdnd04E5KA6im-ciOSYoHTl9mk",
                                 "attributes": {
                                     "enabled": true,
                                     "nbf": 1566243144,
                                     "exp": 1597866144,
                                     "created": 1566243744,
-                                    "updated": 1566243744,
-                                    "recoveryLevel": "Purgeable"
+                                    "updated": 1566243744
                                 },
-                                "managed": true
-                            },
-                            {
-                                "kid": "https://cckeyvault1c6ra5qqpkhceo.vault.azure.net/keys/cctestec",
-                                "attributes": {
-                                    "enabled": true,
-                                    "created": 1566243707,
-                                    "updated": 1566243707,
-                                    "recoveryLevel": "Purgeable"
-                                }
-                            },
-                            {
-                                "kid": "https://cckeyvault1c6ra5qqpkhceo.vault.azure.net/keys/cctestrsa",
-                                "attributes": {
-                                    "enabled": true,
-                                    "created": 1566243705,
-                                    "updated": 1566243705,
-                                    "recoveryLevel": "Purgeable"
-                                }
+                                "subject": ""
                             }
                         ],
                         "nextLink": null
@@ -168,7 +150,7 @@
         {
             "request": {
                 "method": "GET",
-                "uri": "https://cckeyvault2kme24fgeaqvqk.vault.azure.net/keys?api-version=7.0",
+                "uri": "https://cckeyvault2kme24fgeaqvqk.vault.azure.net/certificates?api-version=7.0",
                 "body": "",
                 "headers": {}
             },
@@ -181,17 +163,17 @@
                     "content-length": [
                         "87"
                     ],
-                    "www-authenticate": [
-                        "Bearer authorization=\"https://login.windows.net/72f988bf-86f1-41af-91ab-2d7cd011db47\", resource=\"https://vault.azure.net\""
-                    ],
-                    "date": [
-                        "Mon, 19 Aug 2019 19:48:31 GMT"
-                    ],
                     "cache-control": [
                         "no-cache"
                     ],
                     "content-type": [
                         "application/json; charset=utf-8"
+                    ],
+                    "www-authenticate": [
+                        "Bearer authorization=\"https://login.windows.net/72f988bf-86f1-41af-91ab-2d7cd011db47\", resource=\"https://vault.azure.net\""
+                    ],
+                    "date": [
+                        "Mon, 19 Aug 2019 19:47:05 GMT"
                     ]
                 },
                 "body": {
@@ -207,7 +189,7 @@
         {
             "request": {
                 "method": "GET",
-                "uri": "https://cckeyvault2kme24fgeaqvqk.vault.azure.net/keys?api-version=7.0",
+                "uri": "https://cckeyvault2kme24fgeaqvqk.vault.azure.net/certificates?api-version=7.0",
                 "body": "",
                 "headers": {}
             },
@@ -220,14 +202,14 @@
                     "content-length": [
                         "370"
                     ],
-                    "date": [
-                        "Mon, 19 Aug 2019 19:48:31 GMT"
-                    ],
                     "cache-control": [
                         "no-cache"
                     ],
                     "content-type": [
                         "application/json; charset=utf-8"
+                    ],
+                    "date": [
+                        "Mon, 19 Aug 2019 19:47:05 GMT"
                     ]
                 },
                 "body": {
