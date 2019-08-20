@@ -29,22 +29,17 @@ log = logging.getLogger('custodian.azure.keyvault.storage')
 
 @resources.register('keyvault-storage')
 class KeyVaultStorage(ChildResourceManager):
-    """Key Vault Storage Account Resource
+    """Key Vault Managed Storage Account Resource
 
     :example:
+
+    List all Key Vault managed Storage Accounts
 
     .. code-block:: yaml
 
         policies:
           - name: keyvault-storage
-            description:
-              List all <TODO>
             resource: azure.keyvault-storage
-            filters:
-              - type: keyvault
-                vaults:
-                  - keyvault_test
-                  - keyvault_prod
 
     """
 
@@ -100,6 +95,24 @@ class KeyVaultStorageFilterBase(ValueFilter):
 
 @KeyVaultStorage.filter_registry.register('auto-regenerate')
 class KeyVaultStorageAutoRegenerateFilter(KeyVaultStorageFilterBase):
+    """Filter Key Vault Managed Storage Account Resource on Auto Regenerate property.
+
+    This is ``Value`` based filter, you can provide boolean ``value`` property.
+
+    :example:
+
+    List all Key Vault managed Storage Accounts with disabled automatic keys regeneration
+
+    .. code-block:: yaml
+
+        policies:
+          - name: keyvault-storage-auto-regenerate
+            resource: azure.keyvault-storage
+            filters:
+              - type: auto-regenerate
+                value: False
+
+    """
     schema = type_schema(
         'auto-regenerate',
         rinherit=ValueFilter.schema,
@@ -119,6 +132,26 @@ class KeyVaultStorageAutoRegenerateFilter(KeyVaultStorageFilterBase):
 
 @KeyVaultStorage.filter_registry.register('regeneration-period')
 class KeyVaultStorageRegenerationPeriodFilter(KeyVaultStorageFilterBase):
+    """Filter Key Vault Managed Storage Account Resource on Regeneration Period property.
+
+    This is ``Value`` based filter, you can provide any ``value`` and ``op`` properties.
+
+    :example:
+
+    List all Key Vault managed Storage Accounts with regeneration period not equal to P90D
+
+    .. code-block:: yaml
+
+
+        policies:
+          - name: keyvault-storage-regeneration-period
+            resource: azure.keyvault-storage
+            filters:
+              - type: regeneration-period
+                op: ne
+                value: P90D
+
+    """
     schema = type_schema(
         'regeneration-period',
         rinherit=ValueFilter.schema,
@@ -136,6 +169,26 @@ class KeyVaultStorageRegenerationPeriodFilter(KeyVaultStorageFilterBase):
 
 @KeyVaultStorage.filter_registry.register('active-key-name')
 class KeyVaultStorageActiveKeyNameFilter(KeyVaultStorageFilterBase):
+    """Filter Key Vault Managed Storage Account Resource on Active Key Name property.
+
+    This is ``Value`` based filter, you can provide string ``value`` property.
+
+    ``value_type`` is always ``normalize``.
+
+    :example:
+
+    List all Key Vault managed Storage Accounts with Active Key Name key1
+
+    .. code-block:: yaml
+
+        policies:
+          - name: keyvault-storage-active-key-name
+            resource: azure.keyvault-storage
+            filters:
+              - type: active-key-name
+                value: key1
+
+    """
     schema = type_schema(
         'active-key-name',
         rinherit=ValueFilter.schema,
