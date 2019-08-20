@@ -19,7 +19,7 @@ from c7n_azure import constants
 from c7n_azure.actions.base import AzureBaseAction
 from c7n_azure.provider import resources
 from c7n_azure.query import ChildResourceManager, ChildTypeInfo
-from c7n_azure.utils import ThreadHelper, generate_key_vault_url
+from c7n_azure.utils import generate_key_vault_url
 
 from c7n.filters import ValueFilter
 from c7n.utils import get_annotation_prefix as gap
@@ -137,9 +137,9 @@ class KeyVaultStorageRegenerationPeriodFilter(ValueFilter):
     schema = type_schema(
         'regeneration-period',
         rinherit=ValueFilter.schema,
-        ** {
-           'key': None,
-           'value_type': None
+        **{
+            'key': None,
+            'value_type': None
         }
     )
 
@@ -274,4 +274,3 @@ class KeyVaultStorageUpdateAction(AzureBaseAction):
             active_key_name=self.data.get('active-key-name', None),
             auto_regenerate_key=self.data.get('auto-regenerate-key', None),
             regeneration_period=self.data.get('regeneration-period', None))
-
