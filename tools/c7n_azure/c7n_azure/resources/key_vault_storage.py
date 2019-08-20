@@ -75,8 +75,8 @@ class KeyVaultStorage(ChildResourceManager):
         return resources
 
 
-@KeyVaultStorage.filter_registry.register('auto-regenerate')
-class KeyVaultStorageAutoRegenerateFilter(ValueFilter):
+@KeyVaultStorage.filter_registry.register('auto-regenerate-key')
+class KeyVaultStorageAutoRegenerateKeyFilter(ValueFilter):
     """Filter Key Vault Managed Storage Account Resource on Auto Regenerate property.
 
     This is ``Value`` based filter, you can provide boolean ``value`` property.
@@ -91,12 +91,12 @@ class KeyVaultStorageAutoRegenerateFilter(ValueFilter):
           - name: keyvault-storage-auto-regenerate
             resource: azure.keyvault-storage
             filters:
-              - type: auto-regenerate
+              - type: auto-regenerate-key
                 value: False
 
     """
     schema = type_schema(
-        'auto-regenerate',
+        'auto-regenerate-key',
         rinherit=ValueFilter.schema,
         **{
             'key': None,
@@ -107,7 +107,7 @@ class KeyVaultStorageAutoRegenerateFilter(ValueFilter):
     )
 
     def __init__(self, *args, **kwargs):
-        super(KeyVaultStorageAutoRegenerateFilter, self).__init__(*args, **kwargs)
+        super(KeyVaultStorageAutoRegenerateKeyFilter, self).__init__(*args, **kwargs)
         self.data['key'] = '"{0}".autoRegenerateKey'.format(gap('extra'))
         self.data['op'] = 'eq'
 
@@ -202,7 +202,7 @@ class KeyVaultStorageRegenerateKeyAction(AzureBaseAction):
     .. code-block:: yaml
 
         policies:
-          - name: azure-managed-storage
+          - name: azure-managed-storage-regenerate-key
             resource: azure.keyvault-storage
             filters:
               - type: value
@@ -239,7 +239,7 @@ class KeyVaultStorageUpdateAction(AzureBaseAction):
     .. code-block:: yaml
 
         policies:
-          - name: azure-managed-storage
+          - name: azure-managed-storage-update
             resource: azure.keyvault-storage
             filters:
               - or:

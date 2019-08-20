@@ -41,7 +41,7 @@ class KeyVaultStorageTest(BaseTest):
     @arm_template('keyvault.json')
     @cassette_name('common')
     def test_key_vault_storage_filter_auto_regenerate(self):
-        p = self._get_policy([{'type': 'auto-regenerate', 'value': False}], [])
+        p = self._get_policy([{'type': 'auto-regenerate-key', 'value': False}], [])
         resources = p.run()
         self.assertEqual(len(resources), 1)
 
