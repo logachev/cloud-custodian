@@ -16,6 +16,7 @@ import logging
 
 from azure.keyvault.key_vault_id import StorageAccountId
 from c7n_azure import constants
+from c7n_azure.actions.base import AzureBaseAction
 from c7n_azure.provider import resources
 from c7n_azure.query import ChildResourceManager, ChildTypeInfo
 from c7n_azure.utils import ThreadHelper, generate_key_vault_url
@@ -58,43 +59,24 @@ class KeyVaultStorage(ChildResourceManager):
         def extra_args(cls, parent_resource):
             return {'vault_base_url': generate_key_vault_url(parent_resource['name'])}
 
+    # get_storage_accounts method returns very limited amount of information. For any meaningful
+    # filter or action we have to query some extra data, so augment is the best possible place.
+    def augment(self, resources):
+        resources = super(KeyVaultStorage, self).augment(resources)
 
-class KeyVaultStorageFilterBase(ValueFilter):
+        client = self.get_client()
+        extra_fields = ['autoRegenerateKey', 'regenerationPeriod', 'activeKeyName']
 
-    extra_fields = ['autoRegenerateKey', 'regenerationPeriod', 'activeKeyName']
+        for r in resources:
+            sid = StorageAccountId(r['id'])
+            data = client.get_storage_account(sid.vault, sid.name).serialize(True)
+            r[gap('extra')] = {k: v for k, v in data.items() if k in extra_fields}
 
-    def process(self, resources, event=None):
-        self.client = self.manager.get_client()
-        resources, _ = ThreadHelper.execute_in_parallel(
-            resources=resources,
-            event=event,
-            execution_method=self._process_resource_set,
-            executor_factory=self.executor_factory,
-            log=log
-        )
         return resources
-
-    def _extend(self, resource):
-        if gap('extra') in resource:
-            return resource
-
-        sid = StorageAccountId(resource['id'])
-        data = self.client.get_storage_account(sid.vault, sid.name).serialize(True)
-
-        resource[gap('extra')] = {k: v for k, v in data.items() if k in self.extra_fields}
-
-    def _process_resource_set(self, resources, event):
-        for resource in resources:
-            try:
-                self._extend(resource)
-            except Exception as error:
-                log.warning(error)
-
-        return [r for r in resources if self.match(r)]
 
 
 @KeyVaultStorage.filter_registry.register('auto-regenerate')
-class KeyVaultStorageAutoRegenerateFilter(KeyVaultStorageFilterBase):
+class KeyVaultStorageAutoRegenerateFilter(ValueFilter):
     """Filter Key Vault Managed Storage Account Resource on Auto Regenerate property.
 
     This is ``Value`` based filter, you can provide boolean ``value`` property.
@@ -131,7 +113,7 @@ class KeyVaultStorageAutoRegenerateFilter(KeyVaultStorageFilterBase):
 
 
 @KeyVaultStorage.filter_registry.register('regeneration-period')
-class KeyVaultStorageRegenerationPeriodFilter(KeyVaultStorageFilterBase):
+class KeyVaultStorageRegenerationPeriodFilter(ValueFilter):
     """Filter Key Vault Managed Storage Account Resource on Regeneration Period property.
 
     This is ``Value`` based filter, you can provide any ``value`` and ``op`` properties.
@@ -168,7 +150,7 @@ class KeyVaultStorageRegenerationPeriodFilter(KeyVaultStorageFilterBase):
 
 
 @KeyVaultStorage.filter_registry.register('active-key-name')
-class KeyVaultStorageActiveKeyNameFilter(KeyVaultStorageFilterBase):
+class KeyVaultStorageActiveKeyNameFilter(ValueFilter):
     """Filter Key Vault Managed Storage Account Resource on Active Key Name property.
 
     This is ``Value`` based filter, you can provide string ``value`` property.
@@ -206,3 +188,90 @@ class KeyVaultStorageActiveKeyNameFilter(KeyVaultStorageFilterBase):
         self.data['key'] = '"{0}".activeKeyName'.format(gap('extra'))
         self.data['op'] = 'eq'
         self.data['value_type'] = 'normalize'
+
+
+@KeyVaultStorage.action_registry.register('regenerate-key')
+class KeyVaultStorageRegenerateKeyAction(AzureBaseAction):
+    """
+    Regenerate Managed Storage Access Key
+
+    :example:
+
+    Regenerate all Access Keys older than 30 days.
+
+    .. code-block:: yaml
+
+        policies:
+          - name: azure-managed-storage
+            resource: azure.keyvault-storage
+            filters:
+              - type: value
+                key: attributes.updated
+                op: gt
+                value_type: age
+                value: 30
+            actions:
+             - type: regenerate-key
+
+    """
+
+    schema = type_schema('regenerate-key')
+
+    def _prepare_processing(self):
+        self.client = self.manager.get_client()
+
+    def _process_resource(self, resource):
+        sid = StorageAccountId(resource['id'])
+        self.client.regenerate_storage_account_key(sid.vault,
+                                                   sid.name,
+                                                   resource[gap('extra')]['activeKeyName'])
+
+
+@KeyVaultStorage.action_registry.register('update')
+class KeyVaultStorageUpdateAction(AzureBaseAction):
+    """
+    Update Key Vault Managed Storage Account properties.
+
+    :example:
+
+    Ensure all keys have auto regenerate enabled with 30 days rotation policy.
+
+    .. code-block:: yaml
+
+        policies:
+          - name: azure-managed-storage
+            resource: azure.keyvault-storage
+            filters:
+              - or:
+                - type: auto-regenerate-key
+                  value: false
+                - type: regeneration-period
+                  op: ne
+                  value: P30D
+            actions:
+             - type: update
+               auto-regenerate-key: true
+               regeneration-period: P30D
+
+    """
+
+    schema = type_schema(
+        'update',
+        **{
+            'active-key-name': {'type': 'string'},
+            'auto-regenerate-key': {'type': 'boolean'},
+            'regeneration-period': {'type': 'string'},
+        })
+
+    def _prepare_processing(self):
+        self.client = self.manager.get_client()
+
+    def _process_resource(self, resource):
+        sid = StorageAccountId(resource['id'])
+        self.client.update_storage_account(
+            sid.vault,
+            sid.name,
+            active_key_name=self.data.get('active-key-name', None),
+            auto_regenerate_key=self.data.get('auto-regenerate-key', None),
+            regeneration_period=self.data.get('regeneration-period', None))
+
