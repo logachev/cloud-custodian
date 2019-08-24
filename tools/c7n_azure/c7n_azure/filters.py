@@ -731,13 +731,13 @@ class CostFilter(ValueFilter):
 
       - Number of days before today
 
-      - All days in current period until today:
+      - All days in current calendar period until today:
 
         - ``WeekToDate``
         - ``MonthToDate``
         - ``YearToDate``
 
-      - All days in the previous period:
+      - All days in the previous calendar period:
 
         - ``TheLastWeek``
         - ``TheLastMonth``
