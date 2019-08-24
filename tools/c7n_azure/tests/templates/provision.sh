@@ -9,53 +9,69 @@ resourceLocation="South Central US"
 templateDirectory="$( cd "$( dirname "$0" )" && pwd )"
 
 deploy_resource() {
-  rgName="test_$filenameNoExtension"
+    echo "Deployment for ${filenameNoExtension} started"
 
-  az group create --name $rgName --location $resourceLocation
+    fileName=${1##*/}
+    filenameNoExtension=${fileName%.*}
+    rgName="test_$filenameNoExtension"
 
-  if [[ "$1" =~ "keyvault.json" ]]; then
-    azureAdUserObjectId=$(az ad signed-in-user show --query objectId  --output tsv)
+    az group create --name $rgName --location $resourceLocation --output None
 
-    az group deployment create --resource-group $rgName --template-file $file \
-        --parameters "userObjectId=$azureAdUserObjectId"
+    if [[ "$fileName" == "keyvault.json" ]]; then
 
-    vault_name=$(az keyvault list --resource-group $rgName --query [0].name --output tsv)
-    az keyvault key create --vault-name $vault_name --name cctestrsa --kty RSA
-    az keyvault key create --vault-name $vault_name --name cctestec --kty EC
-  elif [[ "$1" =~ "aks.json" ]]; then
-    az group deployment create --resource-group $rgName --template-file $file --parameters client_id=$AZURE_CLIENT_ID client_secret=$AZURE_CLIENT_SECRET --mode Complete
-  else
-    az group deployment create --resource-group $rgName --template-file $file --mode Complete
-  fi
+        azureAdUserObjectId=$(az ad signed-in-user show --query objectId  --output tsv)
 
+        az group deployment create --resource-group $rgName --template-file $file \
+            --parameters "userObjectId=$azureAdUserObjectId" --output None
+
+        vault_name=$(az keyvault list --resource-group $rgName --query [0].name --output tsv)
+        az keyvault key create --vault-name $vault_name --name cctestrsa --kty RSA --output None
+        az keyvault key create --vault-name $vault_name --name cctestec --kty EC --output None
+
+    elif [[ "$fileName" == "aks.json" ]]; then
+
+        az group deployment create --resource-group $rgName --template-file $file --parameters client_id=$AZURE_CLIENT_ID client_secret=$AZURE_CLIENT_SECRET --mode Complete --output None
+
+    else
+        az group deployment create --resource-group $rgName --template-file $file --mode Complete --output None
+    fi
+
+    echo "Deployment for ${filenameNoExtension} complete"
+}
+
+deploy_acs() {
+    rgName=test_containerservice
+    echo "Deployment for ACS started"
+    az group create --name $rgName --location $resourceLocation --output None
+    az acs create -n cctestacs -d cctestacsdns -g $rgName --generate-ssh-keys --orchestrator-type kubernetes --output None
+    echo "Deployment for ACS complete"
+}
+
+deploy_policy_assignment() {
+    echo "Deployment for policy assignment started"
+    # 06a78e20-9358-41c9-923c-fb736d382a4d is an id for 'Audit VMs that do not use managed disks' policy
+    az policy assignment create --display-name cctestpolicy --name cctestpolicy --policy '06a78e20-9358-41c9-923c-fb736d382a4d' --output None
+    echo "Deployment for policy assignment complete"
 }
 
 # Create resource groups and deploy for each template file
 for file in "$templateDirectory"/*.json; do
-  fileName=${file##*/}
-  filenameNoExtension=${fileName%.*}
+    fileName=${file##*/}
+    filenameNoExtension=${fileName%.*}
 
-  if [ $# -eq 0 ] || [[ "$@" == "$filenameNoExtension" ]]; then
-    deploy_resource ${file}
-  else
-    echo "Skipping ${filenameNoExtension}"
-  fi
+    if [ $# -eq 0 ] || [[ "$@" =~ " $filenameNoExtension " ]]; then
+        deploy_resource ${file} &
+    fi
 done
 
-# Deploy ACS resource
-rgName=test_containerservice
 if [ $# -eq 0 ] || [[ "$@" =~ "containerservice" ]]; then
-  az group create --name $rgName --location $resourceLocation
-  az acs create -n cctestacs -d cctestacsdns -g $rgName --generate-ssh-keys --orchestrator-type kubernetes
-else
-  echo "Skipping $rgName"
+    deploy_acs &
 fi
-#
-## Deploy Azure Policy Assignment
-#if [ $# -eq 0 ] || [[ "$@" =~ "policyassignment" ]]; then
-#  # 06a78e20-9358-41c9-923c-fb736d382a4d is an id for 'Audit VMs that do not use managed disks' policy
-#  az policy assignment create --display-name cctestpolicy --name cctestpolicy --policy '06a78e20-9358-41c9-923c-fb736d382a4d'
-#else
-#  echo "Skipping policyassignment"
-#fi
 
+# Deploy Azure Policy Assignment
+if [ $# -eq 0 ] || [[ "$@" =~ "policyassignment" ]]; then
+    deploy_policy_assignment &
+fi
+
+# Wait until all deployments are finished
+wait
