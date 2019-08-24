@@ -8,6 +8,13 @@ IFS=$'\n\t'
 resourceLocation="South Central US"
 templateDirectory="$( cd "$( dirname "$0" )" && pwd )"
 
+if [ $# -eq 0 ] || [[ "$@" =~ "aks" ]]; then
+    if [[ -z "$AZURE_CLIENT_ID" ]] || [[ -z "$AZURE_CLIENT_SECRET" ]]; then
+        echo "AZURE_CLIENT_ID AND AZURE_CLIENT_SECRET environment variables are required to deploy AKS"
+        exit 1
+    fi
+fi
+
 deploy_resource() {
     echo "Deployment for ${filenameNoExtension} started"
 
@@ -69,7 +76,7 @@ for file in "$templateDirectory"/*.json; do
     fileName=${file##*/}
     filenameNoExtension=${fileName%.*}
 
-    if [ $# -eq 0 ] || [[ "$@" =~ " $filenameNoExtension " ]]; then
+    if [ $# -eq 0 ] || [[ "$@" =~ "$filenameNoExtension" ]]; then
         deploy_resource ${file} &
     fi
 done

@@ -33,7 +33,7 @@ for file in "$templateDirectory"/*.json; do
     fileName=${file##*/}
     filenameNoExtension=${fileName%.*}
 
-    if [ $# -eq 0 ] || [[ "$@" =~ " $filenameNoExtension " ]]; then
+    if [ $# -eq 0 ] || [[ "$@" =~ "$filenameNoExtension" ]]; then
         delete_resource ${file} &
     fi
 done
