@@ -471,4 +471,3 @@ def requires_arm_polling(cls):
 
     cls.__init__ = __init__  # Set the class' __init__ to the new one
     return cls
-
