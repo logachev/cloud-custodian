@@ -2,7 +2,7 @@ variables:
 - group: CustodianCoreCI
 
 jobs:
-- job: 'Nightly test'
+- job: 'azure_nightly_test_run'
   displayName: 'Azure Nightly Test Run'
   pool:
     vmImage: 'Ubuntu-16.04'
