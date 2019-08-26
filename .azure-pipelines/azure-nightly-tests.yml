@@ -2,10 +2,28 @@ variables:
 - group: CustodianCoreCI
 
 jobs:
-- job: 'Nightly test'
+- job: 'azure_nightly_test_run'
   displayName: 'Azure Nightly Test Run'
   pool:
     vmImage: 'Ubuntu-16.04'
 
   steps:
+    - checkout: self
+      fetchDepth: 1
 
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.7'
+        architecture: 'x64'
+
+    - script: python -m pip install --upgrade pip && pip install . && pip install -r requirements-dev.txt
+      displayName: "Install Dependencies"
+    
+    - script: tools/c7n_azure/tests/templates/provision.sh
+      displayName: "Provision Azure Resources"
+    
+    - script: pytest tools/c7n_azure/tests
+      displayName: "Run Azure tests without cassettes"
+
+    - script: tools/c7n_azure/tests/templates/cleanup.sh
+      displayName: "Cleanup Azure Resources"
