@@ -7,6 +7,10 @@ jobs:
   pool:
     vmImage: 'Ubuntu-16.04'
 
+  variables:
+    C7N_TEST_RUN: true
+    C7N_TEST_RUN_LIVE: true
+
   steps:
     - checkout: self
       fetchDepth: 1
@@ -27,3 +31,4 @@ jobs:
 
     - script: tools/c7n_azure/tests/templates/cleanup.sh
       displayName: "Cleanup Azure Resources"
+      condition: always()
