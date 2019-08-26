@@ -43,7 +43,7 @@ class ResourceQuery(object):
             params.update(extra_args)
 
         op = getattr(getattr(resource_manager.get_client(), enum_op), list_op)
-        data = [r.serialize(True) for r in op(**params)]
+        data = [r.serialize(True) for r in op(**params).value]#[r.serialize(True) for r in op(**params)]
 
         return data
 
