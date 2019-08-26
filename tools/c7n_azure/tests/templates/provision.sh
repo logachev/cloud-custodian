@@ -5,6 +5,9 @@ IFS=$'\n\t'
 
 # If `az ad signed-in-user show` fails then update your Azure CLI version
 
+az login --service-principal -u ${AZURE_CLIENT_ID} -p ${AZURE_CLIENT_SECRET} --tenant ${AZURE_TENANT_ID}
+az account set -s ${AZURE_SUBSCRIPTION_ID}
+
 resourceLocation="South Central US"
 templateDirectory="$( cd "$( dirname "$0" )" && pwd )"
 
