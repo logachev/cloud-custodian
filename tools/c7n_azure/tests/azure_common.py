@@ -23,6 +23,7 @@ from azure_serializer import AzureSerializer
 from c7n_azure import utils, constants
 from c7n_azure.session import Session
 from c7n_azure.utils import ThreadHelper
+from distutils.utils import strtobool
 from mock import patch
 from msrest.pipeline import ClientRawResponse
 from msrest.serialization import Model
@@ -147,7 +148,7 @@ class AzureVCRBaseTest(VCRTestCase):
 
     def __init__(self, *args, **kwargs):
         super(AzureVCRBaseTest, self).__init__(*args, **kwargs)
-        self.vcr_enabled = not os.environ.get('C7N_TEST_RUN_LIVE')
+        self.vcr_enabled = strtobool(os.environ.get('C7N_FUNCTIONAL'))
 
     def is_playback(self):
         # You can't do this in setup because it is actually required by the base class

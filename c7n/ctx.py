@@ -13,10 +13,11 @@
 # limitations under the License.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import os
 import time
 import uuid
-import os
 
+from distutils.utils import strtobool
 
 from c7n.output import (
     api_stats_outputs,
@@ -25,7 +26,6 @@ from c7n.output import (
     metrics_outputs,
     sys_stats_outputs,
     tracer_outputs)
-
 from c7n.utils import reset_session_cache, dumps, local_session
 from c7n.version import version
 
@@ -121,7 +121,7 @@ class ExecutionContext(object):
         # to manually reset this.  Why: Not doing this means we get
         # excessive memory usage from client reconstruction for dynamic-gen
         # sdks.
-        if os.environ.get('C7N_TEST_RUN'):
+        if strtobool(os.environ.get('C7N_TEST_RUN')):
             reset_session_cache()
 
     def get_metadata(self, include=('sys-stats', 'api-stats', 'metrics')):

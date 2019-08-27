@@ -25,7 +25,7 @@ jobs:
     - script: tools/c7n_azure/tests/templates/provision.sh
       displayName: "Provision Azure Resources"
     
-    - script: C7N_TEST_RUN=true C7N_TEST_RUN_LIVE=true pytest tools/c7n_azure/tests
+    - script: C7N_TEST_RUN=true C7N_FUNCTIONAL=yes pytest tools/c7n_azure/tests
       displayName: "Run Azure tests without cassettes"
 
     - script: tools/c7n_azure/tests/templates/cleanup.sh
