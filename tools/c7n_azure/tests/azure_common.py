@@ -383,14 +383,17 @@ class BaseTest(TestUtils, AzureVCRBaseTest):
             self.addCleanup(self._subscription_patch.stop)
 
     def get_test_date(self, tz=None):
-        header_date = self.cassette.responses[0]['headers'].get('date') \
-            if self.cassette.responses else None
+        if self.vcr_enabled:
+            header_date = self.cassette.responses[0]['headers'].get('date') \
+                if self.cassette.responses else None
 
-        if header_date:
-            test_date = datetime.datetime(*eut.parsedate(header_date[0])[:6])
+            if header_date:
+                test_date = datetime.datetime(*eut.parsedate(header_date[0])[:6])
+            else:
+                test_date = datetime.datetime.now()
+            return test_date.replace(hour=23, minute=59, second=59, microsecond=0)
         else:
-            test_date = datetime.datetime.now()
-        return test_date.replace(hour=23, minute=59, second=59, microsecond=0)
+            return datetime.datetime.now()
 
     @staticmethod
     def setup_account():
