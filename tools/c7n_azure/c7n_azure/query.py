@@ -42,9 +42,17 @@ class ResourceQuery(object):
         if extra_args:
             params.update(extra_args)
 
-        op = getattr(getattr(resource_manager.get_client(), enum_op), list_op)
-        data = [r.serialize(True) for r in op(**params).value]#[r.serialize(True) for r in op(**params)]
+        params.update(m.extra_args(resource_manager))
 
+        op = getattr(getattr(resource_manager.get_client(), enum_op), list_op)
+        result = op(**params)
+
+        try:
+            data = [r.serialize(True) for r in result]
+        except TypeError:
+            # This is due to an issue with inconsistency in Azure SDK:
+            # https://github.com/Azure/azure-sdk-for-python/issues/6941
+            data = [r.serialize(True) for r in result.value]
         return data
 
     @staticmethod
@@ -147,6 +155,9 @@ class TypeInfo(object):
 
     resource = constants.RESOURCE_ACTIVE_DIRECTORY
 
+    @classmethod
+    def extra_args(cls, resource_manager):
+        return {}
 
 @six.add_metaclass(TypeMeta)
 class ChildTypeInfo(TypeInfo):

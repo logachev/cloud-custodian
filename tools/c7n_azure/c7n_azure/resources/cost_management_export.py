@@ -37,10 +37,16 @@ class CostManagementExport(QueryResourceManager):
 
         service = 'azure.mgmt.costmanagement'
         client = 'CostManagementClient'
-        enum_spec = ('exports', 'list', {'scope': '/subscriptions/aa98974b-5d2a-4d98-a78a-382f3715d07e'})
+        enum_spec = ('exports', 'list', None)
         default_report_fields = (
             'name',
             'location',
             'resourceGroup',
         )
         resource_type = 'Microsoft.Compute/images'
+
+        @classmethod
+        def extra_args(cls, resource_manager):
+            scope = '/subscriptions/{0}'\
+                .format(resource_manager.get_session().get_subscription_id())
+            return {'scope': scope}
