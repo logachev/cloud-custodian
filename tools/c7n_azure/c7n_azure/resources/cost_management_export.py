@@ -13,11 +13,11 @@
 # limitations under the License.
 
 from c7n_azure.provider import resources
-from c7n_azure.resources.arm import ArmResourceManager
+from c7n_azure.query import QueryResourceManager
 
 
-@resources.register('cost-export')
-class CostExport(ArmResourceManager):
+@resources.register('cost-management-export')
+class CostManagementExport(QueryResourceManager):
     """ Cost Exports for current subscription
 
     :example:
@@ -32,7 +32,7 @@ class CostExport(ArmResourceManager):
 
     """
 
-    class resource_type(ArmResourceManager.resource_type):
+    class resource_type(QueryResourceManager.resource_type):
         doc_groups = ['Cost']
 
         service = 'azure.mgmt.costmanagement'
