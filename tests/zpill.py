@@ -316,7 +316,7 @@ class PillTest(unittest.TestCase):
         default region. It is unused when replaying stored data.
         """
 
-        if strtobool(os.environ.get("C7N_FUNCTIONAL")):
+        if strtobool(os.environ.get('C7N_FUNCTIONAL', 'no')):
             self.recording = True
             return lambda region=region, assume=None: boto3.Session(region_name=region)
 

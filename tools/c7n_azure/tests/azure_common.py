@@ -148,7 +148,7 @@ class AzureVCRBaseTest(VCRTestCase):
 
     def __init__(self, *args, **kwargs):
         super(AzureVCRBaseTest, self).__init__(*args, **kwargs)
-        self.vcr_enabled = strtobool(os.environ.get('C7N_FUNCTIONAL'))
+        self.vcr_enabled = strtobool(os.environ.get('C7N_FUNCTIONAL', 'no'))
 
     def is_playback(self):
         # You can't do this in setup because it is actually required by the base class
