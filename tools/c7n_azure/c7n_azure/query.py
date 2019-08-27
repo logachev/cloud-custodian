@@ -159,6 +159,7 @@ class TypeInfo(object):
     def extra_args(cls, resource_manager):
         return {}
 
+
 @six.add_metaclass(TypeMeta)
 class ChildTypeInfo(TypeInfo):
     """api client construction information for child resources"""
