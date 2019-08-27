@@ -71,6 +71,12 @@ deploy_policy_assignment() {
     echo "Deployment for policy assignment complete"
 }
 
+deploy_cost_management_export() {
+    token=$(az account get-access-token --query accessToken --output tsv)
+
+
+}
+
 # Create resource groups and deploy for each template file
 for file in "$templateDirectory"/*.json; do
     fileName=${file##*/}
@@ -85,7 +91,10 @@ if [ $# -eq 0 ] || [[ "$@" =~ "containerservice" ]]; then
     deploy_acs &
 fi
 
-# Deploy Azure Policy Assignment
+if [ $# -eq 0 ] || [[ "$@" =~ "cost-management-exports" ]]; then
+    deploy_cost_management_export &
+fi
+
 if [ $# -eq 0 ] || [[ "$@" =~ "policyassignment" ]]; then
     deploy_policy_assignment &
 fi
