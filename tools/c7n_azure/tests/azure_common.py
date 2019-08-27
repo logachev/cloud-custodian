@@ -16,6 +16,7 @@ import email.utils as eut
 import json
 import os
 import re
+from distutils.util import strtobool
 from functools import wraps
 
 import msrest.polling
@@ -23,7 +24,6 @@ from azure_serializer import AzureSerializer
 from c7n_azure import utils, constants
 from c7n_azure.session import Session
 from c7n_azure.utils import ThreadHelper
-from distutils.utils import strtobool
 from mock import patch
 from msrest.pipeline import ClientRawResponse
 from msrest.serialization import Model

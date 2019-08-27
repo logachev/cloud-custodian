@@ -20,12 +20,12 @@ import shutil
 import unittest
 import zipfile
 from datetime import datetime, timedelta, tzinfo
+from distutils.util import strtobool
 
 import boto3
 import jmespath
 import placebo
 from botocore.response import StreamingBody
-from distutils.utils import strtobool
 from placebo import pill
 from six import StringIO
 
