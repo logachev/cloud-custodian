@@ -39,7 +39,7 @@ class CostManagementExport(QueryResourceManager):
     .. code-block:: yaml
 
         policies:
-          - name: get-cost--management-exports
+          - name: get-cost-management-exports
             resource: azure.cost-management-export
 
     """
@@ -75,7 +75,7 @@ class CostManagementExportFilterLastExecution(Filter):
     .. code-block:: yaml
 
         policies:
-          - name: get-cost--management-exports
+          - name: find-stale-management-exports
             resource: azure.cost-management-export
             filters:
               - type: last-execution
@@ -144,7 +144,7 @@ class CostManagementExportActionExecute(AzureBaseAction):
     .. code-block:: yaml
 
         policies:
-          - name: get-cost--management-exports
+          - name: execute-stale-management-exports
             resource: azure.cost-management-export
             filters:
               - type: last-execution
