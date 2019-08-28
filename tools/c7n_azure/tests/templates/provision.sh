@@ -26,6 +26,7 @@ deploy_resource() {
 
     if [[ "$fileName" == "keyvault.json" ]]; then
 
+
         azureAdUserObjectId=$(az ad signed-in-user show --query objectId --output tsv)
 
         az group deployment create --resource-group $rgName --template-file $file \
@@ -49,6 +50,21 @@ deploy_resource() {
 
         az group deployment create --resource-group $rgName --template-file $file --parameters client_id=$AZURE_CLIENT_ID client_secret=$AZURE_CLIENT_SECRET --mode Complete --output None
 
+    elif [[ "$fileName" == "cost-management-export.json" ]]; then
+
+        # Deploy storage account required for the export
+        az group deployment create --resource-group $rgName --template-file $file --mode Complete --output None
+
+        token=$(az account get-access-token --query accessToken --output tsv)
+        storage_id=$(az storage account list --resource-group $rgName --query [0].id --output tsv)
+        url=https://management.azure.com/subscriptions/${AZURE_SUBSCRIPTION_ID}/providers/Microsoft.CostManagement/exports/cccostexport?api-version=2019-01-01
+
+        eval "echo \"$(cat cost-management-export-body.template)\"" > cost-management.body
+
+        curl -X PUT -d "@cost-management.body" -H "content-type: application/json" -H "Authorization: Bearer ${token}" ${url}
+
+        rm -f cost-management.body
+
     else
         az group deployment create --resource-group $rgName --template-file $file --mode Complete --output None
     fi
@@ -69,12 +85,6 @@ deploy_policy_assignment() {
     # 06a78e20-9358-41c9-923c-fb736d382a4d is an id for 'Audit VMs that do not use managed disks' policy
     az policy assignment create --display-name cctestpolicy --name cctestpolicy --policy '06a78e20-9358-41c9-923c-fb736d382a4d' --output None
     echo "Deployment for policy assignment complete"
-}
-
-deploy_cost_management_export() {
-    token=$(az account get-access-token --query accessToken --output tsv)
-
-
 }
 
 # Create resource groups and deploy for each template file
