@@ -65,12 +65,8 @@ class CostManagementExport(QueryResourceManager):
 
 
 @CostManagementExport.filter_registry.register('last-execution')
-class KeyVaultFilter(Filter):
+class CostManagementExportFilterLastExecution(Filter):
     """ Find Cost Management Exports with last execution more than X days ago.
-
-    Known issues:
-
-    Error: (400) A valid email claim is required. Email claim is missing in the request header.
 
     :example:
 
@@ -121,6 +117,7 @@ class KeyVaultFilter(Filter):
             if len(history.value) == 0:
                 r[gap('last-execution')] = 'None'
                 result.append(r)
+                continue
 
             last_execution = max(history.value, key=lambda a: a.submitted_time)
             if last_execution.submitted_time.date() <= self.min_date.date():
@@ -136,7 +133,9 @@ class CostManagementExportActionExecute(AzureBaseAction):
 
     Known issues:
 
-    Error: (400) A valid email claim is required. Email claim is missing in the request header.
+    If you see an error
+    ``Error: (400) A valid email claim is required. Email claim is missing in the request header.``
+    please ensure used Service Principal has proper email configured.
 
     :example:
 

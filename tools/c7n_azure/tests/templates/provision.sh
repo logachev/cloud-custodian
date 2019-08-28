@@ -26,7 +26,6 @@ deploy_resource() {
 
     if [[ "$fileName" == "keyvault.json" ]]; then
 
-
         azureAdUserObjectId=$(az ad signed-in-user show --query objectId --output tsv)
 
         az group deployment create --resource-group $rgName --template-file $file \
@@ -57,7 +56,8 @@ deploy_resource() {
 
         token=$(az account get-access-token --query accessToken --output tsv)
         storage_id=$(az storage account list --resource-group $rgName --query [0].id --output tsv)
-        url=https://management.azure.com/subscriptions/${AZURE_SUBSCRIPTION_ID}/providers/Microsoft.CostManagement/exports/cccostexport?api-version=2019-01-01
+        subscription_id=$(az account show --query id --output tsv)
+        url=https://management.azure.com/subscriptions/${subscription_id}/providers/Microsoft.CostManagement/exports/cccostexport?api-version=2019-01-01
 
         eval "echo \"$(cat cost-management-export-body.template)\"" > cost-management.body
 
@@ -99,10 +99,6 @@ done
 
 if [ $# -eq 0 ] || [[ "$@" =~ "containerservice" ]]; then
     deploy_acs &
-fi
-
-if [ $# -eq 0 ] || [[ "$@" =~ "cost-management-exports" ]]; then
-    deploy_cost_management_export &
 fi
 
 if [ $# -eq 0 ] || [[ "$@" =~ "policyassignment" ]]; then
