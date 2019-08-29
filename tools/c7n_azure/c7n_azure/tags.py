@@ -14,6 +14,7 @@
 import logging
 
 from azure.mgmt.resource.resources.models import GenericResource, ResourceGroupPatchable
+from c7n_azure.constants import RESOURCE_GROUPS_TYPE
 
 
 class TagHelper:
@@ -25,7 +26,7 @@ class TagHelper:
         client = tag_action.session.client('azure.mgmt.resource.ResourceManagementClient')
 
         # resource group type
-        if tag_action.manager.type == 'resourcegroup':
+        if resource['type'] == RESOURCE_GROUPS_TYPE:
             params_patch = ResourceGroupPatchable(
                 tags=tags
             )

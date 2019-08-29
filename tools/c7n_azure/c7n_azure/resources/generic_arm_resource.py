@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from c7n_azure.constants import RESOURCE_GROUPS_TYPE
 from c7n_azure.provider import resources
 from c7n_azure.query import DescribeSource, ResourceQuery
 from c7n_azure.resources.arm import ArmResourceManager, arm_resource_types
-from c7n_azure.utils import ResourceIdParser
 
 from c7n.filters.core import Filter, type_schema
 from c7n.query import sources
@@ -26,7 +26,12 @@ class GenericArmResourceQuery(ResourceQuery):
     def filter(self, resource_manager, **params):
         client = resource_manager.get_client()
         results = [r.serialize(True) for r in client.resources.list()]
-        results.extend([r.serialize(True) for r in client.resource_groups.list()])
+
+        resource_groups = [r.serialize(True) for r in client.resource_groups.list()]
+        for r in resource_groups:
+            r['type'] = RESOURCE_GROUPS_TYPE
+        results.extend(resource_groups)
+
         return results
 
 
@@ -93,9 +98,7 @@ class ResourceTypeFilter(Filter):
     def process(self, resources, event=None):
         result = []
         for r in resources:
-            if 'id' in r:
-                t = ResourceIdParser.get_full_type(r['id'])
-                if t.lower() in self.allowed_types:
-                    result.append(r)
+            if r['type'].lower() in self.allowed_types:
+                result.append(r)
 
         return result
