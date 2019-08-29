@@ -13,9 +13,27 @@
 # limitations under the License.
 
 from c7n_azure.provider import resources
+from c7n_azure.query import DescribeSource, ResourceQuery
 from c7n_azure.resources.arm import ArmResourceManager, arm_resource_types
 from c7n_azure.utils import ResourceIdParser
+
 from c7n.filters.core import Filter, type_schema
+from c7n.query import sources
+
+
+class GenericArmResourceQuery(ResourceQuery):
+
+    def filter(self, resource_manager, **params):
+        client = resource_manager.get_client()
+        results = [r.serialize(True) for r in client.resources.list()]
+        results.extend([r.serialize(True) for r in client.resource_groups.list()])
+        return results
+
+
+@sources.register('describe-azure-generic')
+class GenericArmDescribeSource(DescribeSource):
+
+    resource_query_factory = GenericArmResourceQuery
 
 
 @resources.register('armresource')
@@ -35,12 +53,13 @@ class GenericArmResource(ArmResourceManager):
               - tag:Tag1: present
 
     """
+
     class resource_type(ArmResourceManager.resource_type):
         doc_groups = ['Generic']
 
         service = 'azure.mgmt.resource'
         client = 'ResourceManagementClient'
-        enum_spec = ('resources', 'list', None)
+
         resource_type = 'armresource'
         enable_tag_operations = True
 
@@ -55,6 +74,10 @@ class GenericArmResource(ArmResourceManager):
         if resource_type.lower() in arm_resource_types:
             return arm_resource_types[resource_type.lower()].enable_tag_operations
         return False
+
+    @property
+    def source_type(self):
+        return self.data.get('source', 'describe-azure-generic')
 
 
 @GenericArmResource.filter_registry.register('resource-type')
