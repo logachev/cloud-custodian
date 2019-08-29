@@ -1,5 +1,5 @@
 variables:
-- group: CustodianCoreCI
+- group: AzureLiveTests
 
 jobs:
 - job: 'azure_nightly_test_run'
