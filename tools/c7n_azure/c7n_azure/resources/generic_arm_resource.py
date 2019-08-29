@@ -67,6 +67,7 @@ class GenericArmResource(ArmResourceManager):
 
         resource_type = 'armresource'
         enable_tag_operations = True
+        diagnostic_settings_enabled = False
 
         default_report_fields = (
             'name',

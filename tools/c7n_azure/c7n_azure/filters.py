@@ -23,6 +23,10 @@ from azure.mgmt.costmanagement.models import (QueryAggregation,
                                               QueryFilter, QueryGrouping,
                                               QueryTimePeriod, TimeframeType)
 from azure.mgmt.policyinsights import PolicyInsightsClient
+from c7n_azure.constants import RESOURCE_GROUPS_TYPE
+from c7n_azure.tags import TagHelper
+from c7n_azure.utils import (IpRangeHelper, Math, ResourceIdParser,
+                             StringUtils, ThreadHelper, now, utcnow)
 from dateutil import tz as tzutils
 from dateutil.parser import parse
 
@@ -30,9 +34,6 @@ from c7n.filters import Filter, FilterValidationError, ValueFilter
 from c7n.filters.core import PolicyValidationError
 from c7n.filters.offhours import OffHour, OnHour, Time
 from c7n.utils import chunks, get_annotation_prefix, type_schema
-from c7n_azure.tags import TagHelper
-from c7n_azure.utils import (IpRangeHelper, Math, ResourceIdParser,
-                             StringUtils, ThreadHelper, now, utcnow)
 
 scalar_ops = {
     'eq': operator.eq,
@@ -695,7 +696,7 @@ class ResourceLockFilter(Filter):
         client = self.manager.get_client('azure.mgmt.resource.locks.ManagementLockClient')
         result = []
         for resource in resources:
-            if resource.get('resourceGroup') is None:
+            if resource['type'] == RESOURCE_GROUPS_TYPE:
                 locks = [r.serialize(True) for r in
                          client.management_locks.list_at_resource_group_level(
                     resource['name'])]

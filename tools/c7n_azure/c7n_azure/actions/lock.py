@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from azure.mgmt.resource.locks.models import ManagementLockObject
+from c7n_azure.actions.base import AzureBaseAction
+from c7n_azure.constants import RESOURCE_GROUPS_TYPE
 from c7n_azure.utils import ResourceIdParser
 
 from c7n.utils import type_schema
-from c7n_azure.actions.base import AzureBaseAction
-from azure.mgmt.resource.locks.models import ManagementLockObject
 
 
 class LockAction(AzureBaseAction):
@@ -64,7 +65,7 @@ class LockAction(AzureBaseAction):
         self.client = self.manager.get_client('azure.mgmt.resource.locks.ManagementLockClient')
 
     def _process_resource(self, resource):
-        if resource.get('resourceGroup') is None:
+        if resource['type'] == RESOURCE_GROUPS_TYPE:
             self.client.management_locks.create_or_update_at_resource_group_level(
                 resource['name'],
                 'lock_' + resource['name'] + '_' + self.lock_type,

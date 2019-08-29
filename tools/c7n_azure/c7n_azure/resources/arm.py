@@ -96,8 +96,7 @@ class ArmResourceManager(QueryResourceManager):
                 klass.filter_registry.register('offhour', AzureOffHour)
                 klass.filter_registry.register('onhour', AzureOnHour)
 
-                if resource != 'resourcegroup':
-                    klass.action_registry.register('delete', DeleteAction)
+                klass.action_registry.register('delete', DeleteAction)
 
                 if klass.resource_type.diagnostic_settings_enabled:
                     klass.filter_registry.register('diagnostic-settings', DiagnosticSettingsFilter)

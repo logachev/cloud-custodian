@@ -299,7 +299,7 @@ class AzurePolicyModeTest(BaseTest):
 
     @arm_template('emptyrg.json')
     @cassette_name('resourcegroup')
-    @patch('c7n_azure.resources.resourcegroup.DeleteResourceGroup._process_resource')
+    @patch('c7n_azure.actions.delete.DeleteAction._process_resource')
     def test_empty_group_function_event(self, mock_delete):
         p = self.load_policy({
             'name': 'test-azure-resource-group',
@@ -330,7 +330,7 @@ class AzurePolicyModeTest(BaseTest):
 
     @arm_template('emptyrg.json')
     @cassette_name('resourcegroup')
-    @patch('c7n_azure.resources.resourcegroup.DeleteResourceGroup._process_resource')
+    @patch('c7n_azure.actions.delete.DeleteAction._process_resource')
     def test_empty_group_container_event(self, mock_delete):
         p = self.load_policy({
             'name': 'test-azure-resource-group',
@@ -382,13 +382,13 @@ class AzurePolicyModeTest(BaseTest):
         policy.resource_manager.resource_type.resource_type = resource_type
 
         event = {'subject': rg_id}
-        policy.resource_manager.resource_type.resource_type =\
-            'Microsoft.Resources/subscriptions/resourceGroups'
+        policy.resource_manager.resource_type.resource_type = \
+            'resourceGroups'
         self.assertEqual(AzureModeCommon.extract_resource_id(policy, event), rg_id)
 
         event = {'subject': nsg_id}
-        policy.resource_manager.resource_type.resource_type =\
-            'Microsoft.Resources/subscriptions/resourceGroups'
+        policy.resource_manager.resource_type.resource_type = \
+            'resourceGroups'
         self.assertEqual(AzureModeCommon.extract_resource_id(policy, event), rg_id)
 
         event = {'subject': nsg_id}

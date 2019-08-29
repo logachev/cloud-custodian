@@ -185,7 +185,7 @@ class ArmResourceTest(BaseTest):
         }
     ]
 
-    @patch('c7n_azure.query.ResourceQuery.filter',
+    @patch('c7n_azure.resources.generic_arm_resource.GenericArmResourceQuery.filter',
         return_value=fake_arm_resources)
     @patch('c7n_azure.actions.delete.DeleteAction.process',
         return_value='')
