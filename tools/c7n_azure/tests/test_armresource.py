@@ -13,7 +13,7 @@
 # limitations under the License.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from azure_common import BaseTest, arm_template
+from azure_common import BaseTest, arm_template, cassette_name
 from jsonschema.exceptions import ValidationError
 from mock import patch
 
@@ -32,6 +32,7 @@ class ArmResourceTest(BaseTest):
             self.assertTrue(p)
 
     @arm_template('vm.json')
+    @cassette_name('common')
     def test_find_by_name(self):
         p = self.load_policy({
             'name': 'test-azure-armresource',
@@ -242,6 +243,7 @@ class ArmResourceTest(BaseTest):
             self.assertTrue(p)
 
     @arm_template('vm.json')
+    @cassette_name('common')
     def test_arm_resource_resource_type(self):
         p = self.load_policy({
             'name': 'test-azure-armresource-filter',
@@ -252,7 +254,8 @@ class ArmResourceTest(BaseTest):
                     'values': [
                         'Microsoft.Network/virtualNetworks',
                         'Microsoft.Storage/storageAccounts',
-                        'Microsoft.Compute/virtualMachines'
+                        'Microsoft.Compute/virtualMachines',
+                        'resourceGroups'
                     ]
                 },
                 {
@@ -265,4 +268,4 @@ class ArmResourceTest(BaseTest):
             ]
         })
         resources = p.run()
-        self.assertEqual(len(resources), 3)
+        self.assertEqual(len(resources), 4)
