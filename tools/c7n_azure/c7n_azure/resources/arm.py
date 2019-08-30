@@ -60,9 +60,8 @@ class ArmResourceManager(QueryResourceManager):
 
     def get_resources(self, resource_ids):
         resource_client = self.get_client('azure.mgmt.resource.ResourceManagementClient')
-        session = local_session(self.session_factory)
         data = [
-            resource_client.resources.get_by_id(rid, session.resource_api_version(rid))
+            resource_client.resources.get_by_id(rid, self._session.resource_api_version(rid))
             for rid in resource_ids
         ]
         return self.augment([r.serialize(True) for r in data])

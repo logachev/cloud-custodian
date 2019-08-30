@@ -20,7 +20,7 @@ from azure_common import BaseTest, DEFAULT_SUBSCRIPTION_ID
 from c7n_azure.tags import TagHelper
 from c7n_azure.utils import (AppInsightsHelper, ManagedGroupHelper, Math, PortsRangeHelper,
                              ResourceIdParser, StringUtils, custodian_azure_send_override,
-                             get_keyvault_secret, get_service_tag_ip_space)
+                             get_keyvault_secret, get_service_tag_ip_space, is_resource_group)
 from mock import patch, Mock
 
 from c7n.config import Bag
@@ -298,3 +298,14 @@ class UtilsTest(BaseTest):
         # Invalid tag
         result = get_service_tag_ip_space('foo')
         self.assertEqual(0, len(result))
+
+    def test_is_resource_group(self):
+        self.assertTrue(is_resource_group('/subscriptions/GUID/resourceGroups/rg'))
+        self.assertTrue(is_resource_group('/subscriptions/GUID/resourceGroups/rg/'))
+
+        self.assertFalse(is_resource_group('/subscriptions/GUID/rg/'))
+        self.assertFalse(is_resource_group('subscriptions/GUID/rg/'))
+        self.assertFalse(is_resource_group('/GUID/rg/'))
+        self.assertFalse(is_resource_group('/subscriptions/GUID/rg/providers/vm/vm'))
+        self.assertFalse(is_resource_group('/subscriptions/GUID/rg/providers'))
+        self.assertFalse(is_resource_group('/subscriptions/GUID/rg/p'))

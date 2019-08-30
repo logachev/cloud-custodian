@@ -19,6 +19,7 @@ from c7n_azure.resources.arm import ArmResourceManager, arm_resource_types
 
 from c7n.filters.core import Filter, type_schema
 from c7n.query import sources
+from c7n_azure.utils import ResourceIdParser, is_resource_group
 
 
 class GenericArmResourceQuery(ResourceQuery):
@@ -75,6 +76,23 @@ class GenericArmResource(ArmResourceManager):
             'location',
             'resourceGroup'
         )
+
+    def get_resources(self, resource_ids):
+        client = self.get_client()
+
+        resource_group_ids = [rid for rid in resource_ids if is_resource_group(rid)]
+        resource_groups = [client.resource_groups.get(ResourceIdParser.get_resource_group(rid))
+                           for rid in resource_group_ids]
+        for r in resource_groups:
+            r.type = RESOURCE_GROUPS_TYPE
+
+        result = [
+            client.resources.get_by_id(rid, self._session.resource_api_version(rid))
+            for rid in list(set(resource_ids) - set(resource_group_ids))
+        ]
+        result.extend(resource_groups)
+
+        return self.augment([r.serialize(True) for r in result])
 
     def tag_operation_enabled(self, resource_type):
         if resource_type.lower() in arm_resource_types:

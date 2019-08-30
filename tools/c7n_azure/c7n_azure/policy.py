@@ -241,7 +241,9 @@ class AzureModeCommon:
         """
         expected_type = policy.resource_manager.resource_type.resource_type
 
-        if expected_type == RESOURCE_GROUPS_TYPE:
+        if expected_type == 'armresource':
+            return event['subject']
+        elif expected_type == RESOURCE_GROUPS_TYPE:
             extract_regex = '/subscriptions/[^/]+/resourceGroups/[^/]+'
         else:
             types = expected_type.split('/')

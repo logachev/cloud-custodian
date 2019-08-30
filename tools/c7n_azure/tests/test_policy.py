@@ -377,6 +377,7 @@ class AzurePolicyModeTest(BaseTest):
         rg_id = "/subscriptions/ea98974b-5d2a-4d98-a78a-382f3715d07e/resourceGroups/test_emptyrg"
         nsg_id = rg_id + '/providers/Microsoft.Network/networkSecurityGroups/test-nsg'
         sr_id = nsg_id + '/securityRules/test-rule'
+        string_as_is = 'as-is-for-armresource'
         resource_type = ''
         policy = Mock()
         policy.resource_manager.resource_type.resource_type = resource_type
@@ -400,6 +401,11 @@ class AzurePolicyModeTest(BaseTest):
         policy.resource_manager.resource_type.resource_type =\
             'Microsoft.Network/networksecuritygroups'
         self.assertEqual(AzureModeCommon.extract_resource_id(policy, event), nsg_id)
+
+        event = {'subject': string_as_is}
+        policy.resource_manager.resource_type.resource_type =\
+            'armresource'
+        self.assertEqual(AzureModeCommon.extract_resource_id(policy, event), string_as_is)
 
     @staticmethod
     def get_sample_event():
