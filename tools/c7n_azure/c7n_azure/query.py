@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import logging
+from collections import Iterable
 
 import six
 from c7n_azure import constants
@@ -47,13 +48,13 @@ class ResourceQuery(object):
         op = getattr(getattr(resource_manager.get_client(), enum_op), list_op)
         result = op(**params)
 
-        try:
-            data = [r.serialize(True) for r in result]
-        except TypeError:
-            # This is due to an issue with inconsistency in Azure SDK:
-            # https://github.com/Azure/azure-sdk-for-python/issues/6941
-            data = [r.serialize(True) for r in result.value]
-        return data
+        if isinstance(result, Iterable):
+            return [r.serialize(True) for r in result]
+        elif hasattr(result, 'value'):
+            return [r.serialize(True) for r in result.value]
+
+        raise TypeError("Enumerating resources resulted in a return"
+                        "value which could not be iterated.")
 
     @staticmethod
     def resolve(resource_type):
