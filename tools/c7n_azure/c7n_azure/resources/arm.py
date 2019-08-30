@@ -25,8 +25,6 @@ from c7n_azure.query import QueryResourceManager, QueryMeta, ChildResourceManage
     ChildTypeInfo, TypeMeta
 from c7n_azure.utils import ResourceIdParser
 
-from c7n.utils import local_session
-
 arm_resource_types = {}
 
 
