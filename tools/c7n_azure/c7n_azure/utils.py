@@ -43,7 +43,8 @@ except ImportError:
     from backports.functools_lru_cache import lru_cache
 
 
-resource_group_regex = re.compile(r'/subscriptions/[^/]+/resourceGroups/[^/]+(/)?$')
+resource_group_regex = re.compile(r'/subscriptions/[^/]+/resourceGroups/[^/]+(/)?$',
+                                  re.IGNORECASE)
 
 
 class ResourceIdParser(object):

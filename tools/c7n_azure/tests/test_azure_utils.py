@@ -58,6 +58,7 @@ class UtilsTest(BaseTest):
         self.assertEqual(ResourceIdParser.get_resource_group(RESOURCE_ID), "rgtest")
 
     def test_get_resource_type(self):
+
         self.assertEqual(ResourceIdParser.get_resource_type(RESOURCE_ID), "virtualMachines")
         self.assertEqual(ResourceIdParser.get_resource_type(RESOURCE_ID_CHILD), "databases")
 
@@ -302,6 +303,7 @@ class UtilsTest(BaseTest):
     def test_is_resource_group(self):
         self.assertTrue(is_resource_group('/subscriptions/GUID/resourceGroups/rg'))
         self.assertTrue(is_resource_group('/subscriptions/GUID/resourceGroups/rg/'))
+        self.assertTrue(is_resource_group('/Subscriptions/GUID/resourcegroups/rg'))
 
         self.assertFalse(is_resource_group('/subscriptions/GUID/rg/'))
         self.assertFalse(is_resource_group('subscriptions/GUID/rg/'))

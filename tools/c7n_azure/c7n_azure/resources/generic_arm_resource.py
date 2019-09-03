@@ -79,18 +79,16 @@ class GenericArmResource(ArmResourceManager):
 
     def get_resources(self, resource_ids):
         client = self.get_client()
+        result = []
 
-        resource_group_ids = [rid for rid in resource_ids if is_resource_group(rid)]
-        resource_groups = [client.resource_groups.get(ResourceIdParser.get_resource_group(rid))
-                           for rid in resource_group_ids]
-        for r in resource_groups:
-            r.type = RESOURCE_GROUPS_TYPE
-
-        result = [
-            client.resources.get_by_id(rid, self._session.resource_api_version(rid))
-            for rid in list(set(resource_ids) - set(resource_group_ids))
-        ]
-        result.extend(resource_groups)
+        for rid in resource_ids:
+            resource = None
+            if is_resource_group(rid):
+                resource = client.resource_groups.get(ResourceIdParser.get_resource_group(rid))
+                resource.type = RESOURCE_GROUPS_TYPE
+            else:
+                resource = client.resources.get_by_id(rid, self._session.resource_api_version(rid))
+            result.append(resource)
 
         return self.augment([r.serialize(True) for r in result])
 
