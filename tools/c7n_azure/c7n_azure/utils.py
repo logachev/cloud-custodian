@@ -89,8 +89,12 @@ class ResourceIdParser(object):
                          ResourceIdParser.get_resource_type(resource_id)])
 
 
-def is_resource_group(rid):
+def is_resource_group_id(rid):
     return resource_group_regex.match(rid)
+
+
+def is_resource_group(resource):
+    return resource['type'] == constants.RESOURCE_GROUPS_TYPE
 
 
 class StringUtils(object):

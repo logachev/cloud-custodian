@@ -19,7 +19,7 @@ from c7n_azure.resources.arm import ArmResourceManager, arm_resource_types
 
 from c7n.filters.core import Filter, type_schema
 from c7n.query import sources
-from c7n_azure.utils import ResourceIdParser, is_resource_group
+from c7n_azure.utils import ResourceIdParser, is_resource_group_id
 
 
 class GenericArmResourceQuery(ResourceQuery):
@@ -83,7 +83,7 @@ class GenericArmResource(ArmResourceManager):
 
         for rid in resource_ids:
             resource = None
-            if is_resource_group(rid):
+            if is_resource_group_id(rid):
                 resource = client.resource_groups.get(ResourceIdParser.get_resource_group(rid))
                 resource.type = RESOURCE_GROUPS_TYPE
             else:

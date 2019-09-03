@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from c7n_azure.actions.base import AzureBaseAction
-from c7n_azure.constants import RESOURCE_GROUPS_TYPE
+from c7n_azure.utils import is_resource_group
 
 from c7n.utils import type_schema
 
@@ -72,7 +72,7 @@ class DeleteAction(AzureBaseAction):
         self.client = self.manager.get_client('azure.mgmt.resource.ResourceManagementClient')
 
     def _process_resource(self, resource):
-        if resource['type'] == RESOURCE_GROUPS_TYPE:
+        if is_resource_group(resource):
             self.client.resource_groups.delete(resource['name'])
         else:
             self.client.resources.delete_by_id(resource['id'],
