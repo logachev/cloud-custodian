@@ -51,11 +51,9 @@ class CostManagementExport(QueryResourceManager):
         client = 'CostManagementClient'
         enum_spec = ('exports', 'list', None)
         default_report_fields = (
-            'name',
-            'location',
-            'resourceGroup',
+            'name'
         )
-        resource_type = 'Microsoft.Compute/images'
+        resource_type = 'Microsoft.CostManagement/exports'
 
         @classmethod
         def extra_args(cls, resource_manager):
