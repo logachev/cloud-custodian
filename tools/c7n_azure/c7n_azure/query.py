@@ -16,14 +16,11 @@ import logging
 from collections import Iterable
 
 import six
-from collections import Iterable
-
 from c7n_azure import constants
 from c7n_azure.actions.logic_app import LogicAppAction
 from c7n_azure.actions.notify import Notify
 from c7n_azure.filters import ParentFilter
 from c7n_azure.provider import resources
-
 
 from c7n.actions import ActionRegistry
 from c7n.filters import FilterRegistry
