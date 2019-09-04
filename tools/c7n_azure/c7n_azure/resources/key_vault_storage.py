@@ -22,7 +22,7 @@ from c7n_azure.query import ChildResourceManager, ChildTypeInfo
 from c7n_azure.utils import generate_key_vault_url
 
 from c7n.filters import ValueFilter
-from c7n.utils import get_annotation_prefix as gap
+from c7n.utils import get_annotation_prefix
 from c7n.utils import type_schema
 
 log = logging.getLogger('custodian.azure.keyvault.storage')
@@ -70,7 +70,7 @@ class KeyVaultStorage(ChildResourceManager):
         for r in resources:
             sid = StorageAccountId(r['id'])
             data = client.get_storage_account(sid.vault, sid.name).serialize(True)
-            r[gap('extra')] = {k: v for k, v in data.items() if k in extra_fields}
+            r[get_annotation_prefix('extra')] = {k: v for k, v in data.items() if k in extra_fields}
 
         return resources
 
@@ -108,7 +108,7 @@ class KeyVaultStorageAutoRegenerateKeyFilter(ValueFilter):
 
     def __init__(self, *args, **kwargs):
         super(KeyVaultStorageAutoRegenerateKeyFilter, self).__init__(*args, **kwargs)
-        self.data['key'] = '"{0}".autoRegenerateKey'.format(gap('extra'))
+        self.data['key'] = '"{0}".autoRegenerateKey'.format(get_annotation_prefix('extra'))
         self.data['op'] = 'eq'
 
 
@@ -145,7 +145,7 @@ class KeyVaultStorageRegenerationPeriodFilter(ValueFilter):
 
     def __init__(self, *args, **kwargs):
         super(KeyVaultStorageRegenerationPeriodFilter, self).__init__(*args, **kwargs)
-        self.data['key'] = '"{0}".regenerationPeriod'.format(gap('extra'))
+        self.data['key'] = '"{0}".regenerationPeriod'.format(get_annotation_prefix('extra'))
 
 
 @KeyVaultStorage.filter_registry.register('active-key-name')
@@ -184,7 +184,7 @@ class KeyVaultStorageActiveKeyNameFilter(ValueFilter):
 
     def __init__(self, *args, **kwargs):
         super(KeyVaultStorageActiveKeyNameFilter, self).__init__(*args, **kwargs)
-        self.data['key'] = '"{0}".activeKeyName'.format(gap('extra'))
+        self.data['key'] = '"{0}".activeKeyName'.format(get_annotation_prefix('extra'))
         self.data['op'] = 'eq'
         self.data['value_type'] = 'normalize'
 
@@ -221,9 +221,10 @@ class KeyVaultStorageRegenerateKeyAction(AzureBaseAction):
 
     def _process_resource(self, resource):
         sid = StorageAccountId(resource['id'])
-        self.client.regenerate_storage_account_key(sid.vault,
-                                                   sid.name,
-                                                   resource[gap('extra')]['activeKeyName'])
+        self.client.regenerate_storage_account_key(
+            sid.vault,
+            sid.name,
+            resource[get_annotation_prefix('extra')]['activeKeyName'])
 
 
 @KeyVaultStorage.action_registry.register('update')
