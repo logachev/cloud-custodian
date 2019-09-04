@@ -46,6 +46,7 @@ class KeyVaultTest(BaseTest):
             self.assertTrue(p)
 
     @arm_template('keyvault.json')
+    @cassette_name('common')
     def test_find_by_name(self):
         p = self.load_policy({
             'name': 'test-azure-keyvault',
@@ -208,7 +209,7 @@ class KeyVaultTest(BaseTest):
         return client.__module__ + '.' + client.__class__.__name__
 
     @arm_template('keyvault.json')
-    @cassette_name('firewall')
+    @cassette_name('common')
     def test_firewall_rules_include(self):
         p = self.load_policy({
             'name': 'test-azure-keyvault',
@@ -221,7 +222,7 @@ class KeyVaultTest(BaseTest):
         self.assertEqual(len(resources), 1)
 
     @arm_template('keyvault.json')
-    @cassette_name('firewall')
+    @cassette_name('common')
     def test_firewall_rules_not_include_all_ranges(self):
         p = self.load_policy({
             'name': 'test-azure-keyvault',
@@ -234,7 +235,7 @@ class KeyVaultTest(BaseTest):
         self.assertEqual(0, len(resources))
 
     @arm_template('keyvault.json')
-    @cassette_name('firewall')
+    @cassette_name('common')
     def test_firewall_rules_include_cidr(self):
         p = self.load_policy({
             'name': 'test-azure-keyvault',
@@ -247,7 +248,7 @@ class KeyVaultTest(BaseTest):
         self.assertEqual(1, len(resources))
 
     @arm_template('keyvault.json')
-    @cassette_name('firewall')
+    @cassette_name('common')
     def test_firewall_rules_not_include_cidr(self):
         p = self.load_policy({
             'name': 'test-azure-keyvault',
@@ -260,7 +261,7 @@ class KeyVaultTest(BaseTest):
         self.assertEqual(0, len(resources))
 
     @arm_template('keyvault.json')
-    @cassette_name('firewall')
+    @cassette_name('common')
     def test_firewall_rules_equal(self):
         p = self.load_policy({
             'name': 'test-azure-keyvault',
@@ -273,7 +274,7 @@ class KeyVaultTest(BaseTest):
         self.assertEqual(1, len(resources))
 
     @arm_template('keyvault.json')
-    @cassette_name('firewall')
+    @cassette_name('common')
     def test_firewall_rules_not_equal(self):
         p = self.load_policy({
             'name': 'test-azure-keyvault',
