@@ -35,7 +35,7 @@ class CostManagementExportTest(BaseTest):
                                          actions=[{'type': 'execute'}],
                                          validate=True))
 
-        with self.assertRaises(ValidationError) as e:
+        with self.assertRaises(ValidationError):
             self._get_policy(filters=[{'type': 'last-execution', 'age': -1}],
                              validate=True)
 

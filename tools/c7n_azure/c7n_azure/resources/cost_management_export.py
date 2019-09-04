@@ -12,18 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
+import logging
+
 from c7n_azure.actions.base import AzureBaseAction
 from c7n_azure.provider import resources
 from c7n_azure.query import QueryResourceManager
 from c7n_azure.utils import ThreadHelper
 
 from c7n.filters import Filter
-from c7n.utils import get_annotation_prefix as gap
+from c7n.utils import get_annotation_prefix
 from c7n.utils import type_schema
-import logging
-
-import datetime
-
 
 log = logging.getLogger('c7n.azure.cost-management-export')
 
@@ -107,19 +106,19 @@ class CostManagementExportFilterLastExecution(Filter):
         result = []
 
         for r in resources:
-            if gap('last-execution') in r:
+            if get_annotation_prefix('last-execution') in r:
                 continue
             history = self.client.exports.get_execution_history(self.scope, r['name'])
 
             # Include exports that has no execution history
             if not history.value:
-                r[gap('last-execution')] = 'None'
+                r[get_annotation_prefix('last-execution')] = 'None'
                 result.append(r)
                 continue
 
             last_execution = max(history.value, key=lambda execution: execution.submitted_time)
             if last_execution.submitted_time.date() <= self.min_date.date():
-                r[gap('last-execution')] = last_execution.serialize(True)
+                r[get_annotation_prefix('last-execution')] = last_execution.serialize(True)
                 result.append(r)
 
         return result
