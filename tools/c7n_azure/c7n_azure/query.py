@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import logging
+from collections import Iterable
 
 import six
 from c7n_azure import constants
@@ -42,16 +43,24 @@ class ResourceQuery(object):
         if extra_args:
             params.update(extra_args)
 
-        data = []
+        params.update(m.extra_args(resource_manager))
+
         try:
             op = getattr(getattr(resource_manager.get_client(), enum_op), list_op)
-            data = [r.serialize(True) for r in op(**params)]
+            result = op(**params)
+
+            if isinstance(result, Iterable):
+                return [r.serialize(True) for r in result]
+            elif hasattr(result, 'value'):
+                return [r.serialize(True) for r in result.value]
         except Exception as e:
             log.error("Failed to query resource.\n"
                       "Type: azure.{0}.\n"
                       "Error: {1}".format(resource_manager.type, e))
             six.raise_from(Exception('Failed to query resources.'), e)
-        return data
+
+        raise TypeError("Enumerating resources resulted in a return"
+                        "value which could not be iterated.")
 
     @staticmethod
     def resolve(resource_type):
@@ -151,6 +160,10 @@ class TypeInfo(object):
     id = 'id'
 
     resource = constants.RESOURCE_ACTIVE_DIRECTORY
+
+    @classmethod
+    def extra_args(cls, resource_manager):
+        return {}
 
 
 @six.add_metaclass(TypeMeta)
@@ -321,7 +334,15 @@ class ChildResourceManager(QueryResourceManager):
         else:
             op = getattr(client, list_op)
 
-        return [r.serialize(True) for r in op(**params)]
+        result = op(**params)
+
+        if isinstance(result, Iterable):
+            return [r.serialize(True) for r in result]
+        elif hasattr(result, 'value'):
+            return [r.serialize(True) for r in result.value]
+
+        raise TypeError("Enumerating resources resulted in a return"
+                        "value which could not be iterated.")
 
     @staticmethod
     def register_child_specific(registry, _):
