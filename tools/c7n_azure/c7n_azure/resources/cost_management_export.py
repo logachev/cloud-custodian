@@ -84,7 +84,7 @@ class CostManagementExportFilterLastExecution(Filter):
         'last-execution',
         required=['age'],
         **{
-            'age': {'type': 'integer'}
+            'age': {'type': 'integer', 'minimum': 0}
         }
     )
 
@@ -112,12 +112,12 @@ class CostManagementExportFilterLastExecution(Filter):
             history = self.client.exports.get_execution_history(self.scope, r['name'])
 
             # Include exports that has no execution history
-            if len(history.value) == 0:
+            if not history.value:
                 r[gap('last-execution')] = 'None'
                 result.append(r)
                 continue
 
-            last_execution = max(history.value, key=lambda a: a.submitted_time)
+            last_execution = max(history.value, key=lambda execution: execution.submitted_time)
             if last_execution.submitted_time.date() <= self.min_date.date():
                 r[gap('last-execution')] = last_execution.serialize(True)
                 result.append(r)
@@ -137,7 +137,8 @@ class CostManagementExportActionExecute(AzureBaseAction):
 
     :example:
 
-    Find all exports with last execution more than 30 days and trigger manual execution.
+    Find all exports that have not been executed in the last 30 days and then
+    trigger a manual export.
 
     .. code-block:: yaml
 

@@ -14,7 +14,7 @@
         "name": "Standard_LRS"
       },
       "kind": "Storage",
-      "location": "South Central US",
+      "location": "[resourceGroup().location]",
       "tags": {},
       "properties": {}
     }

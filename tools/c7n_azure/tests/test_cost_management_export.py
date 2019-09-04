@@ -17,6 +17,7 @@ import datetime
 from collections import namedtuple
 
 from azure_common import BaseTest, arm_template, cassette_name
+from jsonschema.exceptions import ValidationError
 from mock import patch
 
 
@@ -29,23 +30,18 @@ class CostManagementExportTest(BaseTest):
             for t in submitted_time_list:
                 self.value.append(MockExecutionItem(submitted_time=t, serialize=lambda b: ''))
 
-    def test_key_vault_storage_schema_validate(self):
-        p = self.load_policy({
-            'name': 'cost-management-export',
-            'resource': 'azure.cost-management-export',
-            'filters': [
-                {'type': 'last-execution',
-                 'age': 30}
-            ],
-            'actions': [
-                {'type': 'execute'}
-            ]
-        }, validate=True)
-        self.assertTrue(p)
+    def test_schema_validate(self):
+        self.assertTrue(self._get_policy(filters=[{'type': 'last-execution', 'age': 30}],
+                                         actions=[{'type': 'execute'}],
+                                         validate=True))
+
+        with self.assertRaises(ValidationError) as e:
+            self._get_policy(filters=[{'type': 'last-execution', 'age': -1}],
+                             validate=True)
 
     @arm_template('cost-management-export.json')
     @cassette_name('common')
-    def test_cost_management_export(self):
+    def test_resource(self):
         p = self._get_policy()
         resources = p.run()
         self.assertEqual(len(resources), 1)
@@ -56,7 +52,7 @@ class CostManagementExportTest(BaseTest):
     # This test is primarily to catch SDK changes regressions
     @arm_template('cost-management-export.json')
     @cassette_name('last-execution')
-    def test_cost_management_export_last_execution(self):
+    def test_last_execution(self):
         p = self._get_policy(filters=[{'type': 'last-execution', 'age': 0}])
         resources = p.run()
         self.assertEqual(len(resources), 1)
@@ -67,7 +63,7 @@ class CostManagementExportTest(BaseTest):
            return_value=MockExecutionHistory([datetime.datetime.now()]))
     @arm_template('cost-management-export.json')
     @cassette_name('common')
-    def test_cost_management_export_last_execution_mock(self, _1):
+    def test_last_execution_mock(self, _1):
         p = self._get_policy(filters=[{'type': 'last-execution', 'age': 0}])
         resources = p.run()
         self.assertEqual(len(resources), 1)
@@ -76,7 +72,7 @@ class CostManagementExportTest(BaseTest):
            return_value=MockExecutionHistory([datetime.datetime.now()]))
     @arm_template('cost-management-export.json')
     @cassette_name('common')
-    def test_cost_management_export_last_execution_mock_no_results(self, _1):
+    def test_last_execution_mock_large_age(self, _1):
         p = self._get_policy(filters=[{'type': 'last-execution', 'age': 1}])
         resources = p.run()
         self.assertEqual(len(resources), 0)
@@ -85,7 +81,7 @@ class CostManagementExportTest(BaseTest):
            return_value=MockExecutionHistory([]))
     @arm_template('cost-management-export.json')
     @cassette_name('common')
-    def test_cost_management_export_last_execution_mock_no_executions(self, _1):
+    def test_last_execution_mock_no_executions(self, _1):
         p = self._get_policy(filters=[{'type': 'last-execution', 'age': 1}])
         resources = p.run()
         self.assertEqual(len(resources), 1)
@@ -93,7 +89,7 @@ class CostManagementExportTest(BaseTest):
     @patch('azure.mgmt.costmanagement.operations.ExportsOperations.execute')
     @arm_template('cost-management-export.json')
     @cassette_name('common')
-    def test_cost_management_export_execute(self, execute_mock):
+    def test_execute(self, execute_mock):
         p = self._get_policy(actions=[{'type': 'execute'}])
         resources = p.run()
         self.assertEqual(len(resources), 1)
@@ -103,7 +99,7 @@ class CostManagementExportTest(BaseTest):
         self.assertTrue(args[0].startswith('subscriptions/'))
         self.assertEqual(args[1], 'cccostexport')
 
-    def _get_policy(self, filters=[], actions=[]):
+    def _get_policy(self, filters=[], actions=[], validate=False):
         return self.load_policy({
             'name': 'cost-management-export',
             'resource': 'azure.cost-management-export',
@@ -115,4 +111,4 @@ class CostManagementExportTest(BaseTest):
                 }
             ] + filters,
             'actions': actions
-        })
+        }, validate=validate)
