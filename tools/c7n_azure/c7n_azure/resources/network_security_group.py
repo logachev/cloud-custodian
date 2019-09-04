@@ -189,7 +189,7 @@ class NetworkSecurityGroupPortsAction(BaseAction):
             EXCEPT_PORTS: {'type': 'string'},
             IP_PROTOCOL: {'type': 'string', 'enum': ['TCP', 'UDP', '*']},
             DIRECTION: {'type': 'string', 'enum': ['Inbound', 'Outbound']},
-            PREFIX: {'type': 'string'}
+            PREFIX: {'type': 'string', 'maxLength': 44}  # 80 symbols limit, guid takes 36
         },
         'required': ['type', DIRECTION]
     }
