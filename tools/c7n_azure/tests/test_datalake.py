@@ -38,7 +38,7 @@ class DataLakeTest(BaseTest):
                  'key': 'name',
                  'op': 'eq',
                  'value_type': 'normalize',
-                 'value': 'cctestdatalake'}],
+                 'value': 'ccdatalake'}],
         })
         resources = p.run()
         self.assertEqual(len(resources), 1)
