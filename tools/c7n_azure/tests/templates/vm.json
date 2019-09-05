@@ -14,7 +14,7 @@
     "storageAccountType": "Standard_LRS",
     "publicIPAddressName": "myPublicIP",
     "publicIPAddressType": "Dynamic",
-    "vmName": "[concat('cctestvm', variables('suffix'))]",
+    "vmName": "cctestvm",
     "vmSize": "Standard_A1",
     "virtualNetworkName": "MyVNET",
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
@@ -40,7 +40,7 @@
       "properties": {
         "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
         "dnsSettings": {
-          "domainNameLabel": "[variables('vmName')]"
+          "domainNameLabel": "[concat('cctestvm', variables('suffix'))]"
         }
       }
     },
