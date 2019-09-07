@@ -5,7 +5,7 @@ IFS=$'\n\t'
 
 # If `az ad signed-in-user show` fails then update your Azure CLI version
 
-# If you can't provisiong keyvault or cost-management-export resources please ensure you use
+# If you can't provision keyvault or cost-management-export resources please ensure you use
 # your user account and not a Service Principals.
 # cost-management-export: requires SP to have valid email claim
 # keyvault: Managed Storage can't be provisioned with SP
