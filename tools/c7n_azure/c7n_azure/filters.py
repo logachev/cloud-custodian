@@ -531,9 +531,12 @@ class FirewallRulesFilter(Filter):
     specific notation.
 
     **include**: True if all IP space listed is included in firewall.
+
     **any**: True if any overlap in IP space exists.
+
     **only**: True if firewall IP space only includes IPs from provided space
     (firewall is subset of provided space).
+
     **equal**: the list of IP ranges or CIDR that firewall rules must match exactly.
 
     :example:
