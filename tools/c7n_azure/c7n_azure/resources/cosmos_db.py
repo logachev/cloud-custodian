@@ -92,6 +92,40 @@ class CosmosDB(ArmResourceManager):
 
 @CosmosDB.filter_registry.register('firewall-rules')
 class CosmosDBFirewallRulesFilter(FirewallRulesFilter):
+    """Filters resources by the firewall rules
+
+    Rules can be specified as x.x.x.x-y.y.y.y or x.x.x.x or x.x.x.x/y.
+
+    CosmosDB rules include keywords ``AzureCloud`` and ``Portal`` to provide similar experience with
+    Azure portal.
+
+    With the exception of **equal** all modes reference total IP space and ignore
+    specific notation.
+
+    **include**: True if all IP space listed is included in firewall.
+
+    **any**: True if any overlap in IP space exists.
+
+    **only**: True if firewall IP space only includes IPs from provided space
+    (firewall is subset of provided space).
+
+    **equal**: the list of IP ranges or CIDR that firewall rules must match exactly.
+
+    :example:
+
+    .. code-block:: yaml
+
+            policies:
+              - name: cosmosdb-with-firewall
+                resource: azure.cosmosdb
+                filters:
+                  - type: firewall-rules
+                    include:
+                      - '131.107.160.2-131.107.160.3'
+                      - 10.20.20.0/24
+                      - AzureCloud
+                      - Portal
+    """
 
     def __init__(self, data, manager=None):
         super(CosmosDBFirewallRulesFilter, self).__init__(data, manager)
