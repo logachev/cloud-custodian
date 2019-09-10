@@ -580,12 +580,15 @@ class FirewallRulesFilter(Filter):
         self.policy_equal = None
         self.policy_any = None
         self.policy_only = None
+        self.client = None
 
     def process(self, resources, event=None):
         self.policy_include = IpRangeHelper.parse_ip_ranges(self.data, 'include')
         self.policy_equal = IpRangeHelper.parse_ip_ranges(self.data, 'equal')
         self.policy_any = IpRangeHelper.parse_ip_ranges(self.data, 'any')
         self.policy_only = IpRangeHelper.parse_ip_ranges(self.data, 'only')
+
+        self.client = self.manager.get_client()
 
         result, _ = ThreadHelper.execute_in_parallel(
             resources=resources,

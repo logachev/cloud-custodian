@@ -127,8 +127,7 @@ class KeyVaultFirewallRulesFilter(FirewallRulesFilter):
     def _query_rules(self, resource):
 
         if 'properties' not in resource:
-            client = self.manager.get_client()
-            vault = client.vaults.get(resource['resourceGroup'], resource['name'])
+            vault = self.client.vaults.get(resource['resourceGroup'], resource['name'])
             resource['properties'] = vault.properties.serialize()
 
         if 'networkAcls' not in resource['properties']:

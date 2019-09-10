@@ -81,14 +81,6 @@ class SqlServer(ArmResourceManager):
 @SqlServer.filter_registry.register('firewall-rules')
 class SqlServerFirewallRulesFilter(FirewallRulesFilter):
 
-    def __init__(self, data, manager=None):
-        super(SqlServerFirewallRulesFilter, self).__init__(data, manager)
-        self.client = None
-
-    def process(self, resources, event=None):
-        self.client = self.manager.get_client()
-        return super(SqlServerFirewallRulesFilter, self).process(resources, event)
-
     def _query_rules(self, resource):
         query = self.client.firewall_rules.list_by_server(
             resource['resourceGroup'],
