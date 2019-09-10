@@ -539,6 +539,10 @@ class FirewallRulesFilter(Filter):
 
     **equal**: the list of IP ranges or CIDR that firewall rules must match exactly.
 
+    **IMPORTANT**: this filter ignores all bypass rules. If you want to ensure your resource is
+    not available for other Azure Cloud services or from the Portal, please use ``firewall-bypass``
+    filter.
+
     :example:
 
     .. code-block:: yaml

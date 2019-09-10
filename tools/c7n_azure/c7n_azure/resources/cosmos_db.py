@@ -92,55 +92,6 @@ class CosmosDB(ArmResourceManager):
 
 @CosmosDB.filter_registry.register('firewall-rules')
 class CosmosDBFirewallRulesFilter(FirewallRulesFilter):
-    """Filters resources by the firewall rules
-
-    Rules can be specified as x.x.x.x-y.y.y.y or x.x.x.x or x.x.x.x/y.
-
-    CosmosDB rules include keywords ``AzureCloud`` and ``Portal`` to provide similar experience with
-    Azure portal.
-
-    With the exception of **equal** all modes reference total IP space and ignore
-    specific notation.
-
-    **include**: True if all IP space listed is included in firewall.
-
-    **any**: True if any overlap in IP space exists.
-
-    **only**: True if firewall IP space only includes IPs from provided space
-    (firewall is subset of provided space).
-
-    **equal**: the list of IP ranges or CIDR that firewall rules must match exactly.
-
-    :example:
-
-    .. code-block:: yaml
-
-            policies:
-              - name: cosmosdb-with-firewall
-                resource: azure.cosmosdb
-                filters:
-                  - type: firewall-rules
-                    include:
-                      - '131.107.160.2-131.107.160.3'
-                      - 10.20.20.0/24
-                      - AzureCloud
-                      - Portal
-    """
-
-    def __init__(self, data, manager=None):
-        super(CosmosDBFirewallRulesFilter, self).__init__(data, manager)
-
-        options = ['include', 'equal', 'only', 'any']
-
-        for o in options:
-            if o in self.data:
-                if 'Portal' in self.data[o]:
-                    self.data[o].remove('Portal')
-                    self.data[o].extend(PORTAL_IPS)
-
-                if 'AzureCloud' in self.data[o]:
-                    self.data[o].remove('AzureCloud')
-                    self.data[o].extend(AZURE_CLOUD_IPS)
 
     def _query_rules(self, resource):
         ip_range_string = resource['properties']['ipRangeFilter']
@@ -151,7 +102,10 @@ class CosmosDBFirewallRulesFilter(FirewallRulesFilter):
             else:
                 return IPSet(['0.0.0.0/0'])
 
-        parts = ip_range_string.split(',')
+        parts = ip_range_string.replace(' ', '').split(',')
+
+        # Exclude magic strings representing Portal and Azure Cloud
+        parts = list(set(parts) - set(PORTAL_IPS + AZURE_CLOUD_IPS))
 
         resource_rules = IPSet(filter(None, parts))
 

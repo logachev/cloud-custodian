@@ -215,26 +215,31 @@ class CosmosDBFirewallFilterTest(BaseTest):
         self.assertEqual(expected, self._get_filter()._query_rules(resource))
 
     def test_query_regular(self):
-        resource = {'properties': {'ipRangeFilter': '0.0.0.0, 10.0.0.0/16, 8.8.8.8',
+        resource = {'properties': {'ipRangeFilter': '10.0.0.0/16,8.8.8.8',
                                    'isVirtualNetworkFilterEnabled': True}}
-        expected = IPSet(['0.0.0.0', '10.0.0.0/16', '8.8.8.8'])
+        expected = IPSet(['10.0.0.0/16', '8.8.8.8'])
         self.assertEqual(expected, self._get_filter()._query_rules(resource))
 
-    def test_expand_portal_ips(self):
-        client = CosmosDBFirewallRulesFilter({'equal': ['Portal']}, Mock())
-        self.assertEqual(PORTAL_IPS, client.data['equal'])
+    def test_query_regular_plus_portal(self):
+        extra = ','.join(PORTAL_IPS)
+        resource = {'properties': {'ipRangeFilter': extra + ',10.0.0.0/16,8.8.8.8',
+                                   'isVirtualNetworkFilterEnabled': True}}
+        expected = IPSet(['10.0.0.0/16', '8.8.8.8'])
+        self.assertEqual(expected, self._get_filter()._query_rules(resource))
 
-    def test_expand_azure_cloud_ips(self):
-        client = CosmosDBFirewallRulesFilter({'equal': ['AzureCloud']}, Mock())
-        self.assertEqual(AZURE_CLOUD_IPS, client.data['equal'])
+    def test_query_regular_plus_cloud(self):
+        extra = ', '.join(AZURE_CLOUD_IPS)
+        resource = {'properties': {'ipRangeFilter': extra + ',10.0.0.0/16,8.8.8.8',
+                                   'isVirtualNetworkFilterEnabled': True}}
+        expected = IPSet(['10.0.0.0/16', '8.8.8.8'])
+        self.assertEqual(expected, self._get_filter()._query_rules(resource))
 
-    def test_expand_all_ips(self):
-        client = CosmosDBFirewallRulesFilter({'equal': ['AzureCloud', 'Portal']}, Mock())
-        self.assertEqual(set(AZURE_CLOUD_IPS + PORTAL_IPS), set(client.data['equal']))
-
-    def test_expand_all_ips_plus_custom(self):
-        client = CosmosDBFirewallRulesFilter({'equal': ['AzureCloud', 'Portal', '8.8.8.8']}, Mock())
-        self.assertEqual(set(AZURE_CLOUD_IPS + PORTAL_IPS + ['8.8.8.8']), set(client.data['equal']))
+    def test_query_regular_plus_portal_cloud(self):
+        extra = ','.join(PORTAL_IPS + AZURE_CLOUD_IPS)
+        resource = {'properties': {'ipRangeFilter': extra + ',10.0.0.0/16,8.8.8.8',
+                                   'isVirtualNetworkFilterEnabled': True}}
+        expected = IPSet(['10.0.0.0/16', '8.8.8.8'])
+        self.assertEqual(expected, self._get_filter()._query_rules(resource))
 
     def _get_filter(self, mode='equal'):
         data = {mode: ['10.0.0.0/8', '127.0.0.1']}

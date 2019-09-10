@@ -234,6 +234,13 @@ class SQLServerFirewallFilterTest(BaseTest):
         expected = IPSet(['8.8.8.8', '10.0.0.0/16'])
         self.assertEqual(expected, self._get_filter(rules)._query_rules(self.resource))
 
+    def test_query_regular_rules_with_magic(self):
+        rules = [self.IpRange(start_ip_address='10.0.0.0', end_ip_address='10.0.255.255'),
+                 self.IpRange(start_ip_address='8.8.8.8', end_ip_address='8.8.8.8'),
+                 self.IpRange(start_ip_address='0.0.0.0', end_ip_address='0.0.0.0')]
+        expected = IPSet(['8.8.8.8', '10.0.0.0/16'])
+        self.assertEqual(expected, self._get_filter(rules)._query_rules(self.resource))
+
     def _get_filter(self, rules, mode='equal'):
         data = {mode: ['10.0.0.0/8', '127.0.0.1']}
         filter = SqlServerFirewallRulesFilter(data, Mock())
