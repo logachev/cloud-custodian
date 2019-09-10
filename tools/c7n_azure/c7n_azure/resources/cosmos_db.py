@@ -40,15 +40,17 @@ try:
 except ImportError:
     from backports.functools_lru_cache import lru_cache
 
+
 max_workers = constants.DEFAULT_MAX_THREAD_WORKERS
 log = logging.getLogger('custodian.azure.cosmosdb')
 THROUGHPUT_MULTIPLIER = 100
 PORTAL_IPS = ['104.42.195.92',
-               '40.76.54.131',
-               '52.176.6.30',
-               '52.169.50.45',
-               '52.187.184.26']
+              '40.76.54.131',
+              '52.176.6.30',
+              '52.169.50.45',
+              '52.187.184.26']
 AZURE_CLOUD_IPS = ['0.0.0.0']
+
 
 @resources.register('cosmosdb')
 class CosmosDB(ArmResourceManager):
@@ -108,15 +110,14 @@ class CosmosDBFirewallRulesFilter(FirewallRulesFilter):
 
     def _query_rules(self, resource):
         ip_range_string = resource['properties']['ipRangeFilter']
-
+        is_virtual_network_filter_enabled = resource['properties']['isVirtualNetworkFilterEnabled']
         if not ip_range_string:
-            return IPSet(['0.0.0.0/0'])
+            if is_virtual_network_filter_enabled:
+                return IPSet()
+            else:
+                return IPSet(['0.0.0.0/0'])
 
         parts = ip_range_string.split(',')
-
-        # We need to remove the 'magic string' they use for AzureCloud bypass
-        if '0.0.0.0' in parts:
-            parts.remove('0.0.0.0')
 
         resource_rules = IPSet(filter(None, parts))
 
@@ -653,7 +654,6 @@ class CosmosSetFirewallAction(SetFirewallAction):
     def __init__(self, data, manager=None):
         super(CosmosSetFirewallAction, self).__init__(data, manager)
         self.rule_limit = 1000
-
 
     def _process_resource(self, resource):
 

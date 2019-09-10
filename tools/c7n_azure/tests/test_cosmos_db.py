@@ -16,9 +16,11 @@ from __future__ import (absolute_import, division, print_function,
 
 from azure.cosmos.cosmos_client import CosmosClient
 from azure_common import BaseTest, arm_template, cassette_name
-from c7n_azure.resources.cosmos_db import CosmosDBChildResource
+from c7n_azure.resources.cosmos_db import (CosmosDBChildResource, CosmosDBFirewallRulesFilter,
+                                           PORTAL_IPS, AZURE_CLOUD_IPS)
 from c7n_azure.session import Session
-from mock import patch
+from mock import patch, Mock
+from netaddr import IPSet
 
 from c7n.utils import local_session
 
@@ -198,6 +200,45 @@ class CosmosDBTest(BaseTest):
         expected_throughput = collections[0]['c7n:offer']['content']['offerThroughput']
         expected_tag_value = '{}:{}'.format(collections[0]['_rid'], expected_throughput)
         self.assertEqual(expected_tag_value, tag_value)
+
+
+class CosmosDBFirewallFilterTest(BaseTest):
+
+    def test_query_firewall_disabled(self):
+        resource = {'properties': {'ipRangeFilter': '', 'isVirtualNetworkFilterEnabled': False}}
+        expected = IPSet(['0.0.0.0/0'])
+        self.assertEqual(expected, self._get_filter()._query_rules(resource))
+
+    def test_query_block_everything(self):
+        resource = {'properties': {'ipRangeFilter': '', 'isVirtualNetworkFilterEnabled': True}}
+        expected = IPSet()
+        self.assertEqual(expected, self._get_filter()._query_rules(resource))
+
+    def test_query_regular(self):
+        resource = {'properties': {'ipRangeFilter': '0.0.0.0, 10.0.0.0/16, 8.8.8.8',
+                                   'isVirtualNetworkFilterEnabled': True}}
+        expected = IPSet(['0.0.0.0', '10.0.0.0/16', '8.8.8.8'])
+        self.assertEqual(expected, self._get_filter()._query_rules(resource))
+
+    def test_expand_portal_ips(self):
+        client = CosmosDBFirewallRulesFilter({'equal': ['Portal']}, Mock())
+        self.assertEqual(PORTAL_IPS, client.data['equal'])
+
+    def test_expand_azure_cloud_ips(self):
+        client = CosmosDBFirewallRulesFilter({'equal': ['AzureCloud']}, Mock())
+        self.assertEqual(AZURE_CLOUD_IPS, client.data['equal'])
+
+    def test_expand_all_ips(self):
+        client = CosmosDBFirewallRulesFilter({'equal': ['AzureCloud', 'Portal']}, Mock())
+        self.assertEqual(set(AZURE_CLOUD_IPS + PORTAL_IPS), set(client.data['equal']))
+
+    def test_expand_all_ips_plus_custom(self):
+        client = CosmosDBFirewallRulesFilter({'equal': ['AzureCloud', 'Portal', '8.8.8.8']}, Mock())
+        self.assertEqual(set(AZURE_CLOUD_IPS + PORTAL_IPS + ['8.8.8.8']), set(client.data['equal']))
+
+    def _get_filter(self, mode='equal'):
+        data = {mode: ['10.0.0.0/8', '127.0.0.1']}
+        return CosmosDBFirewallRulesFilter(data, Mock())
 
 
 class CosmosDBFirewallActionTest(BaseTest):
