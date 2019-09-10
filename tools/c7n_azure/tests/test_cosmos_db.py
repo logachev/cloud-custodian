@@ -17,7 +17,8 @@ from __future__ import (absolute_import, division, print_function,
 from azure.cosmos.cosmos_client import CosmosClient
 from azure_common import BaseTest, arm_template, cassette_name
 from c7n_azure.resources.cosmos_db import (CosmosDBChildResource, CosmosDBFirewallRulesFilter,
-                                           PORTAL_IPS, AZURE_CLOUD_IPS)
+                                           PORTAL_IPS, AZURE_CLOUD_IPS, THROUGHPUT_MULTIPLIER)
+
 from c7n_azure.session import Session
 from mock import patch, Mock
 from netaddr import IPSet
@@ -192,13 +193,18 @@ class CosmosDBTest(BaseTest):
         collections = p.run()
         self.assertEqual(len(collections), 1)
 
+        account_name = collections[0]['c7n:parent']['name']
+
+        self.sleep_in_live_mode()
+
         client = local_session(Session).client('azure.mgmt.cosmosdb.CosmosDB')
-        cosmos_account = client.database_accounts.get('test_cosmosdb', 'cctestcosmosdb')
+        cosmos_account = client.database_accounts.get('test_cosmosdb', account_name)
         self.assertTrue('test-store-throughput' in cosmos_account.tags)
 
         tag_value = cosmos_account.tags['test-store-throughput']
         expected_throughput = collections[0]['c7n:offer']['content']['offerThroughput']
-        expected_tag_value = '{}:{}'.format(collections[0]['_rid'], expected_throughput)
+        expected_scaled_throughput = int(expected_throughput / THROUGHPUT_MULTIPLIER)
+        expected_tag_value = '{}:{}'.format(collections[0]['_rid'], expected_scaled_throughput)
         self.assertEqual(expected_tag_value, tag_value)
 
 
@@ -435,10 +441,12 @@ class CosmosDBThroughputActionsTest(BaseTest):
     def setUp(self, *args, **kwargs):
         super(CosmosDBThroughputActionsTest, self).setUp(*args, **kwargs)
         self.client = local_session(Session).client('azure.mgmt.cosmosdb.CosmosDB')
+        sub_id = local_session(Session).get_subscription_id()[-12:]
+        account_name = "cctestcosmosdb%s" % sub_id
         key = CosmosDBChildResource.get_cosmos_key(
-            'test_cosmosdb', 'cctestcosmosdb', self.client, readonly=False)
+            'test_cosmosdb', account_name, self.client, readonly=False)
         self.data_client = CosmosClient(
-            url_connection='https://cctestcosmosdb.documents.azure.com:443/',
+            url_connection='https://%s.documents.azure.com:443/' % account_name,
             auth={
                 'masterKey': key
             }
@@ -548,7 +556,8 @@ class CosmosDBThroughputActionsTest(BaseTest):
         self._assert_offer_throughput_equals(throughput_to_restore, collections[0]['_self'])
 
     def _assert_offer_throughput_equals(self, throughput, resource_self):
+        self.sleep_in_live_mode()
         offers = self.data_client.ReadOffers()
         offer = next((o for o in offers if o['resource'] == resource_self), None)
         self.assertIsNotNone(offer)
-        self.assertEqual(offer['content']['offerThroughput'], throughput)
+        self.assertEqual(throughput, offer['content']['offerThroughput'])
