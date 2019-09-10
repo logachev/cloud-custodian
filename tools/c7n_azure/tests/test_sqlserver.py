@@ -127,7 +127,7 @@ class SqlServerTest(BaseTest):
                  'value_type': 'normalize',
                  'value': 'cctestsqlserver*'},
                 {'type': 'firewall-rules',
-                 'include': ['0.0.0.0-0.0.0.0']}],
+                 'include': ['1.2.2.128-1.2.2.255']}],
         }, validate=True)
         resources = p.run()
         self.assertEqual(1, len(resources))
@@ -144,7 +144,7 @@ class SqlServerTest(BaseTest):
                  'value_type': 'normalize',
                  'value': 'cctestsqlserver*'},
                 {'type': 'firewall-rules',
-                 'include': ['0.0.0.0-0.0.0.0', '0.0.0.0-0.0.0.1']}],
+                 'include': ['0.0.0.0-0.0.0.1']}],
         }, validate=True)
         resources = p.run()
         self.assertEqual(0, len(resources))
@@ -195,7 +195,7 @@ class SqlServerTest(BaseTest):
                  'value_type': 'normalize',
                  'value': 'cctestsqlserver*'},
                 {'type': 'firewall-rules',
-                 'equal': ['0.0.0.0-0.0.0.0', '1.2.2.128/25']}],
+                 'equal': ['1.2.2.128/25']}],
         }, validate=True)
         resources = p.run()
         self.assertEqual(1, len(resources))
