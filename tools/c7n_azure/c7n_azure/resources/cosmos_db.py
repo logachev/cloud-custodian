@@ -102,10 +102,13 @@ class CosmosDBFirewallRulesFilter(FirewallRulesFilter):
             else:
                 return IPSet(['0.0.0.0/0'])
 
-        parts = ip_range_string.replace(' ', '').split(',')
+        parts = set(ip_range_string.replace(' ', '').split(','))
 
         # Exclude magic strings representing Portal and Azure Cloud
-        parts = list(set(parts) - set(PORTAL_IPS + AZURE_CLOUD_IPS))
+        if set(PORTAL_IPS).issubset(parts):
+            parts = parts - set(PORTAL_IPS)
+        if set(AZURE_CLOUD_IPS).issubset(parts):
+            parts = parts - set(AZURE_CLOUD_IPS)
 
         resource_rules = IPSet(filter(None, parts))
 

@@ -247,6 +247,13 @@ class CosmosDBFirewallFilterTest(BaseTest):
         expected = IPSet(['10.0.0.0/16', '8.8.8.8'])
         self.assertEqual(expected, self._get_filter()._query_rules(resource))
 
+    def test_query_regular_plus_partial_cloud(self):
+        extra = ','.join(PORTAL_IPS[1:])
+        resource = {'properties': {'ipRangeFilter': extra + ',10.0.0.0/16,8.8.8.8',
+                                   'isVirtualNetworkFilterEnabled': True}}
+        expected = IPSet(['10.0.0.0/16', '8.8.8.8'] + PORTAL_IPS[1:])
+        self.assertEqual(expected, self._get_filter()._query_rules(resource))
+
     def _get_filter(self, mode='equal'):
         data = {mode: ['10.0.0.0/8', '127.0.0.1']}
         return CosmosDBFirewallRulesFilter(data, Mock())
