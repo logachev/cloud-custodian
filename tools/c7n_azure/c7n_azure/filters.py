@@ -658,7 +658,7 @@ class FirewallBypassFilter(Filter):
     def __init__(self, data, manager=None):
         super(FirewallBypassFilter, self).__init__(data, manager)
         self.mode = self.data['mode']
-        self.list = self.data['list']
+        self.list = set(self.data['list'])
 
     def process(self, resources, event=None):
         result, _ = ThreadHelper.execute_in_parallel(
@@ -672,7 +672,8 @@ class FirewallBypassFilter(Filter):
         return result
 
     def _check_resources(self, resources, event):
-        return [r for r in resources if self._check_resource(r)]
+        res = [r for r in resources if self._check_resource(r)]
+        return res
 
     @abstractmethod
     def _query_bypass(self, resource):
@@ -684,22 +685,22 @@ class FirewallBypassFilter(Filter):
         raise NotImplementedError()
 
     def _check_resource(self, resource):
-        bypass = self._query_bypass(resource)
-        ok = self._check_bypass(bypass)
+        bypass_set = set(self._query_bypass(resource))
+        ok = self._check_bypass(bypass_set)
         return ok
 
-    def _check_rules(self, resource_rules):
+    def _check_bypass(self, bypass_set):
         if self.mode == 'equal':
-            return self.list == resource_rules
+            return self.list == bypass_set
 
         elif self.mode == 'include':
-            return self.list.issubset(resource_rules)
+            return self.list.issubset(bypass_set)
 
         elif self.mode == 'any':
-            return not self.list.isdisjoint(resource_rules)
+            return not self.list.isdisjoint(bypass_set)
 
         elif self.mode == 'only':
-            return resource_rules.issubset(self.list)
+            return bypass_set.issubset(self.list)
         else:  # validated earlier, can never happen
             raise FilterValidationError("Internal error.")
 
