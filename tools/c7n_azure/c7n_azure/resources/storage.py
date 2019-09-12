@@ -207,6 +207,9 @@ class StorageFirewallBypassFilter(FirewallBypassFilter):
 
     def _query_bypass(self, resource):
         # Remove spaces from the string for the comparision
+        if resource['properties']['networkAcls']['defaultAction'] == 'Allow':
+            return ['AzureServices', 'Metrics', 'Logging']
+
         bypass_string = resource['properties']['networkAcls'].get('bypass', '').replace(' ', '')
         return list(filter(None, bypass_string.split(',')))
 

@@ -151,6 +151,10 @@ class KeyVaultFirewallBypassFilter(FirewallBypassFilter):
         # Remove spaces from the string for the comparision
         if 'networkAcls' not in resource['properties']:
             return []
+
+        if resource['properties']['networkAcls']['defaultAction'] == 'Allow':
+            return ['AzureServices']
+
         bypass_string = resource['properties']['networkAcls'].get('bypass', '').replace(' ', '')
         return list(filter(None, bypass_string.split(',')))
 

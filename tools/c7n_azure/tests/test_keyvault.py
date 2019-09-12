@@ -319,8 +319,10 @@ class KeyVaultFirewallBypassFilterTest(BaseTest):
 
     scenarios = [
         [{}, []],
-        [{'networkAcls': {'bypass': ''}}, []],
-        [{'networkAcls': {'bypass': 'AzureServices'}}, ['AzureServices']],
+        [{'networkAcls': {'defaultAction': 'Allow', 'bypass': ''}}, ['AzureServices']],
+        [{'networkAcls': {'defaultAction': 'Deny', 'bypass': ''}}, []],
+        [{'networkAcls': {'defaultAction': 'Deny', 'bypass': 'AzureServices'}},
+         ['AzureServices']],
     ]
 
     @parameterized.expand(scenarios)

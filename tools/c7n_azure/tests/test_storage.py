@@ -600,13 +600,15 @@ class StorageFirewallFilterTest(BaseTest):
 class StorageFirewallBypassFilterTest(BaseTest):
 
     scenarios = [
-        ['', []],
-        ['AzureServices', ['AzureServices']],
-        ['AzureServices, Metrics, Logging', ['AzureServices', 'Metrics', 'Logging']]
+        ['Allow', '', ['AzureServices', 'Metrics', 'Logging']],
+        ['Deny', '', []],
+        ['Deny', 'AzureServices', ['AzureServices']],
+        ['Deny', 'AzureServices, Metrics, Logging', ['AzureServices', 'Metrics', 'Logging']]
     ]
 
     @parameterized.expand(scenarios)
-    def test_run(self, bypass, expected):
-        resource = {'properties': {'networkAcls': {'bypass': bypass}}}
+    def test_run(self, default_action, bypass, expected):
+        resource = {'properties': {'networkAcls': {'defaultAction': default_action,
+                                                   'bypass': bypass}}}
         f = StorageFirewallBypassFilter({'mode': 'equal', 'list': []})
         self.assertEqual(expected, f._query_bypass(resource))
