@@ -155,6 +155,20 @@ class CosmosDBTest(BaseTest):
         self.assertEqual(0, len(resources))
 
     @arm_template('cosmosdb.json')
+    @cassette_name('firewall')
+    def test_firewall_bypass(self):
+        p = self.load_policy({
+            'name': 'test-azure-cosmosdb',
+            'resource': 'azure.cosmosdb',
+            'filters': [
+                {'type': 'firewall-bypass',
+                 'mode': 'equal',
+                 'list': ['Portal']}]
+        })
+        resources = p.run()
+        self.assertEqual(1, len(resources))
+
+    @arm_template('cosmosdb.json')
     def test_offer_collection(self):
         p = self.load_policy({
             'name': 'test-azure-cosmosdb',

@@ -222,6 +222,24 @@ class SqlServerTest(BaseTest):
         resources = p.run()
         self.assertEqual(0, len(resources))
 
+    @cassette_name('firewall')
+    def test_firewall_bypass(self):
+        p = self.load_policy({
+            'name': 'test-azure-sql-server',
+            'resource': 'azure.sqlserver',
+            'filters': [
+                {'type': 'value',
+                 'key': 'name',
+                 'op': 'glob',
+                 'value_type': 'normalize',
+                 'value': 'cctestsqlserver*'},
+                {'type': 'firewall-bypass',
+                 'mode': 'equal',
+                 'list': ['AzureServices']}],
+        })
+        resources = p.run()
+        self.assertEqual(1, len(resources))
+
 
 class SQLServerFirewallFilterTest(BaseTest):
 

@@ -659,8 +659,11 @@ class FirewallBypassFilter(Filter):
         super(FirewallBypassFilter, self).__init__(data, manager)
         self.mode = self.data['mode']
         self.list = set(self.data['list'])
+        self.client = None
 
     def process(self, resources, event=None):
+        self.client = self.manager.get_client()
+
         result, _ = ThreadHelper.execute_in_parallel(
             resources=resources,
             event=event,
@@ -672,8 +675,7 @@ class FirewallBypassFilter(Filter):
         return result
 
     def _check_resources(self, resources, event):
-        res = [r for r in resources if self._check_resource(r)]
-        return res
+        return [r for r in resources if self._check_resource(r)]
 
     @abstractmethod
     def _query_bypass(self, resource):

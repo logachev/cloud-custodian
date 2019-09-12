@@ -290,6 +290,19 @@ class KeyVaultTest(BaseTest):
         resources = p.run()
         self.assertEqual(0, len(resources))
 
+    @arm_template('keyvault.json')
+    @cassette_name('common')
+    def test_firewall_bypass(self):
+        p = self.load_policy({
+            'name': 'test-azure-keyvault',
+            'resource': 'azure.keyvault',
+            'filters': [
+                {'type': 'firewall-bypass',
+                 'mode': 'equal',
+                 'list': ['AzureServices']}],
+        })
+        resources = p.run()
+        self.assertEqual(1, len(resources))
 
 class KeyVaultFirewallFilterTest(BaseTest):
 

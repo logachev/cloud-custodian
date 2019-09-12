@@ -237,6 +237,25 @@ class StorageTest(BaseTest):
         self.assertEqual(0, len(resources))
 
     @arm_template('storage.json')
+    @cassette_name('firewall')
+    def test_firewall_bypass(self):
+        p = self.load_policy({
+            'name': 'test-azure-storage',
+            'resource': 'azure.storage',
+            'filters': [
+                {'type': 'value',
+                 'key': 'name',
+                 'op': 'glob',
+                 'value_type': 'normalize',
+                 'value': 'ccipstorage*'},
+                {'type': 'firewall-bypass',
+                 'mode': 'equal',
+                 'list': ['AzureServices']}],
+        })
+        resources = p.run()
+        self.assertEqual(1, len(resources))
+
+    @arm_template('storage.json')
     def test_diagnostic_settings_blob_storage_type(self):
         p = self.load_policy({
             'name': 'test-azure-storage',

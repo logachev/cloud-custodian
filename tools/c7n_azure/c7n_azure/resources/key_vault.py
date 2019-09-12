@@ -148,6 +148,11 @@ class KeyVaultFirewallBypassFilter(FirewallBypassFilter):
     schema = FirewallBypassFilter.schema(['AzureServices'])
 
     def _query_bypass(self, resource):
+
+        if 'properties' not in resource:
+            vault = self.client.vaults.get(resource['resourceGroup'], resource['name'])
+            resource['properties'] = vault.properties.serialize()
+
         # Remove spaces from the string for the comparision
         if 'networkAcls' not in resource['properties']:
             return []
