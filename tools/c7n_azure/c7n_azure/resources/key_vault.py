@@ -14,7 +14,7 @@
 
 from azure.graphrbac import GraphRbacManagementClient
 from c7n_azure.actions.base import AzureBaseAction
-from c7n_azure.filters import FirewallRulesFilter
+from c7n_azure.filters import FirewallRulesFilter, FirewallBypassFilter
 from c7n_azure.provider import resources
 from c7n_azure.session import Session
 
@@ -138,6 +138,17 @@ class KeyVaultFirewallRulesFilter(FirewallRulesFilter):
 
         resource_rules = IPSet([r['value'] for r in ip_rules])
         return resource_rules
+
+
+@KeyVault.filter_registry.register('firewall-bypass')
+class KeyVaultFirewallBypassFilter(FirewallBypassFilter):
+
+    schema = FirewallBypassFilter.schema(['AzureServices'])
+
+    def _query_bypass(self, resource):
+        # Remove spaces from the string for the comparision
+        bypass_string = resource['properties']['networkAcls'].get('bypass', '').replace(' ', '')
+        return list(filter(None, bypass_string.split(',')))
 
 
 @KeyVault.filter_registry.register('whitelist')

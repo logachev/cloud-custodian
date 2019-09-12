@@ -22,7 +22,7 @@ from azure.mgmt.cosmosdb.models import VirtualNetworkRule
 from c7n_azure import constants
 from c7n_azure.actions.base import AzureBaseAction
 from c7n_azure.actions.firewall import SetFirewallAction
-from c7n_azure.filters import FirewallRulesFilter
+from c7n_azure.filters import FirewallRulesFilter, FirewallBypassFilter
 from c7n_azure.provider import resources
 from c7n_azure.query import ChildResourceManager, ChildTypeInfo
 from c7n_azure.resources.arm import ArmResourceManager
@@ -101,6 +101,32 @@ class CosmosDBFirewallRulesFilter(FirewallRulesFilter):
         resource_rules = IPSet(filter(None, parts))
 
         return resource_rules
+
+
+@CosmosDB.filter_registry.register('firewall-bypass')
+class CosmosFirewallBypassFilter(FirewallBypassFilter):
+
+    schema = FirewallBypassFilter.schema(['AzureServices', 'Portal'])
+
+    def _query_bypass(self, resource):
+        ip_range_string = resource['properties']['ipRangeFilter']
+
+        ips = set(ip_range_string.reaplace(' ', '').split(','))
+        AZURE_CLOUD_IPS = ['0.0.0.0']
+        PORTAL_IPS = ['104.42.195.92',
+                       '40.76.54.131',
+                       '52.176.6.30',
+                       '52.169.50.45',
+                       '52.187.184.26']
+
+        result = []
+        if set(AZURE_CLOUD_IPS).issubset(ips):
+            result.append('AzureServices')
+
+        if set(PORTAL_IPS).issubset(ips):
+            result.append('Portal')
+
+        return result
 
 
 class CosmosDBChildResource(ChildResourceManager):

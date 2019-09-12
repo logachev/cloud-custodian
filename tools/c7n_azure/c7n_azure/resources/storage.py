@@ -26,7 +26,7 @@ from azure.storage.queue import QueueService
 from c7n_azure.actions.base import AzureBaseAction
 from c7n_azure.actions.firewall import SetFirewallAction
 from c7n_azure.constants import BLOB_TYPE, FILE_TYPE, QUEUE_TYPE, TABLE_TYPE
-from c7n_azure.filters import FirewallRulesFilter, ValueFilter
+from c7n_azure.filters import FirewallRulesFilter, ValueFilter, FirewallBypassFilter
 from c7n_azure.provider import resources
 from c7n_azure.resources.arm import ArmResourceManager
 from c7n_azure.storage_utils import StorageUtilities
@@ -189,9 +189,6 @@ class StorageSetFirewallAction(SetFirewallAction):
 @Storage.filter_registry.register('firewall-rules')
 class StorageFirewallRulesFilter(FirewallRulesFilter):
 
-    def __init__(self, data, manager=None):
-        super(StorageFirewallRulesFilter, self).__init__(data, manager)
-
     def _query_rules(self, resource):
 
         ip_rules = resource['properties']['networkAcls']['ipRules']
@@ -199,6 +196,17 @@ class StorageFirewallRulesFilter(FirewallRulesFilter):
         resource_rules = IPSet([r['value'] for r in ip_rules])
 
         return resource_rules
+
+
+@Storage.filter_registry.register('firewall-bypass')
+class StorageFirewallBypassFilter(FirewallBypassFilter):
+
+    schema = FirewallBypassFilter.schema(['AzureServices', 'Metrics', 'Logging'])
+
+    def _query_bypass(self, resource):
+        # Remove spaces from the string for the comparision
+        bypass_string = resource['properties']['networkAcls'].get('bypass', '').replace(' ', '')
+        return list(filter(None, bypass_string.split(',')))
 
 
 @Storage.filter_registry.register('storage-diagnostic-settings')
