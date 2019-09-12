@@ -15,12 +15,14 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from azure_common import BaseTest, arm_template, cassette_name
 from c7n_azure.resources.key_vault import (KeyVaultUpdateAccessPolicyAction, WhiteListFilter,
-                                           KeyVaultFirewallRulesFilter)
+                                           KeyVaultFirewallRulesFilter,
+                                           KeyVaultFirewallBypassFilter)
 from c7n_azure.session import Session
 from c7n_azure.utils import GraphHelper
 from mock import patch, Mock
 from msrestazure.azure_exceptions import CloudError
 from netaddr import IPSet
+from parameterized import parameterized
 from requests import Response
 
 from c7n.utils import local_session
@@ -311,3 +313,18 @@ class KeyVaultFirewallFilterTest(BaseTest):
     def _get_filter(self, mode='equal'):
         data = {mode: ['10.0.0.0/8', '127.0.0.1']}
         return KeyVaultFirewallRulesFilter(data, Mock())
+
+
+class KeyVaultFirewallBypassFilterTest(BaseTest):
+
+    scenarios = [
+        [{}, []],
+        [{'networkAcls': {'bypass': ''}}, []],
+        [{'networkAcls': {'bypass': 'AzureServices'}}, ['AzureServices']],
+    ]
+
+    @parameterized.expand(scenarios)
+    def test_run(self, properties, expected):
+        resource = {'properties': properties}
+        f = KeyVaultFirewallBypassFilter({'mode': 'equal', 'list': []})
+        self.assertEqual(expected, f._query_bypass(resource))

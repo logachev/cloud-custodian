@@ -656,7 +656,7 @@ class FirewallBypassFilter(Filter):
     log = logging.getLogger('custodian.azure.filters.FirewallRulesFilter')
 
     def __init__(self, data, manager=None):
-        super(FirewallRulesFilter, self).__init__(data, manager)
+        super(FirewallBypassFilter, self).__init__(data, manager)
         self.mode = self.data['mode']
         self.list = self.data['list']
 

@@ -149,6 +149,8 @@ class KeyVaultFirewallBypassFilter(FirewallBypassFilter):
 
     def _query_bypass(self, resource):
         # Remove spaces from the string for the comparision
+        if 'networkAcls' not in resource['properties']:
+            return []
         bypass_string = resource['properties']['networkAcls'].get('bypass', '').replace(' ', '')
         return list(filter(None, bypass_string.split(',')))
 

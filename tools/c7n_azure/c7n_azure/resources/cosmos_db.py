@@ -123,19 +123,21 @@ class CosmosFirewallBypassFilter(FirewallBypassFilter):
     def _query_bypass(self, resource):
         ip_range_string = resource['properties']['ipRangeFilter']
 
-        ips = set(ip_range_string.reaplace(' ', '').split(','))
-        AZURE_CLOUD_IPS = ['0.0.0.0']
-        PORTAL_IPS = ['104.42.195.92',
-                       '40.76.54.131',
-                       '52.176.6.30',
-                       '52.169.50.45',
-                       '52.187.184.26']
+        ip_range_string = resource['properties']['ipRangeFilter']
+        is_virtual_network_filter_enabled = resource['properties']['isVirtualNetworkFilterEnabled']
+        if not ip_range_string:
+            if is_virtual_network_filter_enabled:
+                return []
+            else:
+                return ['AzureServices', 'Portal']
+
+        parts = set(ip_range_string.replace(' ', '').split(','))
 
         result = []
-        if set(AZURE_CLOUD_IPS).issubset(ips):
+        if set(AZURE_CLOUD_IPS).issubset(parts):
             result.append('AzureServices')
 
-        if set(PORTAL_IPS).issubset(ips):
+        if set(PORTAL_IPS).issubset(parts):
             result.append('Portal')
 
         return result
