@@ -304,6 +304,7 @@ class KeyVaultTest(BaseTest):
         resources = p.run()
         self.assertEqual(1, len(resources))
 
+
 class KeyVaultFirewallFilterTest(BaseTest):
 
     def test_query_empty_network_acl(self):
