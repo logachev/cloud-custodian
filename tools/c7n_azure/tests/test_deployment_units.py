@@ -13,8 +13,6 @@
 # limitations under the License.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import uuid
-
 from azure_common import BaseTest, requires_arm_polling
 from c7n_azure import constants
 from c7n_azure.constants import FUNCTION_DOCKER_VERSION
@@ -32,8 +30,7 @@ from c7n.utils import local_session
 @requires_arm_polling
 class DeploymentUnitsTest(BaseTest):
 
-    suffix = str(uuid.uuid1())[:8]
-    rg_name = 'cloud-custodian-test-deployment-units' + suffix
+    rg_name = 'cloud-custodian-test-deployment-units'
     rg_location = 'westus'
 
     @classmethod
@@ -67,7 +64,7 @@ class DeploymentUnitsTest(BaseTest):
         self._validate(unit, params)
 
     def test_storage_account(self):
-        params = {'name': 'custodianaccount{0}'.format(self.suffix),
+        params = {'name': 'custodianaccount47182745',
                   'location': self.rg_location,
                   'resource_group_name': self.rg_name}
         unit = StorageAccountUnit()
@@ -108,7 +105,7 @@ class DeploymentUnitsTest(BaseTest):
     def test_function_app_consumption(self):
         # provision storage account
         sa_params = {
-            'name': 'custodianaccount{0}'.format(self.suffix),
+            'name': 'custodianaccount47182748',
             'location': self.rg_location,
             'resource_group_name': self.rg_name}
         storage_unit = StorageAccountUnit()
@@ -117,7 +114,7 @@ class DeploymentUnitsTest(BaseTest):
 
         # provision function app
         func_params = {
-            'name': 'cc-consumption-{0}'.format(self.suffix),
+            'name': 'cc-consumption-47182748',
             'location': self.rg_location,
             'resource_group_name': self.rg_name,
             'app_service_plan_id': None,  # auto-provision a dynamic app plan
@@ -135,7 +132,7 @@ class DeploymentUnitsTest(BaseTest):
     def test_function_app_dedicated(self):
         # provision storage account
         sa_params = {
-            'name': 'custodianaccount{0}'.format(self.suffix),
+            'name': 'custodianaccount47182741',
             'location': self.rg_location,
             'resource_group_name': self.rg_name}
         storage_unit = StorageAccountUnit()
@@ -153,7 +150,7 @@ class DeploymentUnitsTest(BaseTest):
         app_plan = app_plan_unit.provision(app_plan_params)
 
         # provision function app
-        func_app_name = 'cc-dedicated-{0}'.format(self.suffix)
+        func_app_name = 'cc-dedicated-47182748'
         func_params = {
             'name': func_app_name,
             'location': self.rg_location,
