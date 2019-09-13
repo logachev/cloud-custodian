@@ -655,7 +655,7 @@ class FirewallBypassFilter(Filter):
             'firewall-bypass',
             required=['mode', 'list'],
             **{
-                'mode': {'enum': 'include, equal, any, only'},
+                'mode': {'enum': ['include', 'equal', 'any', 'only']},
                 'list': {'type': 'array', 'items': {'enum': values}}
             })
 
