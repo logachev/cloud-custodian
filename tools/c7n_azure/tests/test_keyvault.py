@@ -89,6 +89,7 @@ class KeyVaultTest(BaseTest):
         p2 = {}
         self.assertFalse(WhiteListFilter.compare_permissions(p1, p2))
 
+    # Requires Graph access
     @arm_template('keyvault.json')
     @pytest.mark.skiplive
     def test_whitelist(self):
