@@ -348,6 +348,7 @@ class ShortTermBackupRetentionPolicyActionSchemaTest(BaseTest):
 # operation has finished. However, this polling happens client-side and causes the tests to complete
 # slowly. In order to speed these up, the cassettes were manually modified to immediately return the
 # completed operation.
+@requires_arm_polling
 class ShortTermBackupRetentionPolicyActionTest(BaseTest):
 
     @classmethod
@@ -420,6 +421,7 @@ class LongTermBackupRetentionPolicyActionSchemaTest(BaseTest):
 # operation has finished. However, this polling happens client-side and causes the tests to complete
 # slowly. In order to speed these up, the cassettes were manually modified to immediately return the
 # completed operation.
+@requires_arm_polling
 class LongTermBackupRetentionPolicyActionTest(BaseTest):
 
     @classmethod
