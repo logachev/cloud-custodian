@@ -36,6 +36,8 @@ CUSTOM_SUBSCRIPTION_ID = '00000000-5106-4743-99b0-c129bfa71a47'
 class SessionTest(BaseTest):
 
     authorization_file = os.path.join(os.path.dirname(__file__), 'data', 'test_auth_file.json')
+    authorization_file_functions = os.path.join(os.path.dirname(__file__), 'data',
+                                                'test_auth_file_functions.json')
     authorization_file_kv = os.path.join(os.path.dirname(__file__), 'data',
                                          'test_auth_file_kv.json')
     authorization_file_full = os.path.join(os.path.dirname(__file__),
@@ -66,6 +68,19 @@ class SessionTest(BaseTest):
                    autospec=True, return_value=None):
             s = Session(subscription_id=CUSTOM_SUBSCRIPTION_ID,
                         authorization_file=self.authorization_file)
+
+            self.assertIs(type(s.get_credentials()), ServicePrincipalCredentials)
+            self.assertEqual(s.get_subscription_id(), CUSTOM_SUBSCRIPTION_ID)
+
+            # will vary between recorded/live auth options but useful to ensure
+            # we ended up with one of the valid values
+            self.assertTrue(s.get_tenant_id() in [DEFAULT_TENANT_ID, 'tenant'])
+
+    def test_initialize_session_auth_file_custom_subscription_functions(self):
+        with patch('azure.common.credentials.ServicePrincipalCredentials.__init__',
+                   autospec=True, return_value=None):
+            s = Session(subscription_id=CUSTOM_SUBSCRIPTION_ID,
+                        authorization_file=self.authorization_file_functions)
 
             self.assertIs(type(s.get_credentials()), ServicePrincipalCredentials)
             self.assertEqual(s.get_subscription_id(), CUSTOM_SUBSCRIPTION_ID)
