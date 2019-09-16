@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from azure.mgmt.sql.models import DatabaseUpdate, Sku
-from azure_common import BaseTest, arm_template
+from azure_common import BaseTest, arm_template, requires_arm_polling
 from c7n_azure.resources.sqldatabase import (
     BackupRetentionPolicyHelper, ShortTermBackupRetentionPolicyAction)
 from c7n_azure.session import Session
