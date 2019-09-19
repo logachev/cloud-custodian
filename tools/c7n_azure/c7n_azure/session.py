@@ -172,6 +172,8 @@ class Session(object):
             log.info("Using file for authentication parameters")
             with open(self.authorization_file) as json_file:
                 self._auth_params = json.load(json_file)
+            if self.subscription_id_override is not None:
+                self._auth_params['subscription_id'] = self.subscription_id_override
         else:
             log.info("Using environment variables for authentication parameters")
             self._auth_params = {
@@ -180,17 +182,18 @@ class Session(object):
                 'access_token': os.environ.get(constants.ENV_ACCESS_TOKEN),
                 'tenant_id': os.environ.get(constants.ENV_TENANT_ID),
                 'use_msi': bool(os.environ.get(constants.ENV_USE_MSI)),
-                'subscription_id': os.environ.get(constants.ENV_SUB_ID),
+                'subscription_id':
+                    self.subscription_id_override or os.environ.get(constants.ENV_SUB_ID),
                 'keyvault_client_id': os.environ.get(constants.ENV_KEYVAULT_CLIENT_ID),
                 'keyvault_secret_id': os.environ.get(constants.ENV_KEYVAULT_SECRET_ID),
                 'enable_cli_auth': True
             }
 
+        self._authenticate()
+
         # Let provided id parameter override everything else
         if self.subscription_id_override is not None:
-            self._auth_params['subscription_id'] = self.subscription_id_override
-
-        self._authenticate()
+            self.subscription_id = self.subscription_id_override
 
         if self.credentials is None:
             log.error('Unable to authenticate with Azure.')

@@ -23,6 +23,7 @@ from mock import patch, Mock
 from msrestazure.azure_exceptions import CloudError
 from netaddr import IPSet
 from parameterized import parameterized
+import pytest
 from requests import Response
 
 from c7n.utils import local_session
@@ -90,7 +91,9 @@ class KeyVaultTest(BaseTest):
         p2 = {}
         self.assertFalse(WhiteListFilter.compare_permissions(p1, p2))
 
+    # Requires Graph access
     @arm_template('keyvault.json')
+    @pytest.mark.skiplive
     def test_whitelist(self):
         """Tests basic whitelist functionality"""
         p = self.load_policy({
@@ -219,6 +222,10 @@ class KeyVaultTest(BaseTest):
             'name': 'test-azure-keyvault',
             'resource': 'azure.keyvault',
             'filters': [
+                {'type': 'value',
+                 'key': 'name',
+                 'op': 'glob',
+                 'value': 'cckeyvault1*'},
                 {'type': 'firewall-rules',
                  'include': ['1.0.0.0']}],
         })
@@ -232,6 +239,10 @@ class KeyVaultTest(BaseTest):
             'name': 'test-azure-keyvault',
             'resource': 'azure.keyvault',
             'filters': [
+                {'type': 'value',
+                 'key': 'name',
+                 'op': 'glob',
+                 'value': 'cckeyvault1*'},
                 {'type': 'firewall-rules',
                  'include': ['1.0.0.0', '127.0.0.1']}],
         }, validate=True)
@@ -245,6 +256,10 @@ class KeyVaultTest(BaseTest):
             'name': 'test-azure-keyvault',
             'resource': 'azure.keyvault',
             'filters': [
+                {'type': 'value',
+                 'key': 'name',
+                 'op': 'glob',
+                 'value': 'cckeyvault1*'},
                 {'type': 'firewall-rules',
                  'include': ['128.0.0.0/1']}],
         }, validate=True)
@@ -258,6 +273,10 @@ class KeyVaultTest(BaseTest):
             'name': 'test-azure-keyvault',
             'resource': 'azure.keyvault',
             'filters': [
+                {'type': 'value',
+                 'key': 'name',
+                 'op': 'glob',
+                 'value': 'cckeyvault1*'},
                 {'type': 'firewall-rules',
                  'include': ['127.0.0.0/8']}],
         }, validate=True)
@@ -271,6 +290,10 @@ class KeyVaultTest(BaseTest):
             'name': 'test-azure-keyvault',
             'resource': 'azure.keyvault',
             'filters': [
+                {'type': 'value',
+                 'key': 'name',
+                 'op': 'glob',
+                 'value': 'cckeyvault1*'},
                 {'type': 'firewall-rules',
                  'equal': ['0.0.0.0-126.255.255.255', '128.0.0.0-255.255.255.255']}],
         }, validate=True)
@@ -284,6 +307,10 @@ class KeyVaultTest(BaseTest):
             'name': 'test-azure-keyvault',
             'resource': 'azure.keyvault',
             'filters': [
+                {'type': 'value',
+                 'key': 'name',
+                 'op': 'glob',
+                 'value': 'cckeyvault1*'},
                 {'type': 'firewall-rules',
                  'equal': ['0.0.0.0-126.255.255.255', '128.0.0.0-255.255.255.254']}],
         }, validate=True)
