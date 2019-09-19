@@ -319,15 +319,15 @@ class CosmosDBFirewallFilterTest(BaseTest):
 class CosmosDBFirewallBypassFilterTest(BaseTest):
 
     scenarios = [
-        ['', False, ['AzureServices', 'Portal']],
+        ['', False, ['AzureCloud', 'Portal']],
         ['', True, []],
         ['1.0.0.0', True, []],
-        [','.join(AZURE_CLOUD_IPS), False, ['AzureServices']],
+        [','.join(AZURE_CLOUD_IPS), False, ['AzureCloud']],
         [','.join(PORTAL_IPS), False, ['Portal']],
-        [','.join(AZURE_CLOUD_IPS + PORTAL_IPS), False, ['AzureServices', 'Portal']],
-        [','.join(AZURE_CLOUD_IPS + ['10.0.0.8']), False, ['AzureServices']],
+        [','.join(AZURE_CLOUD_IPS + PORTAL_IPS), False, ['AzureCloud', 'Portal']],
+        [','.join(AZURE_CLOUD_IPS + ['10.0.0.8']), False, ['AzureCloud']],
         [','.join(PORTAL_IPS + ['10.0.0.8']), False, ['Portal']],
-        [','.join(AZURE_CLOUD_IPS + PORTAL_IPS + ['10.0.0.8']), False, ['AzureServices', 'Portal']],
+        [','.join(AZURE_CLOUD_IPS + PORTAL_IPS + ['10.0.0.8']), False, ['AzureCloud', 'Portal']],
     ]
 
     @parameterized.expand(scenarios)
