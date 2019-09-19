@@ -646,7 +646,6 @@ class FirewallRulesFilter(Filter):
 @six.add_metaclass(ABCMeta)
 class FirewallBypassFilter(Filter):
     """Filters resources by the firewall bypass rules
-
     """
 
     @staticmethod

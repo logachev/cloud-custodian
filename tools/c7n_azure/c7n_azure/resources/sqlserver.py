@@ -80,7 +80,6 @@ class SqlServer(ArmResourceManager):
 
 @SqlServer.filter_registry.register('firewall-rules')
 class SqlServerFirewallRulesFilter(FirewallRulesFilter):
-
     def _query_rules(self, resource):
         query = self.client.firewall_rules.list_by_server(
             resource['resourceGroup'],
@@ -99,6 +98,24 @@ class SqlServerFirewallRulesFilter(FirewallRulesFilter):
 
 @SqlServer.filter_registry.register('firewall-bypass')
 class SqlServerFirewallBypassFilter(FirewallBypassFilter):
+    """
+    Filters resources by the firewall bypass rules.
+
+    :example:
+
+    This policy will find all SQL Servers with enabled Azure Services bypass rules
+
+    .. code-block:: yaml
+
+        policies:
+          - name: sqlserver-bypass
+            resource: azure.sqlserver
+            filters:
+              - type: firewall-bypass
+                mode: equal
+                list:
+                    - AzureServices
+    """
 
     schema = FirewallBypassFilter.schema(['AzureServices'])
 

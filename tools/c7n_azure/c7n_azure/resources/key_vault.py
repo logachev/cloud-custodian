@@ -144,7 +144,24 @@ class KeyVaultFirewallRulesFilter(FirewallRulesFilter):
 
 @KeyVault.filter_registry.register('firewall-bypass')
 class KeyVaultFirewallBypassFilter(FirewallBypassFilter):
+    """
+    Filters resources by the firewall bypass rules.
 
+    :example:
+
+    This policy will find all KeyVaults with enabled Azure Services bypass rules
+
+    .. code-block:: yaml
+
+        policies:
+          - name: keyvault-bypass
+            resource: azure.keyvault
+            filters:
+              - type: firewall-bypass
+                mode: equal
+                list:
+                    - AzureServices
+    """
     schema = FirewallBypassFilter.schema(['AzureServices'])
 
     def _query_bypass(self, resource):

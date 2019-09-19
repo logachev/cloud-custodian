@@ -117,12 +117,29 @@ class CosmosDBFirewallRulesFilter(FirewallRulesFilter):
 
 @CosmosDB.filter_registry.register('firewall-bypass')
 class CosmosFirewallBypassFilter(FirewallBypassFilter):
+    """
+    Filters resources by the firewall bypass rules.
+
+    :example:
+
+    This policy will find all CosmosDB with enabled Azure Portal and Azure Services bypass rules
+
+    .. code-block:: yaml
+
+        policies:
+          - name: cosmosdb-bypass
+            resource: azure.cosmosdb
+            filters:
+              - type: firewall-bypass
+                mode: equal
+                list:
+                    - AzureServices
+                    - Portal
+    """
 
     schema = FirewallBypassFilter.schema(['AzureServices', 'Portal'])
 
     def _query_bypass(self, resource):
-        ip_range_string = resource['properties']['ipRangeFilter']
-
         ip_range_string = resource['properties']['ipRangeFilter']
         is_virtual_network_filter_enabled = resource['properties']['isVirtualNetworkFilterEnabled']
         if not ip_range_string:

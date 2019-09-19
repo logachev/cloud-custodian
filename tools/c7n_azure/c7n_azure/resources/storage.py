@@ -202,7 +202,27 @@ class StorageFirewallRulesFilter(FirewallRulesFilter):
 
 @Storage.filter_registry.register('firewall-bypass')
 class StorageFirewallBypassFilter(FirewallBypassFilter):
+    """
+    Filters resources by the firewall bypass rules.
 
+    :example:
+
+    This policy will find all Storage Accounts with enabled Azure Services, Metrics and Logging
+    bypass rules
+
+    .. code-block:: yaml
+
+        policies:
+          - name: storage-bypass
+            resource: azure.storage
+            filters:
+              - type: firewall-bypass
+                mode: equal
+                list:
+                    - AzureServices
+                    - Metrics
+                    - Logging
+    """
     schema = FirewallBypassFilter.schema(['AzureServices', 'Metrics', 'Logging'])
 
     def _query_bypass(self, resource):
