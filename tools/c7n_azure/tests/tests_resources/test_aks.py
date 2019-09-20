@@ -13,18 +13,32 @@
 # limitations under the License.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from ..azure_common import arm_template
-from ..base_resource import BaseResourceTest
+from ..azure_common import BaseTest, arm_template
 
 
-class AksTest(BaseResourceTest):
-
-    resource = 'azure.aks'
-    resource_name_prefix = 'cctestaks'
+class AksTest(BaseTest):
+    def setUp(self):
+        super(AksTest, self).setUp()
 
     def test_aks_schema_validate(self):
-        self.validate_schema()
+        with self.sign_out_patch():
+            p = self.load_policy({
+                'name': 'test-azure-aks',
+                'resource': 'azure.aks'
+            }, validate=True)
+            self.assertTrue(p)
 
     @arm_template('cdnprofile.json')
     def test_find_aks_by_name(self):
-        self.verify_exists()
+        p = self.load_policy({
+            'name': 'test-azure-aks',
+            'resource': 'azure.aks',
+            'filters': [
+                {'type': 'value',
+                 'key': 'name',
+                 'op': 'eq',
+                 'value_type': 'normalize',
+                 'value': 'cctestaks'}],
+        })
+        resources = p.run()
+        self.assertEqual(len(resources), 1)

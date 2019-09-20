@@ -497,7 +497,6 @@ def arm_template(template):
         @wraps(func)
         def wrapper(*args, **kwargs):
             template_file_path = os.path.join(BASE_FOLDER, "templates", template)
-            print(BASE_FOLDER)
             if not os.path.isfile(template_file_path):
                 return args[0].fail("ARM template {} is not found".format(template_file_path))
             return func(*args, **kwargs)
