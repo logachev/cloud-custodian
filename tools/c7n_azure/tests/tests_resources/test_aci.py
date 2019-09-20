@@ -13,19 +13,30 @@
 # limitations under the License.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from ..azure_common import arm_template, cassette_name
-from ..base_resource import BaseResourceTest
+from ..azure_common import BaseTest, arm_template, cassette_name
 
 
-class ContainerGroupTest(BaseResourceTest):
-
-    resource = 'azure.container-group'
-    resource_name_prefix = 'cctest-container'
-
-    def test_schema(self):
-        self.validate_schema()
+class ContainerGroupTest(BaseTest):
+    def test_containergroup_schema_validate(self):
+        with self.sign_out_patch():
+            p = self.load_policy({
+                'name': 'test',
+                'resource': 'azure.container-group'
+            }, validate=True)
+            self.assertTrue(p)
 
     @arm_template('aci.json')
     @cassette_name('list')
     def test_find_container_by_name(self):
-        self.verify_exists()
+        p = self.load_policy({
+            'name': 'test',
+            'resource': 'azure.container-group',
+            'filters': [
+                {'type': 'value',
+                 'key': 'properties.containers[].name',
+                 'op': 'in',
+                 'value_type': 'swap',
+                 'value': 'cctest-container'}],
+        })
+        resources = p.run()
+        self.assertEqual(len(resources), 1)
