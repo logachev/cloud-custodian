@@ -15,7 +15,7 @@
 import re
 
 import mock
-from azure_common import BaseTest, arm_template
+from .azure_common import BaseTest, arm_template
 from c7n_azure.actions.logic_app import LogicAppAction
 from c7n_azure.session import Session
 from jsonschema.exceptions import ValidationError

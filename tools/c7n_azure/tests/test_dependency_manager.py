@@ -18,7 +18,7 @@ import re
 import shutil
 import tempfile
 
-from azure_common import BaseTest
+from .azure_common import BaseTest
 from c7n_azure.dependency_manager import DependencyManager
 
 

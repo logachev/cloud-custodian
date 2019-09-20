@@ -21,7 +21,7 @@ from functools import wraps
 from time import sleep
 
 import msrest.polling
-from azure_serializer import AzureSerializer
+from .azure_serializer import AzureSerializer
 from c7n_azure import utils, constants
 from c7n_azure.session import Session
 from c7n_azure.utils import ThreadHelper
@@ -39,6 +39,7 @@ from c7n.testing import TestUtils
 
 load_resources()
 
+BASE_FOLDER = os.path.dirname(__file__)
 C7N_SCHEMA = generate()
 DEFAULT_SUBSCRIPTION_ID = 'ea42f556-5106-4743-99b0-c129bfa71a47'
 CUSTOM_SUBSCRIPTION_ID = '00000000-5106-4743-99b0-c129bfa71a47'
@@ -165,8 +166,9 @@ class AzureVCRBaseTest(VCRTestCase):
         test_method = getattr(self, self._testMethodName)
         name_override = getattr(test_method, 'cassette_name', None)
         method_name = name_override or self.cassette_name or self._testMethodName
-        return '{0}.{1}.yaml'.format(self.__class__.__name__,
+        name = '{0}.{1}.yaml'.format(self.__class__.__name__,
                                      method_name)
+        return os.path.join(BASE_FOLDER, 'cassettes', name)
 
     def _get_vcr_kwargs(self):
         return super(VCRTestCase, self)._get_vcr_kwargs(
@@ -494,7 +496,8 @@ def arm_template(template):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            template_file_path = os.path.dirname(__file__) + "/templates/" + template
+            template_file_path = os.path.join(BASE_FOLDER, "templates", template)
+            print(BASE_FOLDER)
             if not os.path.isfile(template_file_path):
                 return args[0].fail("ARM template {} is not found".format(template_file_path))
             return func(*args, **kwargs)

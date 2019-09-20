@@ -14,7 +14,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from azure.mgmt.storage.models import StorageAccount
-from azure_common import BaseTest, DEFAULT_SUBSCRIPTION_ID, arm_template, cassette_name
+from .azure_common import BaseTest, DEFAULT_SUBSCRIPTION_ID, arm_template, cassette_name
 from c7n_azure.constants import FUNCTION_EVENT_TRIGGER_MODE, FUNCTION_TIME_TRIGGER_MODE, \
     CONTAINER_EVENT_TRIGGER_MODE, CONTAINER_TIME_TRIGGER_MODE
 from c7n_azure.policy import AzureEventGridMode, AzureFunctionMode, AzureModeCommon

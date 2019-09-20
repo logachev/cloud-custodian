@@ -30,7 +30,7 @@ import sys
 
 from azure.common.credentials import ServicePrincipalCredentials, BasicTokenAuthentication
 from msrestazure.azure_active_directory import MSIAuthentication
-from azure_common import BaseTest, DEFAULT_SUBSCRIPTION_ID, DEFAULT_TENANT_ID
+from .azure_common import BaseTest, DEFAULT_SUBSCRIPTION_ID, DEFAULT_TENANT_ID
 from c7n_azure import constants
 from c7n_azure.session import Session
 from mock import patch

@@ -16,7 +16,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import sys
 import types
 
-from azure_common import BaseTest, DEFAULT_SUBSCRIPTION_ID
+from .azure_common import BaseTest, DEFAULT_SUBSCRIPTION_ID
 from c7n_azure.tags import TagHelper
 from c7n_azure.utils import (AppInsightsHelper, ManagedGroupHelper, Math, PortsRangeHelper,
                              ResourceIdParser, StringUtils, custodian_azure_send_override,

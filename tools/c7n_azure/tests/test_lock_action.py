@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from azure_common import BaseTest, arm_template
+from .azure_common import BaseTest, arm_template
 from c7n_azure.utils import ResourceIdParser
 from jsonschema.exceptions import ValidationError
 from c7n_azure.session import Session

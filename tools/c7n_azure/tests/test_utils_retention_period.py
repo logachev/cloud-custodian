@@ -1,4 +1,4 @@
-from azure_common import BaseTest
+from .azure_common import BaseTest
 from c7n_azure.utils import RetentionPeriod
 
 

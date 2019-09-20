@@ -16,7 +16,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import re
 
 import tools_tags as tools
-from azure_common import BaseTest
+from .azure_common import BaseTest
 from c7n_azure.actions.tagging import TagTrim
 from mock import patch, Mock
 

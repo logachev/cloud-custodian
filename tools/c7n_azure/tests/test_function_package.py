@@ -17,7 +17,7 @@ import json
 import os
 import time
 
-from azure_common import BaseTest
+from .azure_common import BaseTest
 from c7n_azure.function_package import FunctionPackage, AzurePythonPackageArchive
 from c7n_azure.constants import ENV_CUSTODIAN_DISABLE_SSL_CERT_VERIFICATION, \
     FUNCTION_TIME_TRIGGER_MODE, FUNCTION_EVENT_TRIGGER_MODE

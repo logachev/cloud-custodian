@@ -19,7 +19,7 @@ import datetime
 from mock import Mock
 
 import tools_tags as tools
-from azure_common import BaseTest
+from .azure_common import BaseTest
 from c7n_azure.filters import TagActionFilter
 from c7n_azure.utils import now
 from c7n.filters.offhours import Time

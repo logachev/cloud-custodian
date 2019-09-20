@@ -13,7 +13,7 @@
 # limitations under the License.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from azure_common import BaseTest, arm_template
+from .azure_common import BaseTest, arm_template
 from c7n_azure.function_package import FunctionPackage, AzurePythonPackageArchive
 from c7n_azure.functionapp_utils import FunctionAppUtilities
 

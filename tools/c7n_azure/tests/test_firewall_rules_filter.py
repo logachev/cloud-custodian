@@ -15,7 +15,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import logging
 
-from azure_common import BaseTest
+from .azure_common import BaseTest
 from c7n_azure.filters import FirewallRulesFilter
 from jsonschema import ValidationError
 from mock import Mock

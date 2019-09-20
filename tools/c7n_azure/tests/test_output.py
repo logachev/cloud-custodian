@@ -20,7 +20,7 @@ from datetime import date
 
 import mock
 from azure.common import AzureHttpError
-from azure_common import BaseTest
+from .azure_common import BaseTest
 import re
 from c7n_azure.output import AzureStorageOutput
 

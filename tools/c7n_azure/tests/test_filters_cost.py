@@ -15,7 +15,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from collections import namedtuple
 
-from azure_common import BaseTest
+from .azure_common import BaseTest
 from c7n_azure.filters import CostFilter
 from c7n_azure.session import Session
 from c7n_azure.utils import utcnow

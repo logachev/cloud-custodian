@@ -1,4 +1,4 @@
-from azure_common import BaseTest, DEFAULT_SUBSCRIPTION_ID
+from .azure_common import BaseTest, DEFAULT_SUBSCRIPTION_ID
 from mock import patch
 from c7n_azure.provider import Azure
 from c7n.config import Config

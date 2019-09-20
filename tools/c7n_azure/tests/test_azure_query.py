@@ -15,8 +15,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import logging
 
-from azure_common import BaseTest, arm_template
-from azure_common import cassette_name
+from .azure_common import BaseTest, arm_template
+from .azure_common import cassette_name
 from c7n_azure.session import Session
 from mock import mock, patch
 

@@ -13,7 +13,7 @@
 # limitations under the License.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from azure_common import BaseTest
+from .azure_common import BaseTest
 from c7n_azure.filters import ParentFilter
 from c7n_azure.resources.key_vault import KeyVault
 from c7n_azure.resources.key_vault_keys import KeyVaultKeys

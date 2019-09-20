@@ -16,7 +16,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from azure.common import AzureHttpError
 from azure.mgmt.storage.models import StorageAccountListKeysResult, StorageAccountKey
 from azure.storage.common import TokenCredential
-from azure_common import BaseTest, arm_template, requires_arm_polling
+from .azure_common import BaseTest, arm_template, requires_arm_polling
 from c7n_azure.session import Session
 from c7n_azure.storage_utils import StorageUtilities
 from c7n_azure.utils import ResourceIdParser

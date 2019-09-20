@@ -21,7 +21,7 @@ try:
 except ImportError:
     pass
 
-from azure_common import BaseTest
+from .azure_common import BaseTest
 from c7n_azure.function import main as functionMain
 from mock import patch
 
