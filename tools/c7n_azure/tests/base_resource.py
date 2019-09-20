@@ -1,4 +1,4 @@
-# Copyright 2019 Microsoft Corporation
+# Copyright 2015-2018 Capital One Services, LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,12 +13,28 @@
 # limitations under the License.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from azure_common import BaseTest
+from azure_common import BaseTest, arm_template, cassette_name
 
 
 class BaseResourceTest(BaseTest):
     resource = None
     resource_name_prefix = None
+
+    @classmethod
+    def setUpClass(cls):
+        cls._test_methods = []
+        if cls is BaseResourceTest:
+            for name in dir(cls):
+                if name.startswith('test') and callable(getattr(cls, name)):
+                    cls._test_methods.append((name, getattr(cls, name)))
+                    setattr(cls, name, lambda self: None)
+
+    @classmethod
+    def tearDownClass(cls):
+        if cls is BaseResourceTest:
+            for name, method in cls._test_methods:
+                setattr(cls, name, method)
+            cls._test_methods = []
 
     def validate_schema(self, filters=[], actions=[]):
         self.assertTrue(self._get_policy(filters=filters, actions=actions, validate=True))
@@ -39,3 +55,5 @@ class BaseResourceTest(BaseTest):
                  'value': self.resource_name_prefix + '*'}] + filters,
             'actions': actions
         }, validate=validate)
+
+#del BaseResourceTest

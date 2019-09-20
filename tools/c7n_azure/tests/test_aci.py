@@ -13,8 +13,8 @@
 # limitations under the License.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from ..azure_common import arm_template, cassette_name
-from ..base_resource import BaseResourceTest
+from azure_common import BaseTest, arm_template, cassette_name
+from base_resource import BaseResourceTest
 
 
 class ContainerGroupTest(BaseResourceTest):
