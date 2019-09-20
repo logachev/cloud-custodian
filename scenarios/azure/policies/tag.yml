@@ -1,9 +1,9 @@
 policies:
   - name: tag-action-policy
-    resource: {resource}
+    resource: '{resource}'
     filters:
-      - name: {name}
+      - name: '{name}'
     actions:
       - type: tag
-        tag: {tag-name}
-        value: {tag-value}
+        tag: '{tag-name}'
+        value: '{tag-value}'
