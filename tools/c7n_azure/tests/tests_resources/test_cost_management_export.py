@@ -16,7 +16,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import datetime
 from collections import namedtuple
 
-from .azure_common import BaseTest, arm_template, cassette_name
+from ..azure_common import BaseTest, arm_template, cassette_name
 from jsonschema.exceptions import ValidationError
 from mock import patch
 

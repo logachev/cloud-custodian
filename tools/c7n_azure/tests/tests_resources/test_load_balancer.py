@@ -13,7 +13,7 @@
 # limitations under the License.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from .azure_common import BaseTest, arm_template
+from tests.azure_common import BaseTest, arm_template
 
 
 class LoadBalancerTest(BaseTest):

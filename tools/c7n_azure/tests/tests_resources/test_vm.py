@@ -15,7 +15,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import datetime
 
-from .azure_common import BaseTest, arm_template
+from ..azure_common import BaseTest, arm_template
 from c7n_azure.session import Session
 from dateutil import tz as tzutils
 from mock import patch
