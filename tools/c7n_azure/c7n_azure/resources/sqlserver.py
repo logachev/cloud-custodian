@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from c7n_azure.filters import FirewallRulesFilter
+from c7n_azure.filters import FirewallRulesFilter, FirewallBypassFilter
 from c7n_azure.provider import resources
 from c7n_azure.resources.arm import ArmResourceManager
 from netaddr import IPRange, IPSet
@@ -80,15 +80,6 @@ class SqlServer(ArmResourceManager):
 
 @SqlServer.filter_registry.register('firewall-rules')
 class SqlServerFirewallRulesFilter(FirewallRulesFilter):
-
-    def __init__(self, data, manager=None):
-        super(SqlServerFirewallRulesFilter, self).__init__(data, manager)
-        self.client = None
-
-    def process(self, resources, event=None):
-        self.client = self.manager.get_client()
-        return super(SqlServerFirewallRulesFilter, self).process(resources, event)
-
     def _query_rules(self, resource):
         query = self.client.firewall_rules.list_by_server(
             resource['resourceGroup'],
@@ -97,6 +88,44 @@ class SqlServerFirewallRulesFilter(FirewallRulesFilter):
         resource_rules = IPSet()
 
         for r in query:
+            if r.start_ip_address == '0.0.0.0' and r.end_ip_address == '0.0.0.0':
+                # Ignore 0.0.0.0 magic value representing Azure Cloud bypass
+                continue
             resource_rules.add(IPRange(r.start_ip_address, r.end_ip_address))
 
         return resource_rules
+
+
+@SqlServer.filter_registry.register('firewall-bypass')
+class SqlServerFirewallBypassFilter(FirewallBypassFilter):
+    """
+    Filters resources by the firewall bypass rules.
+
+    :example:
+
+    This policy will find all SQL Servers with enabled Azure Services bypass rules
+
+    .. code-block:: yaml
+
+        policies:
+          - name: sqlserver-bypass
+            resource: azure.sqlserver
+            filters:
+              - type: firewall-bypass
+                mode: equal
+                list:
+                    - AzureServices
+    """
+
+    schema = FirewallBypassFilter.schema(['AzureServices'])
+
+    def _query_bypass(self, resource):
+        # Remove spaces from the string for the comparision
+        query = self.client.firewall_rules.list_by_server(
+            resource['resourceGroup'],
+            resource['name'])
+
+        for r in query:
+            if r.start_ip_address == '0.0.0.0' and r.end_ip_address == '0.0.0.0':
+                return ['AzureServices']
+        return []

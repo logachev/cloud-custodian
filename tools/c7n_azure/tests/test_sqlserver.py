@@ -13,9 +13,17 @@
 # limitations under the License.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import collections
 import datetime
 
 from azure_common import BaseTest, cassette_name
+from c7n_azure.resources.sqlserver import SqlServerFirewallRulesFilter, \
+    SqlServerFirewallBypassFilter
+from mock import Mock
+from netaddr import IPSet
+from parameterized import parameterized
+
+IpRange = collections.namedtuple('IpRange', 'start_ip_address end_ip_address')
 
 
 class SqlServerTest(BaseTest):
@@ -124,7 +132,7 @@ class SqlServerTest(BaseTest):
                  'value_type': 'normalize',
                  'value': 'cctestsqlserver*'},
                 {'type': 'firewall-rules',
-                 'include': ['0.0.0.0-0.0.0.0']}],
+                 'include': ['1.2.2.128-1.2.2.255']}],
         }, validate=True)
         resources = p.run()
         self.assertEqual(1, len(resources))
@@ -141,7 +149,7 @@ class SqlServerTest(BaseTest):
                  'value_type': 'normalize',
                  'value': 'cctestsqlserver*'},
                 {'type': 'firewall-rules',
-                 'include': ['0.0.0.0-0.0.0.0', '0.0.0.0-0.0.0.1']}],
+                 'include': ['0.0.0.0-0.0.0.1']}],
         }, validate=True)
         resources = p.run()
         self.assertEqual(0, len(resources))
@@ -192,7 +200,7 @@ class SqlServerTest(BaseTest):
                  'value_type': 'normalize',
                  'value': 'cctestsqlserver*'},
                 {'type': 'firewall-rules',
-                 'equal': ['0.0.0.0-0.0.0.0', '1.2.2.128/25']}],
+                 'equal': ['1.2.2.128/25']}],
         }, validate=True)
         resources = p.run()
         self.assertEqual(1, len(resources))
@@ -213,3 +221,72 @@ class SqlServerTest(BaseTest):
         }, validate=True)
         resources = p.run()
         self.assertEqual(0, len(resources))
+
+    @cassette_name('firewall')
+    def test_firewall_bypass(self):
+        p = self.load_policy({
+            'name': 'test-azure-sql-server',
+            'resource': 'azure.sqlserver',
+            'filters': [
+                {'type': 'value',
+                 'key': 'name',
+                 'op': 'glob',
+                 'value_type': 'normalize',
+                 'value': 'cctestsqlserver*'},
+                {'type': 'firewall-bypass',
+                 'mode': 'equal',
+                 'list': ['AzureServices']}],
+        })
+        resources = p.run()
+        self.assertEqual(1, len(resources))
+
+
+class SQLServerFirewallFilterTest(BaseTest):
+
+    resource = {'name': 'test', 'resourceGroup': 'test'}
+
+    def test_query_empty_rules(self):
+        rules = []
+        expected = IPSet()
+        self.assertEqual(expected, self._get_filter(rules)._query_rules(self.resource))
+
+    def test_query_regular_rules(self):
+        rules = [IpRange(start_ip_address='10.0.0.0', end_ip_address='10.0.255.255'),
+                 IpRange(start_ip_address='8.8.8.8', end_ip_address='8.8.8.8')]
+        expected = IPSet(['8.8.8.8', '10.0.0.0/16'])
+        self.assertEqual(expected, self._get_filter(rules)._query_rules(self.resource))
+
+    def test_query_regular_rules_with_magic(self):
+        rules = [IpRange(start_ip_address='10.0.0.0', end_ip_address='10.0.255.255'),
+                 IpRange(start_ip_address='8.8.8.8', end_ip_address='8.8.8.8'),
+                 IpRange(start_ip_address='0.0.0.0', end_ip_address='0.0.0.0')]
+        expected = IPSet(['8.8.8.8', '10.0.0.0/16'])
+        self.assertEqual(expected, self._get_filter(rules)._query_rules(self.resource))
+
+    def _get_filter(self, rules, mode='equal'):
+        data = {mode: ['10.0.0.0/8', '127.0.0.1']}
+        filter = SqlServerFirewallRulesFilter(data, Mock())
+        filter.client = Mock()
+        filter.client.firewall_rules.list_by_server.return_value = rules
+        return filter
+
+
+class SqlServerFirewallBypassFilterTest(BaseTest):
+
+    resource = {'name': 'test', 'resourceGroup': 'test'}
+
+    scenarios = [
+        [[], []],
+        [[IpRange(start_ip_address='10.0.0.0', end_ip_address='10.0.255.255'),
+          IpRange(start_ip_address='8.8.8.8', end_ip_address='8.8.8.8')], []],
+        [[IpRange(start_ip_address='10.0.0.0', end_ip_address='10.0.255.255'),
+          IpRange(start_ip_address='8.8.8.8', end_ip_address='8.8.8.8'),
+         IpRange(start_ip_address='0.0.0.0', end_ip_address='0.0.0.0')], ['AzureServices']],
+    ]
+
+    @parameterized.expand(scenarios)
+    def test_run(self, rules, expected):
+        f = SqlServerFirewallBypassFilter({'mode': 'equal', 'list': []}, Mock())
+        f.client = Mock()
+        f.client.firewall_rules.list_by_server.return_value = rules
+        self.assertEqual(expected, f._query_bypass(self.resource))
