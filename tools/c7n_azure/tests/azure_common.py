@@ -112,6 +112,7 @@ SERVICE_TAG_RESPONSE = {
 class AzureVCRBaseTest(VCRTestCase):
 
     TEST_DATE = None
+    cassette_name = None
 
     FILTERED_HEADERS = ['authorization',
                         'accept-encoding',
@@ -163,7 +164,7 @@ class AzureVCRBaseTest(VCRTestCase):
     def _get_cassette_name(self):
         test_method = getattr(self, self._testMethodName)
         name_override = getattr(test_method, 'cassette_name', None)
-        method_name = name_override or self._testMethodName
+        method_name = name_override or self.cassette_name or self._testMethodName
         return '{0}.{1}.yaml'.format(self.__class__.__name__,
                                      method_name)
 
