@@ -114,6 +114,7 @@ logging.basicConfig(level=logging.DEBUG, format='%(message)s')
 logging.getLogger("urllib3").setLevel(logging.INFO)
 logging.getLogger("vcr").setLevel(logging.WARNING)
 
+
 class AzureVCRBaseTest(VCRTestCase):
 
     TEST_DATE = None
