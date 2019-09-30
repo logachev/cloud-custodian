@@ -17,7 +17,7 @@ from .azure_common import BaseTest
 from mock import patch, Mock
 
 from c7n_azure.tags import TagHelper
-import tools_tags as tools
+from . import tools_tags as tools
 
 
 class TagsTest(BaseTest):

@@ -19,7 +19,7 @@ from .azure_common import BaseTest, arm_template
 from c7n_azure.session import Session
 from mock import patch
 
-import tools_tags as tools
+from . import tools_tags as tools
 
 
 class FunctionalActionsTagsTest(BaseTest):

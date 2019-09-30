@@ -16,7 +16,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import collections
 import datetime
 
-from azure_common import BaseTest, cassette_name, arm_template
+from ..azure_common import BaseTest, cassette_name, arm_template
 from c7n_azure.resources.sqlserver import SqlServerFirewallRulesFilter, \
     SqlServerFirewallBypassFilter
 from mock import patch, Mock

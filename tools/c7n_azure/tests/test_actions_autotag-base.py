@@ -15,7 +15,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import copy
 
-import tools_tags as tools
+from . import tools_tags as tools
 from azure.mgmt.monitor.models import EventData
 from .azure_common import BaseTest
 from c7n_azure.actions.tagging import AutoTagDate
