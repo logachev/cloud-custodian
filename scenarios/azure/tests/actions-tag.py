@@ -16,101 +16,147 @@ from c7n_azure.session import Session
 from c7n.resources import load_resources
 from c7n.policy import get_resource_class
 import pytest
+import tempfile
+import uuid
+import hashlib
+from functools import wraps
+from copy import copy
+import time
 
 load_resources()
 
 ScenarioConfiguration = namedtuple('ScenarioConfiguration', 'resource,template,policy,parameters')
 
+modules_folder = os.path.join(os.path.dirname(__file__), '..', 'templates')
+policies_folder = os.path.join(os.path.dirname(__file__), '..', 'policies')
+location = 'westus'
 
-class BaseScenarioTest(unittest.TestCase):
 
-    test_context = ExecutionContext(
-        Session,
-        Bag(name="xyz", provider_name='azure'),
-        Config.empty()
+common_template = """
+provider "azurerm" {
+    version = "=1.34.0"
+}
+"""
+
+module_template = """
+resource "azurerm_resource_group" "{0}" {{
+    name     = "{3}"
+    location = "{4}"
+}}
+
+module "{0}" {{
+    source = "{1}"
+    name = "{2}"
+    rg_name = "${{azurerm_resource_group.{0}.name}}"
+    location = "{4}"
+}}
+"""
+execution_id = str(uuid.uuid1())[:8]
+
+
+def get_module(template, name):
+
+    return module_template.format(
+        'a' + str(uuid.uuid1()),
+        os.path.join(modules_folder, template).replace('\\', '\\\\'),
+        name,
+        name,
+        location
     )
 
-    t = Terraform()
-    base_folder = os.path.join(os.path.dirname(__file__), '..', 'templates')
 
-    def setUp(self) -> None:
-        print('Deploying terraform template...{0}'.format(self.template))
-        self.resource_group = 'c7n-test-'
-        self.resource_name = 'test'
-
-        self.t = Terraform(working_dir=os.path.join(BaseScenarioTest.base_folder, self.template))
-
-        return_code, stdout, stderr = self.t.init()
-        return_code, stdout, stderr = self.t.apply(skip_plan=True, var={'rg_name': self.resource_group,
-                                                                        'name': self.resource_name})
-        if return_code != 0:
-            print(stdout)
-            print(stderr)
-            self.assertEqual(0, return_code)
-
-    def run_policy(self, policy, variables):
-        out_dir = tempfile.mkdtemp()
-        self.addCleanup(shutil.rmtree, out_dir)
-        if self.mode == 'Pull':
-            runner = PullRunner()
-            runner.run_policy(policy, variables, out_dir)
-
-    def get_client(self):
-        return get_resource_class(self.resource)(self.test_context, {'name': 'test',
-                                                                     'resource': self.resource}).get_client()
-
-    def tearDown(self) -> None:
-        return_code, stdout, stderr = self.t.destroy(force=True, var={'rg_name': self.resource_group,
-                                                                        'name': self.resource_name})
+tmpdir = tempfile.mkdtemp()
+outdir = tempfile.mkdtemp()
 
 
-class PolicyRunner:
-    def run_policy(self, policy_file):
-        raise NotImplemented
+@pytest.fixture(scope="session", autouse=True)
+def provision_terraform_templates(request):
+
+    master_template = common_template
+    session = request.node
+    for item in session.items:
+        cls = item.parent
+        suffix = execution_id + hashlib.sha1(item.name.encode('utf-8')).hexdigest()[:8]
+        name = 'c7n' + suffix
+        master_template += get_module(cls._obj.template, name)
+
+    with open(os.path.join(tmpdir, 'main.tf'), 'wt') as f:
+        f.write(master_template)
+
+    t = Terraform(working_dir=tmpdir)
+    return_code, stdout, stderr = t.init()
+    if return_code != 0:
+        print(stdout)
+        print(stderr)
+        assert False
+    return_code, stdout, stderr = t.apply(skip_plan=True)
+    if return_code != 0:
+        print(stdout)
+        print(stderr)
+        assert False
+
+    # Cleanup
+    yield provision_terraform_templates
+    return_code, stdout, stderr = t.destroy(force=True)
+    if return_code != 0:
+        print(stdout)
+        print(stderr)
+        assert False
+
+    # Terraform on Windows creates some hardlinks, so they should be removed first
+    # for root, dirs, files in os.walk(tmpdir, topdown=False):
+    #     for name in dirs:
+    #         if os.stat(os.path.join(root, name)).st_size == 0:
+    #             os.unlink(os.path.join(root, name))
+
+    shutil.rmtree(os.path.join(tmpdir, '.terraform', 'plugins'))
+    pass
 
 
-class PullRunner(PolicyRunner):
+def policy_file(name):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            cls = args[0]
+            with open(os.path.join(policies_folder, name), 'r') as f:
+                data = yaml.load(f)
 
-    base_folder = os.path.join(os.path.dirname(__file__), '..', 'policies')
+            data['policies'][0]['resource'] = cls.resource
 
-    def run_policy(self, policy_file, variables, out_dir):
-        with open(os.path.join(PullRunner.base_folder, policy_file), 'r') as f:
-            data = yaml.load(f)
-        data['policies'][0]['resource'] = variables['resource']
-        p = self.load_policy(data['policies'][0], variables, out_dir)
-        p.run()
+            suffix = execution_id + hashlib.sha1(func.__name__.encode('utf-8')).hexdigest()[:8]
+            local_variables = {**cls.variables,
+                               **{'name': 'c7n' + suffix}}
 
-    def load_policy(self, data, variables, out_dir):
-        conf = Config.empty(**{'output_dir': out_dir})
-        p = policy.Policy(data, conf)
-        p.expand_variables(variables)
-        p.validate()
-        p.resource_manager.get_client()
-        return p
+            conf = Config.empty(**{'output_dir': outdir})
 
+            p = policy.Policy(data['policies'][0], conf)
+            p.expand_variables(local_variables)
+            p.validate()
+            p.run()
 
-scenarios = [
-    ScenarioConfiguration(resource='azure.resourcegroup',
-                          template='resource-group',
-                          policy='tag.yml',
-                          parameters={})
-    ]
+            return func(*(cls, p.resource_manager.get_client(), 'c7n' + suffix), **kwargs)
+        return wrapper
+    return decorator
 
 
-@parameterized_class([s._asdict() for s in scenarios])
-class TestActionsTag(BaseScenarioTest):
+class TestRGActions(unittest.TestCase):
 
-    mode = 'Pull'
+    template = 'resource-group'
+    resource = 'azure.resourcegroup'
 
-    def test_execute_policy(self):
-        variables = {
-            'name': self.resource_name,
-            'resource': self.resource,
-            'tag-name': 'randomtag',
-            'tag-value': 'randomvalue'
-        }
-        self.run_policy(self.policy, variables)
+    variables = {
+        'tag-name': 'rgtag',
+        'tag-value': 'rgvalue'
+    }
 
-        client = self.get_client()
-        result = client.resource_groups.get(self.resource_name)
-        self.assertEqual({'randomtag': 'randomvalue'}, result.tags)
+    @policy_file('tag.yml')
+    def test_tag(self, client, name):
+        time.sleep(15)
+        rg = client.resource_groups.get(name)
+        self.assertEqual('rgvalue', rg.tags.get('rgtag'))
+
+    @policy_file('delete.yml')
+    def test_delete(self, client, name):
+        time.sleep(60)
+        with self.assertRaises(Exception):
+            client.resource_groups.get(name)
