@@ -22,6 +22,7 @@ import hashlib
 from functools import wraps
 from copy import copy
 import time
+from retrying import retry
 
 load_resources()
 
@@ -138,7 +139,6 @@ def policy_file(name):
         return wrapper
     return decorator
 
-
 class TestRGActions(unittest.TestCase):
 
     template = 'resource-group'
@@ -150,13 +150,13 @@ class TestRGActions(unittest.TestCase):
     }
 
     @policy_file('tag.yml')
+    @retry(stop_max_delay=60000, wait_exponential_multiplier=1000, wait_exponential_max=10000)
     def test_tag(self, client, name):
-        time.sleep(15)
         rg = client.resource_groups.get(name)
         self.assertEqual('rgvalue', rg.tags.get('rgtag'))
 
     @policy_file('delete.yml')
+    @retry(stop_max_delay=60000, wait_exponential_multiplier=1000, wait_exponential_max=10000)
     def test_delete(self, client, name):
-        time.sleep(60)
         with self.assertRaises(Exception):
             client.resource_groups.get(name)
