@@ -1,1 +1,3 @@
-#from .common.infrastructure_deployment import provision_terraform_templates
+from c7n.resources import load_resources
+
+load_resources()
