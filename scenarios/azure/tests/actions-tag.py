@@ -66,52 +66,115 @@ def get_module(template, name):
     )
 
 
-tmpdir = tempfile.mkdtemp()
 outdir = tempfile.mkdtemp()
+
+
+def is_infra_deployment_node(config):
+    if hasattr(config, 'slaveinput'):
+        return config.slaveinput.get('slaveid') == 'gw0'
+    return True
+
+
+def infrastructure_deployed(filename, success=True):
+    with open(filename, 'wt') as f:
+        if success:
+            f.write(execution_id)
+        else:
+            f.write('Failed')
+
+
+def wait_for_infrastructure(filename):
+    while True:
+        if os.path.exists(filename):
+            with open(filename, 'rt') as f:
+                global execution_id
+                execution_id = f.read()
+                if execution_id == 'Failed':
+                    return False
+                return True
+        else:
+            time.sleep(5)
+
+
+def wait_for_completion(config, filename):
+    done_files = []
+
+    if hasattr(config, 'slaveinput'):
+        done_files = [filename + 'gw' + str(i)
+                      for i in range(1, config.slaveinput['workercount'])]
+
+    while True:
+        if all(os.path.exists(file) for file in done_files):
+            break
+        else:
+            time.sleep(5)
+
+    os.remove(filename)
+    for file in done_files:
+        os.remove(file)
 
 
 @pytest.fixture(scope="session", autouse=True)
 def provision_terraform_templates(request):
-
     master_template = common_template
+    deployment_info = ''
     session = request.node
     for item in session.items:
         cls = item.parent
         suffix = execution_id + hashlib.sha1(item.name.encode('utf-8')).hexdigest()[:8]
         name = 'c7n' + suffix
         master_template += get_module(cls._obj.template, name)
+        # Using test name & template name to ensure infrastructure is deployed only from main worker
+        deployment_info += item.name + cls._obj.template
 
-    with open(os.path.join(tmpdir, 'main.tf'), 'wt') as f:
-        f.write(master_template)
+    infrastructure_deployed_file = os.path.join(
+        os.path.dirname(__file__),
+        hashlib.sha1(deployment_info.encode('utf-8')).hexdigest()[:8])
 
-    t = Terraform(working_dir=tmpdir)
-    return_code, stdout, stderr = t.init()
-    if return_code != 0:
-        print(stdout)
-        print(stderr)
-        assert False
-    return_code, stdout, stderr = t.apply(skip_plan=True)
-    if return_code != 0:
-        print(stdout)
-        print(stderr)
-        assert False
+    if is_infra_deployment_node(request.config):
+        tmpdir = tempfile.mkdtemp()
+        with open(os.path.join(tmpdir, 'main.tf'), 'wt') as f:
+            f.write(master_template)
 
-    # Cleanup
-    yield provision_terraform_templates
-    return_code, stdout, stderr = t.destroy(force=True)
-    if return_code != 0:
-        print(stdout)
-        print(stderr)
-        assert False
+        t = Terraform(working_dir=tmpdir)
+        return_code, stdout, stderr = t.init()
+        if return_code != 0:
+            print(stdout)
+            print(stderr)
+            infrastructure_deployed(infrastructure_deployed_file, False)
+            assert False
+        return_code, stdout, stderr = t.apply(skip_plan=True)
+        if return_code != 0:
+            print(stdout)
+            print(stderr)
+            infrastructure_deployed(infrastructure_deployed_file, False)
+            assert False
 
-    # Terraform on Windows creates some hardlinks, so they should be removed first
-    # for root, dirs, files in os.walk(tmpdir, topdown=False):
-    #     for name in dirs:
-    #         if os.stat(os.path.join(root, name)).st_size == 0:
-    #             os.unlink(os.path.join(root, name))
+        infrastructure_deployed(infrastructure_deployed_file)
+        yield provision_terraform_templates
+        wait_for_completion(request.config, infrastructure_deployed_file)
 
-    shutil.rmtree(os.path.join(tmpdir, '.terraform', 'plugins'))
-    pass
+        # Cleanup
+        return_code, stdout, stderr = t.destroy(force=True)
+        if return_code != 0:
+            print(stdout)
+            print(stderr)
+            assert False
+
+        # Terraform on Windows creates some hardlinks, so they should be removed first
+        # for root, dirs, files in os.walk(tmpdir, topdown=False):
+        #     for name in dirs:
+        #         if os.stat(os.path.join(root, name)).st_size == 0:
+        #             os.unlink(os.path.join(root, name))
+
+        shutil.rmtree(os.path.join(tmpdir, '.terraform', 'plugins'))
+
+    else:
+        if not wait_for_infrastructure(infrastructure_deployed_file):
+            assert False
+        yield provision_terraform_templates
+        with open(infrastructure_deployed_file + request.config.slaveinput['workerid'], 'wt') as f:
+            f.write('Done')
 
 
 def policy_file(name):
@@ -138,6 +201,7 @@ def policy_file(name):
             return func(*(cls, p.resource_manager.get_client(), 'c7n' + suffix), **kwargs)
         return wrapper
     return decorator
+
 
 class TestRGActions(unittest.TestCase):
 
