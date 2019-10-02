@@ -96,7 +96,6 @@ def terraform_apply(working_dir, deployment_hash):
     infrastructure_deployed(deployment_hash)
 
 
-
 def terraform_destroy(working_dir):
     terraform = Terraform(working_dir=working_dir)
     return_code, stdout, stderr = terraform.destroy(force=True)
