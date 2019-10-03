@@ -24,8 +24,8 @@ execution_id = str(uuid.uuid1())[:8]
 
 
 def is_infra_deployment_node(config):
-    if hasattr(config, 'slaveinput'):
-        return config.slaveinput.get('slaveid') == 'gw0'
+    if hasattr(config, 'workerinput'):
+        return config.workerinput.get('workerid') == 'gw0'
     return True
 
 
@@ -62,9 +62,9 @@ def wait_for_tests_finished(config, deployment_hash):
     done_files = []
     filename = os.path.join(os.path.dirname(__file__), deployment_hash)
 
-    if hasattr(config, 'slaveinput'):
+    if hasattr(config, 'workerinput'):
         done_files = [filename + '.gw' + str(i)
-                      for i in range(1, config.slaveinput['workercount'])]
+                      for i in range(1, config.workerinput['workercount'])]
 
     while True:
         if all(os.path.exists(file) for file in done_files):

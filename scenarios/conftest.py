@@ -55,4 +55,4 @@ def provision_terraform_templates_worker(request):
     if not wait_for_infrastructure(deployment_hash):
         assert False
     yield provision_terraform_templates_worker
-    tests_finished(deployment_hash, request.config.slaveinput['workerid'])
+    tests_finished(deployment_hash, request.config.workerinput['workerid'])
