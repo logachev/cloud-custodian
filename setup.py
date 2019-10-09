@@ -28,7 +28,7 @@ setup(
         "botocore>=1.12.228",
         "python-dateutil>=2.6,<3.0.0",
         "PyYAML>=4.2b4",
-        "jsonschema",
+        "jsonschema==3.0.0",
         "jsonpatch>=1.21",
         "argcomplete",
         "tabulate>=0.8.2",
