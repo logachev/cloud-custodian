@@ -28,6 +28,8 @@ def pytest_configure(config):
         config.tmp_dir = tempfile.mkdtemp()
         config.execution_id = str(uuid.uuid1())[:8]
         infrastructure.Configuration.execution_id = config.execution_id
+
+        infrastructure.initialize_terraform_plugins()
     else:
         infrastructure.Configuration.execution_id = config.workerinput['execution_id']
 

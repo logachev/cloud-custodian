@@ -19,8 +19,35 @@ import shutil
 from python_terraform import Terraform
 
 
+AZURE_PROVIDER_INIT = """
+provider "azurerm" {
+    version = "=1.34.0"
+}
+"""
+
+tf_provider_inits = [AZURE_PROVIDER_INIT]
+
+platforms = ["windows_amd64"]
+
 class Configuration:
     execution_id = None
+    terraform_plugin_root = os.path.join(os.path.expanduser('~'), '.cloud-custodian', 'terraform')
+
+
+def initialize_terraform_plugins():
+    initialization_template = os.path.join(Configuration.terraform_plugin_root, 'main.tf')
+    if os.path.exists(initialization_template):
+        with open(initialization_template, 'rt') as f:
+            if f.read() == ''.join(tf_provider_inits):
+                return
+
+    shutil.rmtree(Configuration.terraform_plugin_root, ignore_errors=True)
+    os.makedirs(Configuration.terraform_plugin_root, exist_ok=True)
+    with open(initialization_template, 'wt') as f:
+        f.write(''.join(tf_provider_inits))
+
+    terraform = Terraform(working_dir=Configuration.terraform_plugin_root)
+    terraform.init()
 
 
 def build_tests_map(ids):
@@ -64,7 +91,10 @@ def generate_template(working_dir, tests_map):
 
 def deploy(working_dir):
     terraform = Terraform(working_dir=working_dir)
-    return_code, stdout, stderr = terraform.init()
+    return_code, stdout, stderr = terraform.init(
+        plugin_dir=[os.path.join(Configuration.terraform_plugin_root,
+                      '.terraform',
+                      'plugins', p) for p in platforms])
     if return_code != 0:
         print(stdout)
         print(stderr)

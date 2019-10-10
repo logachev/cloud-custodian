@@ -17,6 +17,7 @@ import uuid
 
 from ..common.base_terraform_test import BaseTerraformTest
 from ..common.base_terraform_test import get_resource_name
+from ..common.infrastructure import AZURE_PROVIDER_INIT
 
 
 class BaseAzureTerraformTest(BaseTerraformTest):
@@ -24,11 +25,7 @@ class BaseAzureTerraformTest(BaseTerraformTest):
     modules_folder = os.path.join(os.path.dirname(__file__), 'templates')
     policies_folder = os.path.join(os.path.dirname(__file__), 'policies')
 
-    common_template = """
-    provider "azurerm" {
-        version = "=1.34.0"
-    }
-    """
+    common_template = AZURE_PROVIDER_INIT
 
     module_template = """
     resource "azurerm_resource_group" "{0}" {{
