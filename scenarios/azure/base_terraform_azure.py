@@ -46,10 +46,11 @@ class BaseAzureTerraformTest(BaseTerraformTest):
 
     location = 'westus'
 
-    def get_module(self, test_name):
-        return self.module_template.format(
+    @staticmethod
+    def get_module(template, test_name):
+        return BaseAzureTerraformTest.module_template.format(
             'a' + str(uuid.uuid1()),  # needs to start with a letter
-            os.path.join(self.modules_folder, self.template).replace('\\', '\\\\'),
+            os.path.join(BaseAzureTerraformTest.modules_folder, template).replace('\\', '\\\\'),
             get_resource_name(test_name),
-            self.location
+            BaseAzureTerraformTest.location
         )

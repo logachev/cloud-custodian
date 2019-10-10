@@ -15,7 +15,7 @@
 import hashlib
 import unittest
 
-from ..common.infrastructure_deployment import execution_id
+from ..common.infrastructure import execution_id
 
 
 def get_resource_name(test_name):
@@ -27,11 +27,13 @@ class BaseTerraformTest(unittest.TestCase):
 
     resource = None
     template = None
+    scope = 'function'
 
     common_template = None
 
     policies_folder = None
     modules_folder = None
 
-    def get_module(self, name):
+    @staticmethod
+    def get_module(template, name):
         raise NotImplementedError

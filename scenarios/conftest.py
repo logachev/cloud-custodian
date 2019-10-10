@@ -12,47 +12,43 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import tempfile
+import uuid
 
-import pytest
-
-from .common.infrastructure_deployment import is_infra_deployment_node, terraform_apply, \
-    terraform_destroy, wait_for_infrastructure, wait_for_tests_finished, tests_finished, \
-    build_master_template
+from .common import infrastructure
 
 
-@pytest.fixture(scope="session", autouse=True)
-def provision_terraform_templates_master(request):
+def is_master(config):
+    return not hasattr(config, 'workerinput')
 
-    if not is_infra_deployment_node(request.config):
-        yield provision_terraform_templates_master
+
+def pytest_configure(config):
+    if not is_master(config):
         return
 
-    master_template, deployment_hash = build_master_template(request)
-
-    tmpdir = tempfile.mkdtemp()
-    with open(os.path.join(tmpdir, 'main.tf'), 'wt') as f:
-        f.write(master_template)
-
-    terraform_apply(tmpdir, deployment_hash)
-
-    yield provision_terraform_templates_master
-
-    wait_for_tests_finished(request.config, deployment_hash)
-    terraform_destroy(tmpdir)
+    config.tmp_dir = tempfile.mkdtemp()
+    config.execution_id = str(uuid.uuid1())[:8]
 
 
-@pytest.fixture(scope="session", autouse=True)
-def provision_terraform_templates_worker(request):
-
-    if is_infra_deployment_node(request.config):
-        yield provision_terraform_templates_worker
+def pytest_unconfigure(config):
+    if not is_master(config):
         return
 
-    master_template, deployment_hash = build_master_template(request)
+    infrastructure.cleanup(config.tmp_dir)
 
-    if not wait_for_infrastructure(deployment_hash):
-        assert False
-    yield provision_terraform_templates_worker
-    tests_finished(deployment_hash, request.config.workerinput['workerid'])
+
+def pytest_configure_node(node):
+    node.workerinput['execution_id'] = node.config.execution_id
+
+
+def pytest_xdist_node_collection_finished(node, ids):
+    # This hook is called on master when each node is done collection the tests.
+    # We need to provision infra only once.
+    if hasattr(pytest_xdist_node_collection_finished, 'has_run'):
+        return
+    pytest_xdist_node_collection_finished.has_run = True
+
+    # Provision infrastructure for all tests
+    tests = infrastructure.build_tests_map(ids)
+    infrastructure.generate_template(node.config.tmp_dir, tests)
+    infrastructure.deploy(node.config.tmp_dir)
