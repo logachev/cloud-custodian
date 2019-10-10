@@ -23,7 +23,7 @@ from ..common.infrastructure import AZURE_PROVIDER_INIT
 class BaseAzureTerraformTest(BaseTerraformTest):
 
     modules_folder = os.path.join(os.path.dirname(__file__), 'templates')
-    policies_folder = os.path.join(os.path.dirname(__file__), 'policies')
+    policies_folder = os.path.join(os.path.dirname(__file__), 'policy')
 
     common_template = AZURE_PROVIDER_INIT
 
