@@ -14,6 +14,7 @@
 
 import tempfile
 import uuid
+import pytest
 
 from .common import infrastructure
 
@@ -52,3 +53,7 @@ def pytest_xdist_node_collection_finished(node, ids):
     tests = infrastructure.build_tests_map(ids)
     infrastructure.generate_template(node.config.tmp_dir, tests)
     infrastructure.deploy(node.config.tmp_dir)
+
+@pytest.fixture
+def execution_id(request):
+    return '1'
