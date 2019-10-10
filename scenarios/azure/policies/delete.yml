@@ -1,7 +1,0 @@
-policies:
-  - name: delete-action-policy
-    resource:
-    filters:
-      - name: '{name}'
-    actions:
-      - type: delete

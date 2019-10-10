@@ -27,8 +27,9 @@ def pytest_configure(config):
     if is_master(config):
         config.tmp_dir = tempfile.mkdtemp()
         config.execution_id = str(uuid.uuid1())[:8]
+        infrastructure.Configuration.execution_id = config.execution_id
     else:
-        infrastructure.execution_id = config.workerinput['execution_id']
+        infrastructure.Configuration.execution_id = config.workerinput['execution_id']
 
 
 def pytest_unconfigure(config):

@@ -22,6 +22,7 @@ from c7n import policy
 from c7n.config import Config
 from .base_terraform_test import get_resource_name
 
+
 output_dir = tempfile.mkdtemp()
 
 
