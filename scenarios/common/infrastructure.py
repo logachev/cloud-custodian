@@ -19,6 +19,9 @@ import shutil
 from python_terraform import Terraform
 
 
+execution_id = None
+
+
 def build_tests_map(ids):
     tests = {}
     for id in ids:

@@ -24,11 +24,11 @@ def is_master(config):
 
 
 def pytest_configure(config):
-    if not is_master(config):
-        return
-
-    config.tmp_dir = tempfile.mkdtemp()
-    config.execution_id = str(uuid.uuid1())[:8]
+    if is_master(config):
+        config.tmp_dir = tempfile.mkdtemp()
+        config.execution_id = str(uuid.uuid1())[:8]
+    else:
+        infrastructure.execution_id = config.workerinput['execution_id']
 
 
 def pytest_unconfigure(config):
@@ -53,7 +53,3 @@ def pytest_xdist_node_collection_finished(node, ids):
     tests = infrastructure.build_tests_map(ids)
     infrastructure.generate_template(node.config.tmp_dir, tests)
     infrastructure.deploy(node.config.tmp_dir)
-
-@pytest.fixture
-def execution_id(request):
-    return '1'

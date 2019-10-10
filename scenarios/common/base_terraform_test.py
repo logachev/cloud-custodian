@@ -14,9 +14,10 @@
 
 import hashlib
 import unittest
+from .infrastructure import execution_id
 
 
-def get_resource_name(test_name, execution_id):
+def get_resource_name(test_name):
     suffix = execution_id + hashlib.sha1(test_name.encode('utf-8')).hexdigest()[:8]
     return 'c7n' + suffix
 
