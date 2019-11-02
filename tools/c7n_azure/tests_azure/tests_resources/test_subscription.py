@@ -13,9 +13,11 @@
 # limitations under the License.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from ..azure_common import BaseTest
+import time
 
 from mock import patch
+
+from ..azure_common import BaseTest
 
 
 class SubscriptionTest(BaseTest):
@@ -81,6 +83,12 @@ class SubscriptionTest(BaseTest):
         })
         resources = p.run()
         self.assertEqual(len(resources), 1)
+
+        # Create Policy Assignment API might return before it was actually created
+        # Insert a delay to keep test active during nightly runs until this is fixed:
+        # https://github.com/Azure/azure-rest-api-specs/issues/7691
+        if not self.is_playback():
+            time.sleep(15)
 
         policy = client.policy_assignments.get(scope, 'cctestpolicy_sub')
 
