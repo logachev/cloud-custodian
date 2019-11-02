@@ -18,7 +18,7 @@ from jsonschema.exceptions import ValidationError
 from c7n_azure.session import Session
 
 from c7n.utils import local_session
-
+import time
 
 class LockActionTest(BaseTest):
 
@@ -32,6 +32,8 @@ class LockActionTest(BaseTest):
         if self.resources:
             self.assertEqual(len(self.resources), 1)
             resource = self.resources[0]
+            if 'lock' not in resource:
+                return
             if resource.get('resourceGroup') is None:
                 self.client.management_locks.delete_at_resource_group_level(
                     resource['name'],
@@ -118,6 +120,8 @@ class LockActionTest(BaseTest):
         self.assertEqual(len(self.resources), 1)
         resource_name = self.resources[0]['name']
         self.assertTrue(resource_name.startswith('cctestcosmosdb'))
+        if not self.is_playback():
+            time.sleep(15)
 
         locks = [r.serialize(True) for r in self.client.management_locks.list_at_resource_level(
             'test_cosmosdb',
@@ -148,7 +152,7 @@ class LockActionTest(BaseTest):
                 {
                     'type': 'lock',
                     'lock-type': 'CanNotDelete',
-                    'lock-name': 'testLock',
+                    'lock-name': 'testLock2',
                     'lock-notes': 'testNotes'
                 }
             ],
@@ -156,13 +160,15 @@ class LockActionTest(BaseTest):
         self.resources = p.run()
         self.assertEqual(len(self.resources), 1)
         self.assertEqual(self.resources[0]['name'], 'test_cosmosdb')
+        if not self.is_playback():
+            time.sleep(15)
 
         locks = [r.serialize(True) for r in
                  self.client.management_locks.list_at_resource_group_level('test_cosmosdb')]
 
         self.assertEqual(len(locks), 1)
         self.assertEqual(locks[0]['properties']['level'], 'CanNotDelete')
-        self.assertEqual(locks[0]['name'], 'testLock')
+        self.assertEqual(locks[0]['name'], 'testLock2')
         self.assertEqual(locks[0]['properties']['notes'], 'testNotes')
         self.resources[0]['lock'] = locks[0]['name']
 
@@ -190,6 +196,8 @@ class LockActionTest(BaseTest):
         self.resources = p.run()
         self.assertEqual(len(self.resources), 1)
         self.assertEqual(self.resources[0]['name'], 'cctestdb')
+        if not self.is_playback():
+            time.sleep(15)
 
         locks = [r.serialize(True) for r in self.client.management_locks.list_at_resource_level(
             'test_sqlserver',
