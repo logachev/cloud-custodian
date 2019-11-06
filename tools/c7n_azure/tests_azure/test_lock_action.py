@@ -20,6 +20,7 @@ from c7n_azure.session import Session
 from c7n.utils import local_session
 import time
 
+
 class LockActionTest(BaseTest):
 
     def setUp(self):
@@ -32,8 +33,6 @@ class LockActionTest(BaseTest):
         if self.resources:
             self.assertEqual(len(self.resources), 1)
             resource = self.resources[0]
-            if 'lock' not in resource:
-                return
             if resource.get('resourceGroup') is None:
                 self.client.management_locks.delete_at_resource_group_level(
                     resource['name'],
