@@ -43,14 +43,14 @@ class ActionsMarkForOpTest(BaseTest):
 
     @patch('c7n_azure.tags.TagHelper.update_resource_tags')
     def test_mark_for_op(self, update_resource_tags):
-        action = self._get_action({'op': 'stop', 'days': self.DAYS, 'tz': datetime.timezone})
+        action = self._get_action({'op': 'stop', 'days': self.DAYS})
         resource = tools.get_resource(self.existing_tags)
 
         action.process([resource])
 
         tags = tools.get_tags_parameter(update_resource_tags)
 
-        date = (utils.now() + datetime.timedelta(days=self.DAYS)).strftime('%Y/%m/%d')
+        date = (utils.utcnow() + datetime.timedelta(days=self.DAYS)).strftime('%Y/%m/%d')
         expected_value = TagDelayedAction.default_template.format(op='stop', action_date=date)
         expected_tags = self.existing_tags.copy()
         expected_tags.update({'custodian_status': expected_value})
