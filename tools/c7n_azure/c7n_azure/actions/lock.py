@@ -14,7 +14,7 @@
 
 from azure.mgmt.resource.locks.models import ManagementLockObject
 from c7n_azure.actions.base import AzureBaseAction
-from c7n_azure.utils import ResourceIdParser, is_resource_group
+from c7n_azure.utils import is_resource_group
 
 from c7n.utils import type_schema
 
