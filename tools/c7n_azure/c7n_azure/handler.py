@@ -17,9 +17,6 @@ import logging
 import os
 import uuid
 
-from azure.common import AzureHttpError
-from msrestazure.azure_exceptions import CloudError
-
 from c7n.utils import reset_session_cache
 from c7n.config import Config
 from c7n.policy import PolicyCollection
@@ -31,6 +28,10 @@ log = logging.getLogger('custodian.azure.functions')
 
 
 def run(event, context, subscription_id=None):
+    # Always reset session cache before the run.. If there is any issue with configuration,
+    # if next run happens in the same process, it might have different target subscription id.
+    reset_session_cache()
+
     # policies file should always be valid in functions so do loading naively
     with open(context['config_file']) as f:
         policy_config = json.load(f)
@@ -67,7 +68,6 @@ def run(event, context, subscription_id=None):
             except Exception as error:
                 log.error("Unable to process policy: %s :: %s" % (p.name, error))
 
-    reset_session_cache()
     return True
 
 
