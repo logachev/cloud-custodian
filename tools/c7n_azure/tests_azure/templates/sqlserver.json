@@ -29,8 +29,8 @@
             "[resourceId('Microsoft.Sql/servers', parameters('servers_cctestsqlserver_name'))]"
          ],
          "sku": {
-            "name": "Premium",
-            "tier": "Premium"
+            "name": "S0",
+            "tier": "Standard"
          },
          "kind": "v12.0,user",
          "properties": {
