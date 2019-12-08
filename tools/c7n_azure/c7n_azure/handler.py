@@ -28,8 +28,8 @@ log = logging.getLogger('custodian.azure.functions')
 
 
 def run(event, context, subscription_id=None):
-    # Always reset session cache before the run.. If there is any issue with configuration,
-    # if next run happens in the same process, it might have different target subscription id.
+    # Custodian can be executed in the same process,
+    # but target different subscriptions. Consequently, we need to reset the session.
     reset_session_cache()
 
     # policies file should always be valid in functions so do loading naively
