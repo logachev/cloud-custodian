@@ -114,12 +114,9 @@ class LockActionTest(BaseTest):
         resource_name = self.resources[0]['name']
         self.assertTrue(resource_name.startswith('cclockedsqlserver'))
 
-        locks = [r.serialize(True) for r in self.client.management_locks.list_at_resource_level(
-            'test_locked',
-            'Microsoft.Sql/Servers',
-            '',
-            '',
-            resource_name) if r.name == 'sqllock']
+        locks = [r.serialize(True)
+                 for r in self.client.management_locks.list_by_scope(self.resources[0]['id'])
+                 if r.name == 'sqllock']
 
         self.assertEqual(len(locks), 1)
         self.assertEqual(locks[0]['properties']['level'], 'ReadOnly')
