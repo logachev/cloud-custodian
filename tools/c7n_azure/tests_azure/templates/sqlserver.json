@@ -16,7 +16,7 @@
          "name": "[parameters('servers_cctestsqlserver_name')]",
          "properties": {
             "administratorLogin": "custodian",
-            "administratorLoginPassword": "Cust0dianPassw0rd",
+            "administratorLoginPassword": "[guid(resourceGroup().id)]",
             "version": "12.0"
          }
       },
