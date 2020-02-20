@@ -343,6 +343,10 @@ class CLIProvider(TokenProvider):
     def authenticate(self):
         # type: () -> TokenProvider.AuthenticationResult
 
+        if Profile == None:
+            raise Exception('Azure CLI authentication is not enabled. Please install `cli_auth`'
+                            'extra.\n `pip install c7n-azure[cli_auth]`')
+
         try:
             (credential,
              subscription_id,

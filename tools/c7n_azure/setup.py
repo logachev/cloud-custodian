@@ -79,6 +79,7 @@ setup(
                       "azure-mgmt-web",
                       "azure-mgmt-monitor",
                       "azure-mgmt-policyinsights",
+                      "azure-mgmt-resource",
                       "azure-mgmt-logic",
                       "azure-cosmos",
                       "azure-graphrbac",
@@ -98,11 +99,13 @@ setup(
                       "requests",
                       "PyJWT",
                       "c7n>=0.8.45.1",
-                      "azure-cli-core",
                       "adal",
                       "backports.functools_lru_cache",
                       "futures>=3.1.1",
                       "netaddr"] + extra_dependencies,
+    extras_require = {
+        "cli_auth": ["azure-cli-core"],
+    },
     package_data={str(''): [str('function_binding_resources/bin/*.dll'),
                             str('function_binding_resources/*.csproj'),
                             str('function_binding_resources/bin/*.json')]}

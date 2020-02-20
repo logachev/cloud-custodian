@@ -14,6 +14,9 @@ If none of the following environment variables are set, Custodian will attempt t
 subscription from Azure CLI.  This requires that you have already run :code:`az login` and selected your subscription in
 Azure CLI.
 
+In order to enable this feature, you need to install extra `cli_auth` using `pip install c7n-azure[cli_auth]`.
+This is feature is useful for local policy development, but it is not recommended for production use.
+
 Service Principal
 -----------------
 
