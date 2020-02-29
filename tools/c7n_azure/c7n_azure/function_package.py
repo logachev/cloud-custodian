@@ -27,7 +27,6 @@ from c7n_azure.constants import (ENV_CUSTODIAN_DISABLE_SSL_CERT_VERIFICATION,
 from c7n_azure.session import Session
 
 from c7n.mu import PythonPackageArchive
-from c7n.mu import generate_requirements
 from c7n.utils import local_session
 
 
@@ -66,12 +65,11 @@ class FunctionPackage(object):
         if not self.enable_ssl_cert:
             self.log.warning('SSL Certificate Validation is disabled')
 
-    def _add_functions_required_files(self, policy, queue_name=None):
+    def _add_functions_required_files(self, policy, requirements, queue_name=None):
         s = local_session(Session)
 
-        packages = generate_requirements('c7n-azure', ignore=['boto3', 'botocore', 'pywin32'], exclude='c7n')
         self.pkg.add_contents(dest='requirements.txt',
-                              contents=packages)
+                              contents=requirements)
 
         for target_sub_id in self.target_sub_ids:
             name = self.name + ("_" + target_sub_id if target_sub_id else "")
@@ -145,14 +143,14 @@ class FunctionPackage(object):
         c7n_azure_root = os.path.dirname(__file__)
         return os.path.join(c7n_azure_root, 'cache')
 
-    def build(self, policy, modules, queue_name=None):
+    def build(self, policy, modules, requirements, queue_name=None):
         self.pkg = AzurePythonPackageArchive()
 
         self.pkg.add_modules(None,
                              [m.replace('-', '_') for m in modules])
 
         # add config and policy
-        self._add_functions_required_files(policy, queue_name)
+        self._add_functions_required_files(policy, requirements, queue_name)
 
     def wait_for_status(self, deployment_creds, retries=10, delay=15):
         for r in range(retries):

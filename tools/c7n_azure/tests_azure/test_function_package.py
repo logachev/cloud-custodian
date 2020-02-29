@@ -113,7 +113,7 @@ class FunctionPackageTest(BaseTest):
         packer = FunctionPackage(p.data['name'])
         packer.pkg = AzurePythonPackageArchive()
 
-        packer._add_functions_required_files(p.data, 'test-queue')
+        packer._add_functions_required_files(p.data, 'c7n-azure==1.0', 'test-queue')
         files = packer.pkg._zip_file.filelist
 
         self.assertTrue(FunctionPackageTest._file_exists(files, 'test-azure-package/function.py'))
@@ -130,7 +130,7 @@ class FunctionPackageTest(BaseTest):
         packer = FunctionPackage('name')
         packer.pkg = AzurePythonPackageArchive()
 
-        packer._add_functions_required_files(None)
+        packer._add_functions_required_files(None, 'c7n-azure==1.0')
         files = packer.pkg._zip_file.filelist
 
         self.assertTrue(FunctionPackageTest._file_exists(files, 'host.json'))

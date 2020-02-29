@@ -20,6 +20,7 @@ import logging
 import os
 
 try:
+    from c7n.mu import generate_requirements
     from c7n_azure.function_package import FunctionPackage
     from c7n_azure.functionapp_utils import FunctionAppUtilities
     from c7n_azure.policy import AzureFunctionMode
@@ -49,11 +50,13 @@ def build_function_package(config, function_name, sub_id):
         target_sub_ids=[sub_id],
         cache_override_path=cache_override_path)
 
+    requirements = generate_requirements('c7n-mailer',
+                                         ignore=['boto3', 'botocore', 'pywin32'],
+                                         exclude=['c7n', 'c7n-azure'])
+
     package.build(None,
                   modules=['c7n', 'c7n-azure', 'c7n-mailer'],
-                  non_binary_packages=['pyyaml', 'pycparser', 'tabulate', 'jmespath',
-                                       'datadog', 'MarkupSafe', 'simplejson', 'pyrsistent'],
-                  excluded_packages=['azure-cli-core', 'distlib', 'future', 'futures'])
+                  requirements=requirements)
 
     package.pkg.add_contents(
         function_path + '/function.json',
