@@ -199,23 +199,30 @@ class FunctionPackage(object):
 
         self.log.info("Function publish result: %s" % r.status_code)
 
-    def wait_for_remote_build(self, deployment_creds):
+    def wait_for_remote_build(self, deployment_creds, is_consumption):
         self.log.info('Waiting for the remote build to finish')
 
+        # Replicate the behavior from azure core func tool.. Some racing in kudulight,
+        # so different way to get the status. https://bit.ly/32AM71b
+        if not is_consumption:
+            is_deploying = True
+            is_deploying_uri = '%s/api/isdeploying'
+            while is_deploying != 'False':
+                is_deploying = requests.get(is_deploying).json()['value']
+                time.sleep(10)
+
         # Get deployment id
-        deployment_id = None
         deployments_uri = '%s/deployments' % deployment_creds.scm_uri
-        while deployment_id is None:
-            r = requests.get(deployments_uri).json()
-            if r:
-                status = r[0]['status']
-                deployment_id = r[0]['id']
-            time.sleep(5)
+        print(deployments_uri)
+        r = requests.get(deployments_uri).json()
+        deployment_id = r[0]['id']
 
         status_uri = '%s/deployments/%s' % (deployment_creds.scm_uri, deployment_id)
         status_decoding = ['Pending', 'Building', 'Deploying', 'Failed', 'Success']
-        while status < 3:
+        while True:
             status = requests.get(status_uri).json()['status']
+            if status == 3 or status == 4:
+                break
             self.log.info('Deployment status: %s', status_decoding[status])
             time.sleep(10)
 
