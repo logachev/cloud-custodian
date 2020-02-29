@@ -278,16 +278,17 @@ def checksum(fh, hasher, blocksize=65536):
     return hasher.digest()
 
 
-def generate_requirements(package, ignore=()):
+def generate_requirements(package, ignore=(), exclude=()):
     """Generate frozen requirements file for the given package.
     """
     if pkgmd is None:
         raise ImportError("importlib_metadata missing")
-    deps = []
     deps = _package_deps(package, ignore=ignore)
     lines = []
 
     for d in sorted(deps):
+        if d in exclude:
+            continue
         lines.append(
             '%s==%s' % (d, pkgmd.distribution(d).version))
     return '\n'.join(lines)
