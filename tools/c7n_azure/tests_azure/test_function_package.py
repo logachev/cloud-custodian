@@ -17,13 +17,13 @@ import json
 import os
 import time
 
-from .azure_common import BaseTest
-from c7n_azure.function_package import FunctionPackage, AzurePythonPackageArchive
+from azure.mgmt.web.models import User
 from c7n_azure.constants import ENV_CUSTODIAN_DISABLE_SSL_CERT_VERIFICATION, \
     FUNCTION_TIME_TRIGGER_MODE, FUNCTION_EVENT_TRIGGER_MODE
-from mock import patch, MagicMock, PropertyMock
+from c7n_azure.function_package import FunctionPackage, AzurePythonPackageArchive
+from mock import patch, MagicMock
 
-from azure.mgmt.web.models import User
+from .azure_common import BaseTest
 
 test_files_folder = os.path.join(os.path.dirname(__file__), 'data')
 

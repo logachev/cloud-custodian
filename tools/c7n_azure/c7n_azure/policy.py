@@ -223,7 +223,9 @@ class AzureFunctionMode(ServerlessExecutionMode):
     def build_functions_package(self, queue_name=None, target_subscription_ids=None):
         self.log.info("Building function package for %s" % self.function_params.function_app_name)
 
-        requirements = generate_requirements('c7n-azure', ignore=['boto3', 'botocore', 'pywin32'], exclude='c7n')
+        requirements = generate_requirements('c7n-azure',
+                                             ignore=['boto3', 'botocore', 'pywin32'],
+                                             exclude='c7n')
         package = FunctionPackage(self.policy_name, target_sub_ids=target_subscription_ids)
         package.build(self.policy.data,
                       modules=['c7n', 'c7n-azure'],

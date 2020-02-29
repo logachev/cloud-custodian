@@ -206,7 +206,7 @@ class FunctionPackage(object):
             is_deploying = True
             is_deploying_uri = '%s/api/isdeploying'
             while is_deploying != 'False':
-                is_deploying = requests.get(is_deploying).json()['value']
+                is_deploying = requests.get(is_deploying_uri).json()['value']
                 time.sleep(10)
 
         # Get deployment id

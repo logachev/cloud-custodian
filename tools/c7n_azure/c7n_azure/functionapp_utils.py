@@ -11,21 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import datetime
 import logging
-import os
 import re
 import time
 
-from azure.storage.blob import BlobPermissions
-from c7n_azure.constants import \
-    FUNCTION_CONSUMPTION_BLOB_CONTAINER, FUNCTION_PACKAGE_SAS_EXPIRY_DAYS
 from c7n_azure.provisioning.app_insights import AppInsightsUnit
 from c7n_azure.provisioning.app_service_plan import AppServicePlanUnit
 from c7n_azure.provisioning.function_app import FunctionAppDeploymentUnit
 from c7n_azure.provisioning.storage_account import StorageAccountUnit
 from c7n_azure.session import Session
-from c7n_azure.storage_utils import StorageUtilities
 from c7n_azure.utils import ResourceIdParser, StringUtils
 from msrest.exceptions import HttpOperationError
 from msrestazure.azure_exceptions import CloudError

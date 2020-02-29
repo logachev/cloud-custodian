@@ -177,7 +177,9 @@ class FunctionAppUtilsTest(BaseTest):
     @arm_template('functionapp-reqs.json')
     @patch('c7n_azure.function_package.FunctionPackage.wait_for_remote_build')
     @patch('c7n_azure.function_package.FunctionPackage.publish')
-    def test_publish_functions_package_dedicated(self, mock_function_package_publish, wait_for_remote_build):
+    def test_publish_functions_package_dedicated(self,
+                                                 mock_function_package_publish,
+                                                 mock_wait_for_remote_build):
         parameters = FunctionAppUtilities.FunctionAppInfrastructureParameters(
             app_insights={
                 'id': '',
@@ -200,4 +202,4 @@ class FunctionAppUtilsTest(BaseTest):
 
         FunctionAppUtilities.publish_functions_package(parameters, FunctionPackage("TestPolicy"))
         mock_function_package_publish.assert_called_once()
-        wait_for_remote_build.assert_called_once()
+        mock_wait_for_remote_build.assert_called_once()
