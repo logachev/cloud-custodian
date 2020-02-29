@@ -371,7 +371,7 @@ class AzureEventGridMode(AzureFunctionMode):
 
     def _validate_event_matches_resource(self):
         resource_type = self.policy.resource_manager.resource_type.resource_type
-        if resource_type is not 'armresource':
+        if resource_type != 'armresource':
             for event in self.subscribed_events:
                 if resource_type.lower() not in event.lower():
                     raise PolicyValidationError(
