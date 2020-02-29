@@ -29,6 +29,7 @@ from c7n.actions import BaseAction, EventAction
 @six.add_metaclass(abc.ABCMeta)
 class AzureBaseAction(BaseAction):
     session = None
+    type = None
     max_workers = constants.DEFAULT_MAX_THREAD_WORKERS
     chunk_size = constants.DEFAULT_CHUNK_SIZE
     log = logging.getLogger('custodian.azure.AzureBaseAction')
