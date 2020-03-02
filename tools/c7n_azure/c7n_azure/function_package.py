@@ -212,7 +212,6 @@ class FunctionPackage(object):
 
         # Get deployment id
         deployments_uri = '%s/deployments' % deployment_creds.scm_uri
-        print(deployments_uri)
         r = requests.get(deployments_uri).json()
         deployment_id = r[0]['id']
 
