@@ -29,10 +29,13 @@ from c7n.actions import BaseAction, EventAction
 @six.add_metaclass(abc.ABCMeta)
 class AzureBaseAction(BaseAction):
     session = None
-    type = None
     max_workers = constants.DEFAULT_MAX_THREAD_WORKERS
     chunk_size = constants.DEFAULT_CHUNK_SIZE
     log = logging.getLogger('custodian.azure.AzureBaseAction')
+
+    def __init__(self, data=None, manager=None, log_dir=None):
+        super(AzureBaseAction, self).__init__(data, manager, log_dir)
+        self.type = None
 
     def process(self, resources, event=None):
         self.session = self.manager.get_session()
