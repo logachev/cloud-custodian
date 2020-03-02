@@ -173,14 +173,12 @@ class FunctionPackage(object):
 
         return True
 
-    def publish(self, deployment_creds, is_consumption):
+    def publish(self, deployment_creds):
         self.close()
 
         # update perms of the package
         self._update_perms_package()
-        zip_api_url = '%s/api/zipdeploy?isAsync=true' % deployment_creds.scm_uri
-        if is_consumption:
-            zip_api_url += '&synctriggers=true'
+        zip_api_url = '%s/api/zipdeploy?isAsync=true&synctriggers=true' % deployment_creds.scm_uri
         headers = {'content-type': 'application/octet-stream'}
         self.log.info("Publishing Function package from %s" % self.pkg.path)
 

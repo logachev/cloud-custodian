@@ -124,9 +124,9 @@ class FunctionAppUtilities(object):
             function_params.function_app_name).result()
 
         if package.wait_for_status(publish_creds):
-            is_consumption = cls.is_consumption_plan(function_params)
+            package.publish(publish_creds)
 
-            package.publish(publish_creds, is_consumption)
+            is_consumption = cls.is_consumption_plan(function_params)
             package.wait_for_remote_build(publish_creds, is_consumption)
             cls.log.info('Finished publishing Function application')
         else:
