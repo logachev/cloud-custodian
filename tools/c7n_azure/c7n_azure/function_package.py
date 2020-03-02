@@ -173,12 +173,14 @@ class FunctionPackage(object):
 
         return True
 
-    def publish(self, deployment_creds):
+    def publish(self, deployment_creds, is_consumption):
         self.close()
 
         # update perms of the package
         self._update_perms_package()
         zip_api_url = '%s/api/zipdeploy?isAsync=true' % deployment_creds.scm_uri
+        if is_consumption:
+            zip_api_url += '&synctriggers=true'
         headers = {'content-type': 'application/octet-stream'}
         self.log.info("Publishing Function package from %s" % self.pkg.path)
 
@@ -204,8 +206,9 @@ class FunctionPackage(object):
         # so different way to get the status. https://bit.ly/32AM71b
         if not is_consumption:
             is_deploying = True
-            is_deploying_uri = '%s/api/isdeploying'
+            is_deploying_uri = '%s/api/isdeploying' % deployment_creds.scm_uri
             while is_deploying != 'False':
+                self.log.info('Waiting for deployment to complete...')
                 is_deploying = requests.get(is_deploying_uri).json()['value']
                 time.sleep(10)
 

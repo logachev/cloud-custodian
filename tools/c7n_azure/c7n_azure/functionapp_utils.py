@@ -124,47 +124,10 @@ class FunctionAppUtilities(object):
             function_params.function_app_name).result()
 
         if package.wait_for_status(publish_creds):
-            package.publish(publish_creds)
-
             is_consumption = cls.is_consumption_plan(function_params)
-            if package.wait_for_remote_build(publish_creds, is_consumption) and is_consumption:
-                cls._sync_function_triggers(function_params)
+
+            package.publish(publish_creds, is_consumption)
+            package.wait_for_remote_build(publish_creds, is_consumption)
             cls.log.info('Finished publishing Function application')
         else:
             cls.log.error("Aborted deployment, ensure Application Service is healthy.")
-
-    @classmethod
-    def _sync_function_triggers(cls, function_params):
-        cls.log.info('Sync Triggers...')
-        # This delay replicates behavior of Azure Functions Core tool
-        # Link to the github: https://bit.ly/2K5oXbS
-        time.sleep(5)
-        session = local_session(Session)
-        web_client = session.client('azure.mgmt.web.WebSiteManagementClient')
-
-        max_retry_attempts = 3
-        for r in range(max_retry_attempts):
-            res = None
-            try:
-                res = web_client.web_apps.sync_function_triggers(
-                    function_params.function_app_resource_group_name,
-                    function_params.function_app_name
-                )
-            except (HttpOperationError, CloudError) as e:
-                # This appears to be a bug in the API
-                # Success can be either 200 or 204, which is
-                # unexpected and gets rethrown as a CloudError
-                if e.response.status_code in [200, 204]:
-                    return True
-
-                cls.log.error("Failed to sync triggers...")
-                cls.log.error(e)
-
-            if res and res.status_code in [200, 204]:
-                return True
-            else:
-                cls.log.info("Retrying in 5 seconds...")
-                time.sleep(5)
-
-        cls.log.error("Unable to sync triggers...")
-        return False
