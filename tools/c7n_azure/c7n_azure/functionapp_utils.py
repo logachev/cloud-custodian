@@ -13,7 +13,6 @@
 # limitations under the License.
 import logging
 import re
-import time
 
 from c7n_azure.provisioning.app_insights import AppInsightsUnit
 from c7n_azure.provisioning.app_service_plan import AppServicePlanUnit
@@ -21,8 +20,6 @@ from c7n_azure.provisioning.function_app import FunctionAppDeploymentUnit
 from c7n_azure.provisioning.storage_account import StorageAccountUnit
 from c7n_azure.session import Session
 from c7n_azure.utils import ResourceIdParser, StringUtils
-from msrest.exceptions import HttpOperationError
-from msrestazure.azure_exceptions import CloudError
 
 from c7n.utils import local_session
 
