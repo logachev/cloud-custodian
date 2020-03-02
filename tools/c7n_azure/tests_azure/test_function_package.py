@@ -167,7 +167,7 @@ class FunctionPackageTest(BaseTest):
         status_mock.raise_for_status.assert_called_once()
 
         self.assertEqual(post_mock.call_args[0][0],
-                         'https://uri/api/zipdeploy?isAsync=true')
+                         'https://uri/api/zipdeploy?isAsync=true&synctriggers=true')
         self.assertEqual(post_mock.call_args[1]['headers']['content-type'],
                          'application/octet-stream')
 
