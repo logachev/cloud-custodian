@@ -33,10 +33,6 @@ class AzureBaseAction(BaseAction):
     chunk_size = constants.DEFAULT_CHUNK_SIZE
     log = logging.getLogger('custodian.azure.AzureBaseAction')
 
-    def __init__(self, data=None, manager=None, log_dir=None):
-        super(AzureBaseAction, self).__init__(data, manager, log_dir)
-        self.type = None
-
     def process(self, resources, event=None):
         self.session = self.manager.get_session()
         results, exceptions = self.process_in_parallel(resources, event)
