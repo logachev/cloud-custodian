@@ -63,6 +63,10 @@ jobs:
           python -m pip install pip
           pip install tox codecov
 
+      - name: Reinstall missing deps
+        run: |
+          pip install -r requirements-dev.txt -t .tox/${{ matrix.tox-target }}
+
       - name: Install Deps test
         run: |
           tox -e ${{ matrix.tox-target }} --notest
