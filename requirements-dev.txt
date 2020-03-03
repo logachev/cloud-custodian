@@ -1,3 +1,4 @@
+# Install base deps
 -r requirements.txt
 
 # Test & lint packages
@@ -25,6 +26,8 @@ importlib_metadata==1.4.0
 # Specific to testing mailer
 fakeredis==1.1.0
 
+# Local package for c7n tests
+-e .
 # Local package required for c7n_mailer tests
 -e tools/c7n_mailer
 # Local package required for c7n_azure tests
