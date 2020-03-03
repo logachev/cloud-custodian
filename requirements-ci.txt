@@ -1,0 +1,12 @@
+-r requirements-dev.txt
+
+# Local package required for c7n_mailer tests
+tools/c7n_mailer
+# Local package required for c7n_azure tests
+tools/c7n_azure
+# Local package required for c7n_gcp tests
+tools/c7n_gcp
+# Local package required for c7n_kube tests
+tools/c7n_kube
+# Local package required for c7n_org tests
+tools/c7n_org
