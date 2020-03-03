@@ -65,7 +65,9 @@ jobs:
 
       - name: Reinstall missing deps
         run: |
+          source .tox/${{ matrix.tox-target }}/bin/activate
           pip install -r requirements-dev.txt -t .tox/${{ matrix.tox-target }}
+          deactivate
 
       - name: Install Deps test
         run: |
