@@ -65,8 +65,8 @@ jobs:
 
       - name: Install Deps
         run: |
-          tox -e ${{ matrix.tox-target }} --notest
+          tox --notest
 
       - name: Test
         run: |
-          tox -e ${{ matrix.tox-target }}
+          tox
