@@ -73,7 +73,7 @@ jobs:
 
       - name: test
         run : |
-          ls /Users/runner/runners/2.165.2/work/cloud-custodian/cloud-custodian/tools/c7n_mailer
+          ls /home/runner/work/cloud-custodian/cloud-custodian/tools/c7n_mailer
 
 #      - name: Install Deps test
 #        run: |
