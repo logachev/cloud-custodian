@@ -61,7 +61,7 @@ jobs:
       - name: Install Test Runner
         run: |
           python -m pip install pip
-          pip install tox codecov tox-battery
+          pip install tox codecov tox-pip-extensions
 
 #      - name: Reinstall missing deps
 #        run: |
