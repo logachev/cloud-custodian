@@ -65,7 +65,7 @@ jobs:
 
       - name: test
         run : |
-          ls .tox/py36/lib/python3.6/site-packages/
+          ls -l .tox/py36/lib/python3.6/site-packages/
 
       - name: test
         run : |
