@@ -58,9 +58,12 @@ jobs:
           path: .tox/${{ matrix.tox-target }}
           key: venv1-${{ runner.os }}-${{ matrix.tox-target  }}-${{ hashFiles('**/setup.py') }}
 
-      - name: Remove egg links
+      - name: Recreate egg-info
         run : |
-          find .tox/${{ matrix.tox-target }} -name *.egg-link -exec rm -rf {} \;
+          pip install --no-deps -e tools/c7n_mailer
+          pip install --no-deps -e tools/c7n_azure
+          pip install --no-deps -e tools/c7n_gcp
+          pip install --no-deps -e tools/c7n_kube
 
       - name: Install Test Runner
         run: |
