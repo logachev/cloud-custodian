@@ -64,13 +64,6 @@ jobs:
           path: tools/c7n_mailer/c7n_mailer.egg-info
           key: venv1-${{ runner.os }}-${{ matrix.tox-target  }}-${{ hashFiles('**/setup.py') }}-mailer
 
-      - name: Recreate egg-info
-        run : |
-          pip install --no-deps -e tools/c7n_mailer
-          pip install --no-deps -e tools/c7n_azure
-          pip install --no-deps -e tools/c7n_gcp
-          pip install --no-deps -e tools/c7n_kube
-
       - name: Install Test Runner
         run: |
           python -m pip install pip
