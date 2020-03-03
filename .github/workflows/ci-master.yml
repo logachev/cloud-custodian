@@ -65,7 +65,11 @@ jobs:
 
       - name: test
         run : |
-          source .tox/${{ matrix.tox-target }}/bin/activate && pip freeze
+          ls .tox/py36/lib/python3.6/site-packages/
+
+      - name: test
+        run : |
+          cat .tox/py36/lib/python3.6/site-packages/c7n-mailer.egg-link
 
 #      - name: Install Deps
 #        run: |
