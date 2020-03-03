@@ -61,30 +61,17 @@ jobs:
       - name: Install Test Runner
         run: |
           python -m pip install pip
-          pip install tox codecov
+          pip install tox codecov tox-battery
 
-      - name: Reinstall missing deps
-        run: |
-          source .tox/${{ matrix.tox-target }}/bin/activate
-          pip install -r requirements-dev.txt
-          deactivate
+#      - name: Reinstall missing deps
+#        run: |
+#          source .tox/${{ matrix.tox-target }}/bin/activate
+#          pip install -r requirements-dev.txt
+#          deactivate
 
       - name: Install Deps test
         run: |
           tox -e ${{ matrix.tox-target }} --notest
-
-      - name: test
-        run : |
-          ls -l .tox/py36/lib/python3.6/site-packages/
-
-      - name: test
-        run : |
-          cat .tox/py36/lib/python3.6/site-packages/c7n-mailer.egg-link
-
-      - name: test
-        run : |
-          ls /home/runner/work/cloud-custodian/cloud-custodian/tools/c7n_mailer
-
 #
 #      - name: Test
 #        run: |
