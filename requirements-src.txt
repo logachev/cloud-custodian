@@ -1,0 +1,12 @@
+# Local package required for c7n tests
+-e .
+# Local package required for c7n_mailer tests
+-e tools/c7n_mailer
+# Local package required for c7n_azure tests
+-e tools/c7n_azure
+# Local package required for c7n_gcp tests
+-e tools/c7n_gcp
+# Local package required for c7n_kube tests
+-e tools/c7n_kube
+# Local package required for c7n_org tests
+-e tools/c7n_org
