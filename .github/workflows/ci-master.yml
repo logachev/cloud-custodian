@@ -55,10 +55,14 @@ jobs:
       - name: Set up cache
         uses: actions/cache@v1
         with:
-          path: |
-            .tox/${{ matrix.tox-target }}
-            tools/c7n_mailer/c7n_mailer.egg-info
+          path: .tox/${{ matrix.tox-target }}
           key: venv1-${{ runner.os }}-${{ matrix.tox-target  }}-${{ hashFiles('**/setup.py') }}
+
+      - name: Set up cache - mailer
+        uses: actions/cache@v1
+        with:
+          path: tools/c7n_mailer/c7n_mailer.egg-info
+          key: venv1-${{ runner.os }}-${{ matrix.tox-target  }}-${{ hashFiles('**/setup.py') }}-mailer
 
       - name: Recreate egg-info
         run : |
