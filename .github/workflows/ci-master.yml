@@ -58,6 +58,10 @@ jobs:
           path: .tox/${{ matrix.tox-target }}
           key: venv1-${{ runner.os }}-${{ matrix.tox-target  }}-${{ hashFiles('**/setup.py') }}
 
+      - name: Remove egg links
+        run : |
+          find .tox/${{ matrix.tox-target }} -name *.egg-link -exec rm -rf {} \;
+
       - name: Install Test Runner
         run: |
           python -m pip install pip
