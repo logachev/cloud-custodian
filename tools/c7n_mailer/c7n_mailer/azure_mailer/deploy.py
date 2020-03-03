@@ -50,12 +50,12 @@ def build_function_package(config, function_name, sub_id):
         target_sub_ids=[sub_id],
         cache_override_path=cache_override_path)
 
-    requirements = generate_requirements('c7n-mailer',
+    requirements = generate_requirements('c7n_mailer',
                                          ignore=['boto3', 'botocore', 'pywin32'],
-                                         exclude=['c7n', 'c7n-azure'])
+                                         exclude=['c7n', 'c7n_azure'])
 
     package.build(None,
-                  modules=['c7n', 'c7n-azure', 'c7n-mailer'],
+                  modules=['c7n', 'c7n_azure', 'c7n_mailer'],
                   requirements=requirements)
 
     package.pkg.add_contents(
