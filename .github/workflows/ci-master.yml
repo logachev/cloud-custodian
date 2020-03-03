@@ -63,10 +63,14 @@ jobs:
           python -m pip install pip
           pip install tox codecov
 
-      - name: Install Deps
-        run: |
-          tox -e ${{ matrix.tox-target }} --notest
+      - name: test
+        run : |
+          source .tox/${{ matrix.tox-target }}/bin/activate && pip freeze
 
-      - name: Test
-        run: |
-          tox -e ${{ matrix.tox-target }}
+#      - name: Install Deps
+#        run: |
+#          tox -e ${{ matrix.tox-target }} --notest
+#
+#      - name: Test
+#        run: |
+#          tox -e ${{ matrix.tox-target }}
