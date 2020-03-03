@@ -71,7 +71,7 @@ jobs:
         run : |
           cat .tox/py36/lib/python3.6/site-packages/c7n-mailer.egg-link
 
-#      - name: Install Deps
+#      - name: Install Deps test
 #        run: |
 #          tox -e ${{ matrix.tox-target }} --notest
 #
