@@ -97,7 +97,7 @@ class TagsTest(BaseTest):
                                    'preserve': [k for k in self.existing_tags.keys()]})
 
         tags = self.existing_tags.copy()
-        tags.update({'tag-to-trimgit sta': 'value1', 'tag-to-trim2': 'value2', 'tag-to-trim-3': 'value3'})
+        tags.update({'tag-to-trim': 'value1', 'tag-to-trim2': 'value2', 'tag-to-trim-3': 'value3'})
         resource = tools.get_resource(tags)
 
         action.process([resource])
