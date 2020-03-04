@@ -393,7 +393,7 @@ class TagTrim(AzureBaseAction):
                # to add additional required tags. For example, if an
                # additional 2 tags need to be added to a resource, with
                # 50 tags as the limit, then filter down to resources that
-               # have 48 or more tags since they will need to have tags
+               # have 49 or more tags since they will need to have tags
                # removed for the 2 extra. This also ensures that metrics
                # reporting is correct for the policy.
               - type: value
