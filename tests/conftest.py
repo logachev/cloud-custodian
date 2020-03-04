@@ -5,7 +5,7 @@ from c7n.testing import PyTestUtils, reset_session_cache
 
 
 class CustodianAWSTesting(PyTestUtils, PillTest):
-    """Pytest AWS Testing Fixture.
+    """Pytest AWS Testing Fixture
     """
 
 

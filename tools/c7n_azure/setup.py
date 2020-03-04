@@ -100,7 +100,6 @@ setup(
                       "c7n>=0.8.45.1",
                       "azure-cli-core",
                       "adal",
-                      "futures>=3.1.1",
                       "netaddr"] + extra_dependencies,
     package_data={str(''): [str('function_binding_resources/bin/*.dll'),
                             str('function_binding_resources/*.csproj'),

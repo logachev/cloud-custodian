@@ -56,7 +56,6 @@ files (subsequent runs will append to the log by default rather than
 overwriting it). 
 
 ## Links
-
 - [Getting Started](https://cloudcustodian.io/docs/azure/gettingstarted.html)
 - [Example Scenarios](https://cloudcustodian.io/docs/azure/examples/index.html)
 - [Example Policies](https://cloudcustodian.io/docs/azure/policy/index.html)

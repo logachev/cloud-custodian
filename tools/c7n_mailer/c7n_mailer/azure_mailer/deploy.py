@@ -39,6 +39,15 @@ def cache_path():
     return os.path.join(os.path.dirname(__file__), 'cache')
 
 
+def get_mailer_requirements():
+    deps = ['azure-keyvault', 'azure-storage-queue',
+            'azure-storage-blob', 'sendgrid'] + list(CORE_DEPS)
+    requirements = generate_requirements(
+        deps, ignore=['boto3', 'botocore', 'pywin32'],
+        include_self=True)
+    return requirements
+
+
 def build_function_package(config, function_name, sub_id):
     schedule = config.get('function_schedule', '0 */10 * * * *')
 
@@ -53,13 +62,9 @@ def build_function_package(config, function_name, sub_id):
         target_sub_ids=[sub_id],
         cache_override_path=cache_override_path)
 
-    deps = ['azure-storage-queue', 'azure-storage-blob'] + list(CORE_DEPS)
-    requirements = generate_requirements(
-        deps, ignore=['boto3', 'botocore', 'pywin32'])
-
     package.build(None,
                   modules=['c7n', 'c7n_azure', 'c7n_mailer'],
-                  requirements=requirements)
+                  requirements=get_mailer_requirements())
 
     package.pkg.add_contents(
         function_path + '/function.json',

@@ -278,8 +278,11 @@ def checksum(fh, hasher, blocksize=65536):
     return hasher.digest()
 
 
-def generate_requirements(packages, ignore=(), exclude=()):
-    """Generate frozen requirements file for the given package.
+def generate_requirements(packages, ignore=(), exclude=(), include_self=False):
+    """Generate frozen requirements file for the given set of packages
+
+    if include_self is True we'll also include the packages in the generated
+    requirements.
     """
     if pkgmd is None:
         raise ImportError("importlib_metadata missing")
@@ -290,11 +293,16 @@ def generate_requirements(packages, ignore=(), exclude=()):
     for p in packages:
         _package_deps(p, deps, ignore=ignore)
     lines = []
+    if include_self:
+        deps = list(set(deps).union(packages))
     for d in sorted(deps):
         if d in exclude:
             continue
-        lines.append(
-            '%s==%s' % (d, pkgmd.distribution(d).version))
+        try:
+            lines.append(
+                '%s==%s' % (d, pkgmd.distribution(d).version))
+        except pkgmd.PackageNotFoundError:
+            continue
     return '\n'.join(lines)
 
 
