@@ -278,14 +278,18 @@ def checksum(fh, hasher, blocksize=65536):
     return hasher.digest()
 
 
-def generate_requirements(package, ignore=(), exclude=()):
+def generate_requirements(packages, ignore=(), exclude=()):
     """Generate frozen requirements file for the given package.
     """
     if pkgmd is None:
         raise ImportError("importlib_metadata missing")
-    deps = _package_deps(package, ignore=ignore)
-    lines = []
+    if isinstance(packages, str):
+        packages = [packages]
 
+    deps = []
+    for p in packages:
+        _package_deps(p, deps, ignore=ignore)
+    lines = []
     for d in sorted(deps):
         if d in exclude:
             continue
@@ -298,7 +302,10 @@ def _package_deps(package, deps=None, ignore=()):
     """Recursive gather package's named transitive dependencies"""
     if deps is None:
         deps = []
-    pdeps = pkgmd.requires(package) or ()
+    try:
+        pdeps = pkgmd.requires(package) or ()
+    except pkgmd.PackageNotFoundError:
+        return deps
     for r in pdeps:
         # skip optional deps
         if ';' in r and 'extra' in r:

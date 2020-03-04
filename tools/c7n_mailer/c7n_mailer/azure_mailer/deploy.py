@@ -19,6 +19,9 @@ import json
 import logging
 import os
 
+
+from c7n_mailer.deploy import CORE_DEPS
+
 try:
     from c7n.mu import generate_requirements
     from c7n_azure.function_package import FunctionPackage
@@ -50,9 +53,9 @@ def build_function_package(config, function_name, sub_id):
         target_sub_ids=[sub_id],
         cache_override_path=cache_override_path)
 
-    requirements = generate_requirements('c7n_mailer',
-                                         ignore=['boto3', 'botocore', 'pywin32'],
-                                         exclude=['c7n', 'c7n_azure'])
+    deps = ['azure-storage-queue', 'azure-storage-blob'] + list(CORE_DEPS)
+    requirements = generate_requirements(
+        deps, ignore=['boto3', 'botocore', 'pywin32'])
 
     package.build(None,
                   modules=['c7n', 'c7n_azure', 'c7n_mailer'],
