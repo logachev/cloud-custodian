@@ -16,10 +16,7 @@ az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET -t $AZU
 az account set -s $AZURE_SUBSCRIPTION_ID -o none
 
 echo "Running Cloud Custodian"
-custodian run -s=/dev/null policy_timer_dedicated.yaml
-custodian run -s=/dev/null policy_event_dedicated.yaml
-custodian run -s=/dev/null policy_timer_consumption.yaml
-custodian run -s=/dev/null policy_event_consumption.yaml
+custodian run -s=/dev/null policies.yaml
 
 echo "Creating new resource group"
 az group create -l westus -n custodian-function-test-rg -o none
