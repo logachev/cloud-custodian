@@ -15,6 +15,7 @@ import copy
 import json
 import logging
 import os
+import atexit
 import time
 
 import distutils.util
@@ -28,6 +29,9 @@ from c7n_azure.session import Session
 
 from c7n.mu import PythonPackageArchive
 from c7n.utils import local_session
+
+
+deployment_creds_at_exit = []
 
 
 class AzurePythonPackageArchive(PythonPackageArchive):
@@ -198,23 +202,51 @@ class FunctionPackage(object):
         self.log.info("Function publish result: %s" % r.status_code)
 
     def wait_for_remote_build(self, deployment_creds):
-        self.log.info('Waiting for the remote build to finish')
+        self.log.info("Appending deployment info")
+        if not deployment_creds_at_exit:
+            atexit.register(self.wait_for_remote_builds)
+        deployment_creds_at_exit.append(deployment_creds)
 
-        # Replicate the behavior from azure core func tool.. Some racing in kudulight,
-        # so different way to get the status. https://bit.ly/32AM71b
-        is_deploying = True
+    def wait_for_remote_builds(self):
+        self.log.info('Waiting for the remote builds to finish')
+
+        succeeded = 0
+        failed = 0
+        total = len(deployment_creds_at_exit)
+
+        while deployment_creds_at_exit:
+            for deployment_creds in deployment_creds_at_exit:
+                try:
+                    status = self.get_build_status(deployment_creds)
+                except:
+                    status = None
+
+                if status is not None:
+                    if status:
+                        succeeded += 1
+                    else:
+                        failed += 1
+                    deployment_creds_at_exit.remove(deployment_creds)
+
+            if deployment_creds_at_exit:
+                self.log.info("Waiting for all remote builds to finish... %i/%i finished.",
+                              succeeded + failed, total)
+                time.sleep(30)
+
+        self.log.info("Deployment complete. Succeeded: %i, Failed: %i", succeeded, failed)
+
+    def get_build_status(self, deployment_creds):
         is_deploying_uri = '%s/api/isdeploying' % deployment_creds.scm_uri
-        while is_deploying != 'False':
-            self.log.info('Waiting for the deployment to complete...')
-            is_deploying = requests.get(is_deploying_uri).json()['value']
-            time.sleep(10)
+        is_deploying = requests.get(is_deploying_uri).json()['value']
+
+        if distutils.util.strtobool(is_deploying):
+            return None
 
         # Get build status
         deployments_uri = '%s/deployments' % deployment_creds.scm_uri
         r = requests.get(deployments_uri).json()
         deployment_id = r[0]['id']
         status = r[0]['status']
-
         if status == 3:
             log_uri = '%s/%s/log' % (deployments_uri, deployment_id)
 
@@ -228,9 +260,8 @@ class FunctionPackage(object):
             oryx_logs = requests.get(oryx_uri).json()
             self.log.error("Deployment failed. Oryx logs:\n    " +
                            "\n    ".join(x['message'] for x in oryx_logs))
-            return False
 
-        return True
+        return status == 4
 
     def close(self):
         self.pkg.close()
