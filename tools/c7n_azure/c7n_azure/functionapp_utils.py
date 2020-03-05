@@ -12,14 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
+import os
 import re
 
+from c7n_azure.constants import ENV_WAIT_FOR_FUNCTION_BUILD
 from c7n_azure.provisioning.app_insights import AppInsightsUnit
 from c7n_azure.provisioning.app_service_plan import AppServicePlanUnit
 from c7n_azure.provisioning.function_app import FunctionAppDeploymentUnit
 from c7n_azure.provisioning.storage_account import StorageAccountUnit
 from c7n_azure.session import Session
 from c7n_azure.utils import ResourceIdParser, StringUtils
+from distutils.util import strtobool
 
 from c7n.utils import local_session
 
@@ -122,9 +125,8 @@ class FunctionAppUtilities(object):
 
         if package.wait_for_status(publish_creds):
             package.publish(publish_creds)
-
-            is_consumption = cls.is_consumption_plan(function_params)
-            package.wait_for_remote_build(publish_creds, is_consumption)
+            if strtobool(os.environ.get(ENV_WAIT_FOR_FUNCTION_BUILD, 'yes')):
+                package.wait_for_remote_build(publish_creds)
             cls.log.info('Finished publishing Function application')
         else:
             cls.log.error("Aborted deployment, ensure Application Service is healthy.")

@@ -197,37 +197,38 @@ class FunctionPackage(object):
 
         self.log.info("Function publish result: %s" % r.status_code)
 
-    def wait_for_remote_build(self, deployment_creds, is_consumption):
+    def wait_for_remote_build(self, deployment_creds):
         self.log.info('Waiting for the remote build to finish')
 
         # Replicate the behavior from azure core func tool.. Some racing in kudulight,
         # so different way to get the status. https://bit.ly/32AM71b
-        if not is_consumption:
-            is_deploying = True
-            is_deploying_uri = '%s/api/isdeploying' % deployment_creds.scm_uri
-            while is_deploying != 'False':
-                self.log.info('Waiting for deployment to complete...')
-                is_deploying = requests.get(is_deploying_uri).json()['value']
-                time.sleep(10)
+        is_deploying = True
+        is_deploying_uri = '%s/api/isdeploying' % deployment_creds.scm_uri
+        while is_deploying != 'False':
+            self.log.info('Waiting for the deployment to complete...')
+            is_deploying = requests.get(is_deploying_uri).json()['value']
+            time.sleep(10)
 
-        # Get deployment id
+        # Get build status
         deployments_uri = '%s/deployments' % deployment_creds.scm_uri
         r = requests.get(deployments_uri).json()
         deployment_id = r[0]['id']
-
-        status_uri = '%s/deployments/%s' % (deployment_creds.scm_uri, deployment_id)
-        status_decoding = ['Pending', 'Building', 'Deploying', 'Failed', 'Success']
-        while True:
-            status = requests.get(status_uri).json()['status']
-            if status == 3 or status == 4:
-                break
-            self.log.info('Deployment status: %s', status_decoding[status])
-            time.sleep(10)
+        status = r[0]['status']
 
         if status == 3:
-            log_uri = '%s/log' % status_uri
-            self.log.error("Remote build failed. You can retrieve logs here: %s", log_uri)
+            log_uri = '%s/%s/log' % (deployments_uri, deployment_id)
+
+            deployment_logs = requests.get(log_uri).json()
+            self.log.error("Deployment failed. Deployment logs:\n    " +
+                           "\n    ".join(x['message'] for x in deployment_logs))
+
+            oryx_uri = next('%s/%s' % (log_uri, x['id']) for x in deployment_logs
+                            if x['details_url'] is not None
+                            and '/deployments/%s' % deployment_id in x['details_url'])
+            oryx_logs = requests.get(oryx_uri).json()
+            self.log.error("Deployment failed. Oryx logs:\n    " + "\n    ".join(x['message'] for x in oryx_logs))
             return False
+
         return True
 
     def close(self):
