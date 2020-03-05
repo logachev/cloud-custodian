@@ -11,21 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import atexit
 import datetime
 import email.utils as eut
 import json
 import logging
 import os
 import re
-from distutils.util import strtobool
 from functools import wraps
 from time import sleep
 
 import msrest.polling
-
 from c7n_azure import utils, constants
 from c7n_azure.session import Session
 from c7n_azure.utils import ThreadHelper
+from distutils.util import strtobool
 from mock import patch
 from msrest.pipeline import ClientRawResponse
 from msrest.serialization import Model
@@ -395,6 +395,7 @@ class BaseTest(TestUtils, AzureVCRBaseTest):
         super(BaseTest, cls).tearDownClass(*args, **kwargs)
         if os.environ.get(constants.ENV_ACCESS_TOKEN) == "fake_token":
             cls._token_patch.stop()
+        atexit._clear()
 
     def setUp(self):
         super(BaseTest, self).setUp()
