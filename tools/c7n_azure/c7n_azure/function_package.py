@@ -223,10 +223,11 @@ class FunctionPackage(object):
                            "\n    ".join(x['message'] for x in deployment_logs))
 
             oryx_uri = next('%s/%s' % (log_uri, x['id']) for x in deployment_logs
-                            if x['details_url'] is not None
-                            and '/deployments/%s' % deployment_id in x['details_url'])
+                            if x['details_url'] is not None and
+                            '/deployments/%s' % deployment_id in x['details_url'])
             oryx_logs = requests.get(oryx_uri).json()
-            self.log.error("Deployment failed. Oryx logs:\n    " + "\n    ".join(x['message'] for x in oryx_logs))
+            self.log.error("Deployment failed. Oryx logs:\n    " +
+                           "\n    ".join(x['message'] for x in oryx_logs))
             return False
 
         return True
