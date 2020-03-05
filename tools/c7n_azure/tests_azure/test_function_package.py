@@ -16,12 +16,12 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import json
 import os
 import time
-
+import requests
 from azure.mgmt.web.models import User
 from c7n_azure.constants import ENV_CUSTODIAN_DISABLE_SSL_CERT_VERIFICATION, \
     FUNCTION_TIME_TRIGGER_MODE, FUNCTION_EVENT_TRIGGER_MODE
 from c7n_azure.function_package import FunctionPackage, AzurePythonPackageArchive
-from mock import patch, MagicMock
+from mock import patch, MagicMock, call
 
 from .azure_common import BaseTest
 
@@ -187,6 +187,86 @@ class FunctionPackageTest(BaseTest):
             packer = FunctionPackage(p.data['name'])
             self.assertFalse(packer.enable_ssl_cert)
 
+    @patch('requests.get')
+    def test_get_build_status_in_progress(self, get_mock):
+        responses = {
+            'https://uri/api/isdeploying': self._get_response({'value': 'True'})
+        }
+        get_mock.side_effect = lambda x: responses[x]
+
+        package = FunctionPackage('test')
+        creds = User(publishing_user_name='u', publishing_password='p', scm_uri='https://uri')
+
+        self.assertIsNone(package.get_build_status(creds))
+        get_mock.assert_called_once_with('https://uri/api/isdeploying')
+
+    @patch('requests.get')
+    def test_get_build_status_success(self, get_mock):
+        responses = {
+            'https://uri/api/isdeploying': self._get_response({'value': 'False'}),
+            'https://uri/deployments': self._get_response([{'id': 'id', 'status': 4}])
+        }
+        get_mock.side_effect = lambda x: responses[x]
+
+        package = FunctionPackage('test')
+        creds = User(publishing_user_name='u', publishing_password='p', scm_uri='https://uri')
+
+        self.assertTrue(package.get_build_status(creds))
+        get_mock.assert_has_calls([call('https://uri/api/isdeploying'),
+                                  call('https://uri/deployments')])
+
+    @patch('requests.get')
+    def test_get_build_status_failed(self, get_mock):
+        responses = {
+            'https://uri/api/isdeploying': self._get_response({'value': 'False'}),
+            'https://uri/deployments': self._get_response([{'id': 'id', 'status': 3}]),
+            'https://uri/deployments/id/log': self._get_response(
+                [{'id': 'oryx', 'message': 'msg', 'details_url': 'https://uri/deployments/id/log/oryx'}]),
+            'https://uri/deployments/id/log/oryx': self._get_response([{'message': 'msg'}])
+        }
+        get_mock.side_effect = lambda x: responses[x]
+
+        package = FunctionPackage('test')
+        creds = User(publishing_user_name='u', publishing_password='p', scm_uri='https://uri')
+
+        self.assertFalse(package.get_build_status(creds))
+        get_mock.assert_has_calls([call('https://uri/api/isdeploying'),
+                                   call('https://uri/deployments'),
+                                   call('https://uri/deployments/id/log'),
+                                   call('https://uri/deployments/id/log/oryx')])
+
+    @patch('requests.get')
+    def test_wait_for_remote_build(self, get_mock):
+        responses = {
+            'https://uri/api/isdeploying': self._get_response({'value': 'False'}),
+            'https://uri/deployments': self._get_response([{'id': 'id', 'status': 4}]),
+
+            'https://uri2/api/isdeploying': self._get_response({'value': 'False'}),
+            'https://uri2/deployments': self._get_response([{'id': 'id', 'status': 4}]),
+
+            'https://uri3/api/isdeploying': self._get_response({'value': 'False'}),
+            'https://uri3/deployments': self._get_response([{'id': 'id', 'status': 3}]),
+            'https://uri3/deployments/id/log': self._get_response(
+                [{'id': 'oryx', 'message': 'msg', 'details_url': 'https://uri3/deployments/id/log/oryx'}]),
+            'https://uri3/deployments/id/log/oryx': self._get_response([{'message': 'msg'}])
+        }
+        get_mock.side_effect = lambda x: responses[x]
+
+        package = FunctionPackage('test')
+        creds_list = [
+            User(publishing_user_name='u', publishing_password='p', scm_uri='https://uri'),
+            User(publishing_user_name='u', publishing_password='p', scm_uri='https://uri2'),
+            User(publishing_user_name='u', publishing_password='p', scm_uri='https://uri3'),
+        ]
+        result = package.wait_for_remote_builds(creds_list)
+        self.assertEqual((2, 1), result)
+
+    def _get_response(self, content):
+        r = requests.Response()
+        r._content = json.dumps(content).encode('utf-8')
+        r.status_code = 200
+        return r
+
     def def_cert_validation_on_by_default(self):
         p = self.load_policy({
             'name': 'test-azure-package',
@@ -209,3 +289,4 @@ class FunctionPackageTest(BaseTest):
     def _file_exists(files, name):
         file_exists = [True for item in files if item.filename == name][0]
         return file_exists or False
+

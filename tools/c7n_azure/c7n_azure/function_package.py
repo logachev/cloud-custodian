@@ -204,18 +204,18 @@ class FunctionPackage(object):
     def wait_for_remote_build(self, deployment_creds):
         self.log.info("Appending deployment info")
         if not deployment_creds_at_exit:
-            atexit.register(self.wait_for_remote_builds)
+            atexit.register(self.wait_for_remote_builds, deployment_creds_at_exit)
         deployment_creds_at_exit.append(deployment_creds)
 
-    def wait_for_remote_builds(self):
+    def wait_for_remote_builds(self, deployment_creds_list):
         self.log.info('Waiting for the remote builds to finish')
 
         succeeded = 0
         failed = 0
-        total = len(deployment_creds_at_exit)
+        total = len(deployment_creds_list)
 
-        while deployment_creds_at_exit:
-            for deployment_creds in deployment_creds_at_exit:
+        while deployment_creds_list:
+            for deployment_creds in [x for x in deployment_creds_list]:
                 try:
                     status = self.get_build_status(deployment_creds)
                 except:
@@ -226,14 +226,15 @@ class FunctionPackage(object):
                         succeeded += 1
                     else:
                         failed += 1
-                    deployment_creds_at_exit.remove(deployment_creds)
+                    deployment_creds_list.remove(deployment_creds)
 
-            if deployment_creds_at_exit:
+            if deployment_creds_list:
                 self.log.info("Waiting for all remote builds to finish... %i/%i finished.",
                               succeeded + failed, total)
                 time.sleep(30)
 
         self.log.info("Deployment complete. Succeeded: %i, Failed: %i", succeeded, failed)
+        return succeeded, failed
 
     def get_build_status(self, deployment_creds):
         is_deploying_uri = '%s/api/isdeploying' % deployment_creds.scm_uri
