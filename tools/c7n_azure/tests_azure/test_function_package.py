@@ -221,7 +221,7 @@ class FunctionPackageTest(BaseTest):
             'https://uri/api/isdeploying': self._get_response({'value': 'False'}),
             'https://uri/deployments': self._get_response([{'id': 'id', 'status': 3}]),
             'https://uri/deployments/id/log': self._get_response(
-                [{'id': 'oryx', 'message': 'msg', 'details_url': 'https://uri/deployments/id/log/oryx'}]),
+                [{'id': 'o', 'message': 'm', 'details_url': 'https://uri/deployments/id/log/o'}]),
             'https://uri/deployments/id/log/oryx': self._get_response([{'message': 'msg'}])
         }
         get_mock.side_effect = lambda x: responses[x]
@@ -247,7 +247,7 @@ class FunctionPackageTest(BaseTest):
             'https://uri3/api/isdeploying': self._get_response({'value': 'False'}),
             'https://uri3/deployments': self._get_response([{'id': 'id', 'status': 3}]),
             'https://uri3/deployments/id/log': self._get_response(
-                [{'id': 'oryx', 'message': 'msg', 'details_url': 'https://uri3/deployments/id/log/oryx'}]),
+                [{'id': 'o', 'message': 'm', 'details_url': 'https://uri3/deployments/id/log/o'}]),
             'https://uri3/deployments/id/log/oryx': self._get_response([{'message': 'msg'}])
         }
         get_mock.side_effect = lambda x: responses[x]
@@ -289,4 +289,3 @@ class FunctionPackageTest(BaseTest):
     def _file_exists(files, name):
         file_exists = [True for item in files if item.filename == name][0]
         return file_exists or False
-

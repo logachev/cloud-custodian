@@ -218,7 +218,7 @@ class FunctionPackage(object):
             for deployment_creds in [x for x in deployment_creds_list]:
                 try:
                     status = self.get_build_status(deployment_creds)
-                except:
+                except Exception:
                     status = None
 
                 if status is not None:
