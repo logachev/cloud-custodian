@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import atexit
 import datetime
 import email.utils as eut
 import json
@@ -23,6 +22,7 @@ from time import sleep
 
 import msrest.polling
 from c7n_azure import utils, constants
+from c7n_azure.function_package import FunctionPackage
 from c7n_azure.session import Session
 from c7n_azure.utils import ThreadHelper
 from distutils.util import strtobool
@@ -40,7 +40,6 @@ from c7n.utils import local_session
 from .azure_serializer import AzureSerializer
 
 # Ensure the azure provider is loaded.
-from c7n_azure import provider # noqa
 
 BASE_FOLDER = os.path.dirname(__file__)
 C7N_SCHEMA = generate()
@@ -395,11 +394,11 @@ class BaseTest(TestUtils, AzureVCRBaseTest):
         super(BaseTest, cls).tearDownClass(*args, **kwargs)
         if os.environ.get(constants.ENV_ACCESS_TOKEN) == "fake_token":
             cls._token_patch.stop()
-        atexit._clear()
 
     def setUp(self):
         super(BaseTest, self).setUp()
         ThreadHelper.disable_multi_threading = True
+        FunctionPackage.disable_wait_for_build = True
 
         # We always patch the date for recordings so URLs that involve dates match up
         if self.vcr_enabled:

@@ -35,6 +35,7 @@ deployment_creds_at_exit = []
 
 
 class AzurePythonPackageArchive(PythonPackageArchive):
+
     def __init__(self, modules=(), cache_file=None):
         super(AzurePythonPackageArchive, self).__init__(modules, cache_file)
         self.package_time = time.gmtime()
@@ -51,6 +52,7 @@ class AzurePythonPackageArchive(PythonPackageArchive):
 
 class FunctionPackage(object):
     log = logging.getLogger('custodian.azure.function_package.FunctionPackage')
+    disable_wait_for_build = False
 
     def __init__(self, name, function_path=None, target_sub_ids=None, cache_override_path=None):
         self.pkg = None
@@ -203,7 +205,7 @@ class FunctionPackage(object):
 
     def wait_for_remote_build(self, deployment_creds):
         self.log.info("Appending deployment info")
-        if not deployment_creds_at_exit:
+        if not FunctionPackage.disable_wait_for_build and not deployment_creds_at_exit:
             atexit.register(self.wait_for_remote_builds, deployment_creds_at_exit)
         deployment_creds_at_exit.append(deployment_creds)
 

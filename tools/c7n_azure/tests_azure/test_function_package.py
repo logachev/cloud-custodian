@@ -222,7 +222,7 @@ class FunctionPackageTest(BaseTest):
             'https://uri/deployments': self._get_response([{'id': 'id', 'status': 3}]),
             'https://uri/deployments/id/log': self._get_response(
                 [{'id': 'o', 'message': 'm', 'details_url': 'https://uri/deployments/id/log/o'}]),
-            'https://uri/deployments/id/log/oryx': self._get_response([{'message': 'msg'}])
+            'https://uri/deployments/id/log/o': self._get_response([{'message': 'msg'}])
         }
         get_mock.side_effect = lambda x: responses[x]
 
@@ -233,7 +233,7 @@ class FunctionPackageTest(BaseTest):
         get_mock.assert_has_calls([call('https://uri/api/isdeploying'),
                                    call('https://uri/deployments'),
                                    call('https://uri/deployments/id/log'),
-                                   call('https://uri/deployments/id/log/oryx')])
+                                   call('https://uri/deployments/id/log/o')])
 
     @patch('requests.get')
     def test_wait_for_remote_build(self, get_mock):
@@ -248,7 +248,7 @@ class FunctionPackageTest(BaseTest):
             'https://uri3/deployments': self._get_response([{'id': 'id', 'status': 3}]),
             'https://uri3/deployments/id/log': self._get_response(
                 [{'id': 'o', 'message': 'm', 'details_url': 'https://uri3/deployments/id/log/o'}]),
-            'https://uri3/deployments/id/log/oryx': self._get_response([{'message': 'msg'}])
+            'https://uri3/deployments/id/log/o': self._get_response([{'message': 'msg'}])
         }
         get_mock.side_effect = lambda x: responses[x]
 
