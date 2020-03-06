@@ -11,25 +11,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import atexit
 import copy
 import json
 import logging
 import os
-import atexit
 import time
 
-import distutils.util
 import requests
 from c7n_azure.constants import (ENV_CUSTODIAN_DISABLE_SSL_CERT_VERIFICATION,
                                  FUNCTION_EVENT_TRIGGER_MODE,
                                  FUNCTION_TIME_TRIGGER_MODE,
                                  FUNCTION_HOST_CONFIG,
                                  FUNCTION_EXTENSION_BUNDLE_CONFIG)
+from c7n_azure.constants import ENV_WAIT_FOR_FUNCTION_BUILD
 from c7n_azure.session import Session
+from distutils.util import strtobool
 
 from c7n.mu import PythonPackageArchive
 from c7n.utils import local_session
-
 
 deployment_creds_at_exit = []
 
@@ -52,7 +52,7 @@ class AzurePythonPackageArchive(PythonPackageArchive):
 
 class FunctionPackage(object):
     log = logging.getLogger('custodian.azure.function_package.FunctionPackage')
-    disable_wait_for_build = False
+    wait_for_build = strtobool(os.environ.get(ENV_WAIT_FOR_FUNCTION_BUILD, 'yes'))
 
     def __init__(self, name, function_path=None, target_sub_ids=None, cache_override_path=None):
         self.pkg = None
@@ -60,7 +60,7 @@ class FunctionPackage(object):
         self.function_path = function_path or os.path.join(
             os.path.dirname(os.path.realpath(__file__)), 'function.py')
         self.cache_override_path = cache_override_path
-        self.enable_ssl_cert = not distutils.util.strtobool(
+        self.enable_ssl_cert = not strtobool(
             os.environ.get(ENV_CUSTODIAN_DISABLE_SSL_CERT_VERIFICATION, 'no'))
 
         if target_sub_ids is not None:
@@ -202,12 +202,13 @@ class FunctionPackage(object):
         r.raise_for_status()
 
         self.log.info("Function publish result: %s" % r.status_code)
+        self.wait_for_remote_build(deployment_creds)
 
     def wait_for_remote_build(self, deployment_creds):
-        self.log.info("Appending deployment info")
-        if not FunctionPackage.disable_wait_for_build and not deployment_creds_at_exit:
-            atexit.register(self.wait_for_remote_builds, deployment_creds_at_exit)
-        deployment_creds_at_exit.append(deployment_creds)
+        if FunctionPackage.wait_for_build:
+            if not deployment_creds_at_exit:
+                atexit.register(self.wait_for_remote_builds, deployment_creds_at_exit)
+            deployment_creds_at_exit.append(deployment_creds)
 
     def wait_for_remote_builds(self, deployment_creds_list):
         self.log.info('Waiting for the remote builds to finish')
@@ -242,7 +243,7 @@ class FunctionPackage(object):
         is_deploying_uri = '%s/api/isdeploying' % deployment_creds.scm_uri
         is_deploying = requests.get(is_deploying_uri).json()['value']
 
-        if distutils.util.strtobool(is_deploying):
+        if strtobool(is_deploying):
             return None
 
         # Get build status

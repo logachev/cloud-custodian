@@ -398,7 +398,7 @@ class BaseTest(TestUtils, AzureVCRBaseTest):
     def setUp(self):
         super(BaseTest, self).setUp()
         ThreadHelper.disable_multi_threading = True
-        FunctionPackage.disable_wait_for_build = True
+        FunctionPackage.wait_for_build = False
 
         # We always patch the date for recordings so URLs that involve dates match up
         if self.vcr_enabled:
