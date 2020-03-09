@@ -11,31 +11,26 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import atexit
 import copy
 import json
 import logging
 import os
 import time
 
+import distutils.util
 import requests
 from c7n_azure.constants import (ENV_CUSTODIAN_DISABLE_SSL_CERT_VERIFICATION,
                                  FUNCTION_EVENT_TRIGGER_MODE,
                                  FUNCTION_TIME_TRIGGER_MODE,
                                  FUNCTION_HOST_CONFIG,
                                  FUNCTION_EXTENSION_BUNDLE_CONFIG)
-from c7n_azure.constants import ENV_WAIT_FOR_FUNCTION_BUILD
 from c7n_azure.session import Session
-from distutils.util import strtobool
 
 from c7n.mu import PythonPackageArchive
 from c7n.utils import local_session
 
-deployment_creds_at_exit = []
-
 
 class AzurePythonPackageArchive(PythonPackageArchive):
-
     def __init__(self, modules=(), cache_file=None):
         super(AzurePythonPackageArchive, self).__init__(modules, cache_file)
         self.package_time = time.gmtime()
@@ -52,7 +47,6 @@ class AzurePythonPackageArchive(PythonPackageArchive):
 
 class FunctionPackage(object):
     log = logging.getLogger('custodian.azure.function_package.FunctionPackage')
-    wait_for_build = strtobool(os.environ.get(ENV_WAIT_FOR_FUNCTION_BUILD, 'yes'))
 
     def __init__(self, name, function_path=None, target_sub_ids=None, cache_override_path=None):
         self.pkg = None
@@ -60,7 +54,7 @@ class FunctionPackage(object):
         self.function_path = function_path or os.path.join(
             os.path.dirname(os.path.realpath(__file__)), 'function.py')
         self.cache_override_path = cache_override_path
-        self.enable_ssl_cert = not strtobool(
+        self.enable_ssl_cert = not distutils.util.strtobool(
             os.environ.get(ENV_CUSTODIAN_DISABLE_SSL_CERT_VERIFICATION, 'no'))
 
         if target_sub_ids is not None:
@@ -202,70 +196,6 @@ class FunctionPackage(object):
         r.raise_for_status()
 
         self.log.info("Function publish result: %s" % r.status_code)
-        self.wait_for_remote_build(deployment_creds)
-
-    def wait_for_remote_build(self, deployment_creds):
-        if FunctionPackage.wait_for_build:
-            if not deployment_creds_at_exit:
-                atexit.register(self.wait_for_remote_builds, deployment_creds_at_exit)
-            deployment_creds_at_exit.append(deployment_creds)
-
-    def wait_for_remote_builds(self, deployment_creds_list):
-        self.log.info('Waiting for the remote builds to finish')
-
-        succeeded = 0
-        failed = 0
-        total = len(deployment_creds_list)
-
-        while deployment_creds_list:
-            for deployment_creds in [x for x in deployment_creds_list]:
-                try:
-                    status = self.get_build_status(deployment_creds)
-                except Exception:
-                    status = None
-
-                if status is not None:
-                    if status:
-                        succeeded += 1
-                    else:
-                        failed += 1
-                    deployment_creds_list.remove(deployment_creds)
-
-            if deployment_creds_list:
-                self.log.info("Waiting for all remote builds to finish... %i/%i finished.",
-                              succeeded + failed, total)
-                time.sleep(30)
-
-        self.log.info("Deployment complete. Succeeded: %i, Failed: %i", succeeded, failed)
-        return succeeded, failed
-
-    def get_build_status(self, deployment_creds):
-        is_deploying_uri = '%s/api/isdeploying' % deployment_creds.scm_uri
-        is_deploying = requests.get(is_deploying_uri).json()['value']
-
-        if strtobool(is_deploying):
-            return None
-
-        # Get build status
-        deployments_uri = '%s/deployments' % deployment_creds.scm_uri
-        r = requests.get(deployments_uri).json()
-        deployment_id = r[0]['id']
-        status = r[0]['status']
-        if status == 3:
-            log_uri = '%s/%s/log' % (deployments_uri, deployment_id)
-
-            deployment_logs = requests.get(log_uri).json()
-            self.log.error("Deployment failed. Deployment logs:\n    " +
-                           "\n    ".join(x['message'] for x in deployment_logs))
-
-            oryx_uri = next('%s/%s' % (log_uri, x['id']) for x in deployment_logs
-                            if x['details_url'] is not None and
-                            '/deployments/%s' % deployment_id in x['details_url'])
-            oryx_logs = requests.get(oryx_uri).json()
-            self.log.error("Deployment failed. Oryx logs:\n    " +
-                           "\n    ".join(x['message'] for x in oryx_logs))
-
-        return status == 4
 
     def close(self):
         self.pkg.close()

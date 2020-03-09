@@ -17,15 +17,15 @@ import json
 import logging
 import os
 import re
+from distutils.util import strtobool
 from functools import wraps
 from time import sleep
 
 import msrest.polling
+
 from c7n_azure import utils, constants
-from c7n_azure.function_package import FunctionPackage
 from c7n_azure.session import Session
 from c7n_azure.utils import ThreadHelper
-from distutils.util import strtobool
 from mock import patch
 from msrest.pipeline import ClientRawResponse
 from msrest.serialization import Model
@@ -40,6 +40,7 @@ from c7n.utils import local_session
 from .azure_serializer import AzureSerializer
 
 # Ensure the azure provider is loaded.
+from c7n_azure import provider # noqa
 
 BASE_FOLDER = os.path.dirname(__file__)
 C7N_SCHEMA = generate()
@@ -398,7 +399,6 @@ class BaseTest(TestUtils, AzureVCRBaseTest):
     def setUp(self):
         super(BaseTest, self).setUp()
         ThreadHelper.disable_multi_threading = True
-        FunctionPackage.wait_for_build = False
 
         # We always patch the date for recordings so URLs that involve dates match up
         if self.vcr_enabled:
