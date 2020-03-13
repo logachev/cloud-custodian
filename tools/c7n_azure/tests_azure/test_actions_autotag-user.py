@@ -163,6 +163,22 @@ class ActionsAutotagUserTest(BaseTest):
                                     'claim1': 'myemail@contoso.com'})
         self._test_event(event, 'name@custodian.com', default_claim='name')
 
+    def test_auto_tag_user_event_grid_missing_upn(self):
+        event = self._get_event(evidence={'principalType': 'DoesNotMatter'},
+                                claims={
+                                    'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name':
+                                        'name@custodian.com',
+                                    'claim1': 'myemail@contoso.com'})
+        self._test_event(event, 'name@custodian.com', default_claim='upn')
+
+    def test_auto_tag_user_event_grid_missing_name(self):
+        event = self._get_event(evidence={'principalType': 'DoesNotMatter'},
+                                claims={
+                                    'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/upn':
+                                        'cloud@custodian.com',
+                                    'claim1': 'myemail@contoso.com'})
+        self._test_event(event, 'cloud@custodian.com', default_claim='name')
+
     def test_auto_tag_user_event_grid_find_email_in_claims(self):
         event = self._get_event(evidence={'principalType': 'DoesNotMatter'},
                                 claims={'claim1': 'notEmailAddress',
