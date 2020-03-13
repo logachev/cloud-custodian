@@ -39,7 +39,7 @@ class ActionsAutotagUserTest(BaseTest):
             "localizedValue": "Create or Update Virtual Machine"
         },
         "claims": {
-            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name": "cloud_name@custodian.com",
+            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name": "cloud_n@custodian.com",
             "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/upn": "cloud@custodian.com"
         },
         "eventTimestamp": "2019-05-01T15:20:04.8336028Z"
