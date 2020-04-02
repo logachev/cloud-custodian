@@ -1310,6 +1310,228 @@ class RemovePolicyStatement(RemovePolicyBase):
         return {'Name': bucket['Name'], 'State': 'PolicyRemoved', 'Statements': found}
 
 
+@actions.register('set-replication')
+class SetBucketReplicationConfig(BucketActionBase):
+    """Action to add or remove replication configuration statement from S3 buckets
+
+    :example:
+
+    .. code-block:: yaml
+
+            policies:
+              - name: s3-unapproved-account-replication
+                resource: s3
+                filters:
+                  - type: value
+                    key: Replication.ReplicationConfiguration.Rules[].Destination.Account
+                    value: present
+                  - type: value
+                    key: Replication.ReplicationConfiguration.Rules[].Destination.Account
+                    value_from:
+                      url: 's3:///path/to/file.json'
+                      format: json
+                      expr: "approved_accounts.*"
+                    op: ni
+                actions:
+                  - type: set-replication
+                    state: enable
+    """
+    schema = type_schema(
+        'set-replication',
+        state={'type': 'string', 'enum': ['enable', 'disable', 'remove']})
+    permissions = ("s3:GetReplicationConfiguration", "s3:PutReplicationConfiguration")
+
+    def process(self, buckets):
+        with self.executor_factory(max_workers=3) as w:
+            futures = {w.submit(self.process_bucket, bucket): bucket for bucket in buckets}
+            errors = list()
+            for future in as_completed(futures):
+                bucket = futures[future]
+                try:
+                    future.result()
+                except ClientError as e:
+                    errors.append("Message: %s Bucket: %s", e, bucket['Name'])
+            if errors:
+                raise Exception('\n'.join(map(str, errors)))
+
+    def process_bucket(self, bucket):
+        s3 = bucket_client(local_session(self.manager.session_factory), bucket)
+        state = self.data.get('state')
+        if state is not None:
+            if state == 'remove':
+                s3.delete_bucket_replication(Bucket=bucket['Name'])
+                return {'Name': bucket['Name'], 'State': 'ReplicationConfigRemoved'}
+            if state in ('enable', 'disable'):
+                config = s3.get_bucket_replication(Bucket=bucket['Name'])
+                for rule in config['ReplicationConfiguration']['Rules']:
+                    rule['Status'] = 'Enabled' if state == 'enable' else 'Disabled'
+                s3.put_bucket_replication(
+                    Bucket=bucket['Name'],
+                    ReplicationConfiguration=config['ReplicationConfiguration']
+                )
+                return {'Name': bucket['Name'], 'State': 'ReplicationConfigUpdated'}
+
+
+@filters.register('check-public-block')
+class FilterPublicBlock(Filter):
+    """Filter for s3 bucket public blocks
+
+    `scope`: Optional: Defaults to Any
+    `enabled`: Optional: Defaults to False
+
+    The defaults essentially check to see if any public blocks are missing
+
+    :example:
+
+    .. code-block:: yaml
+
+            policies:
+              - name: CheckForPublicAclBlock-Off
+                resource: s3
+                region: us-east-1
+                filters:
+                  - type: check-public-block
+                    scope: Any
+                    enabled: False
+
+    """
+
+    schema = type_schema(
+        'check-public-block',
+        scope={
+            'type': 'string',
+            'enum': ['BlockPublicAcls', 'IgnorePublicAcls',
+                'BlockPublicPolicy', 'RestrictPublicBuckets', 'All', 'Any']},
+        enabled={'type': 'boolean'})
+    permissions = ("s3:GetBucketPublicAccessBlock",)
+
+    def process(self, buckets, event=None):
+        results = list()
+        with self.executor_factory(max_workers=2) as w:
+            futures = {w.submit(self.process_bucket, bucket): bucket for bucket in buckets}
+            for future in as_completed(futures):
+                if future.exception():
+                    raise future.exception()
+                if future.result():
+                    results.append(future.result())
+        return results
+
+    def process_bucket(self, bucket):
+        s3 = bucket_client(local_session(self.manager.session_factory), bucket)
+        enabled = self.data.get('enabled', False)
+        scope = self.data.get('scope', 'Any')
+        try:
+            config = s3.get_public_access_block(
+                Bucket=bucket['Name'])['PublicAccessBlockConfiguration']
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'NoSuchPublicAccessBlockConfiguration':
+                # Set config to none because NoSuchPublicAccessBlockConfiguration error
+                # was returned. This is important later because it is symbolic of
+                # all blocks being set to false. See if/else in matches_filter func
+                config = None
+            else:
+                raise
+        if self.matches_filter(config, enabled, scope):
+            return {"Name": bucket['Name'], "publicblocks": config}
+
+    def matches_filter(self, config, enabled, scope):
+        if config:
+            if scope == 'All':
+                return all(config.values()) if enabled else not any(config.values())
+            elif scope == 'Any':
+                return any(config.values()) if enabled else not all(config.values())
+            else:
+                return config[scope] if enabled else not config[scope]
+        else:
+            # When there is a null/none config, treat it as meaning no public blocks
+            # return False if checking for enabled=True because all are false
+            # return True if checking for enabled=False
+            return False if enabled else True
+
+
+@actions.register('set-public-block')
+class SetPublicBlock(BucketActionBase):
+    """Action to update Public Access blocks on S3 buckets
+
+    `scope`: Optional: Defaults to All
+    `state`: Optional: Defaults to enable
+
+    :example:
+
+    .. code-block:: yaml
+
+            policies:
+              - name: s3-dont-ignore-public-acls
+                resource: s3
+                filters:
+                  - type: check-public-block
+                    scope: BlockPublicAcls
+                    enabled: False
+                actions:
+                  - type: set-public-block
+                    # scope: <------ optional (All by default)
+                    #   - BlockPublicAcls
+                    #   - IgnorePublicAcls
+                    # state: enable <------ optional (enable by default)
+    """
+
+    schema = type_schema(
+        'set-public-block',
+        scope={
+            'type': 'array',
+            'items': {'type': 'string',
+                     'enum': ['BlockPublicAcls', 'IgnorePublicAcls',
+                        'BlockPublicPolicy', 'RestrictPublicBuckets', 'All']}},
+        state={'type': 'string',
+               'enum': ['enable', 'disable']})
+    permissions = ("s3:GetBucketPublicAccessBlock", "s3:PutBucketPublicAccessBlock")
+
+    def process(self, buckets):
+        with self.executor_factory(max_workers=3) as w:
+            futures = {w.submit(self.process_bucket, bucket): bucket for bucket in buckets}
+            for future in as_completed(futures):
+                if future.exception():
+                    raise future.exception()
+
+    def process_bucket(self, bucket):
+        s3 = bucket_client(local_session(self.manager.session_factory), bucket)
+        state = self.data.get('state', 'enable')
+        scopes = self.data.get('scope', ['All'])
+        try:
+            config = s3.get_public_access_block(
+                Bucket=bucket['Name'])['PublicAccessBlockConfiguration']
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'NoSuchPublicAccessBlockConfiguration':
+                # Set config to none because NoSuchPublicAccessBlockConfiguration error
+                # was returned. This is important later because it is symbolic of
+                # all blocks being set to false. See if/else statement below
+                config = None
+            else:
+                raise
+        if config:
+            if 'All' in scopes:
+                for key in config.keys():
+                    config[key] = True if state == 'enable' else False
+            else:
+                for scope in scopes:
+                    config[scope] = True if state == 'enable' else False
+            s3.put_public_access_block(
+                Bucket=bucket['Name'],
+                PublicAccessBlockConfiguration=config
+            )
+        else:
+            s3.put_public_access_block(
+                Bucket=bucket['Name'],
+                PublicAccessBlockConfiguration={
+                    'BlockPublicAcls': True if state == 'enable' else False,
+                    'IgnorePublicAcls': True if state == 'enable' else False,
+                    'BlockPublicPolicy': True if state == 'enable' else False,
+                    'RestrictPublicBuckets': True if state == 'enable' else False
+                }
+            )
+        return {'Name': bucket['Name'], 'State': 'PublicBlocksUpdated'}
+
+
 @actions.register('toggle-versioning')
 class ToggleVersioning(BucketActionBase):
     """Action to enable/suspend versioning on a S3 bucket

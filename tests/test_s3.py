@@ -1543,6 +1543,333 @@ class S3Test(BaseTest):
         resources = p.run()
         self.assertEqual(len(resources), 1)
 
+    def test_bucket_replication_policy_remove(self):
+        replicated_from_name = "replication-from-12345"
+
+        self.patch(s3.S3, "executor_factory", MainThreadExecutor)
+
+        # only augment with logging info to minimize API calls
+        self.patch(
+            s3,
+            "S3_AUGMENT_TABLE",
+            [("get_bucket_replication", 'Replication',
+            None, None, 's3:GetReplicationConfiguration')],
+        )
+
+        # and ignore any other buckets we might have in this test account
+        # to minimize the placebo data and API calls
+        # Inspired by #5206, thanks tjstansell!
+        self.patch(
+            s3.S3.resource_type,
+            "enum_spec",
+            ('list_buckets', "Buckets[?Name=='{}']".format(replicated_from_name), None)
+        )
+        session_factory = self.replay_flight_data("test_s3_replication_policy_remove")
+        session = session_factory()
+        client = session.client("s3")
+
+        p = self.load_policy(
+            {
+                "name": "s3-has-replica-policy",
+                "resource": "s3",
+                "filters": [
+                    {
+                        "type": "value",
+                        "key": "Replication.ReplicationConfiguration.Rules[].Destination",
+                        "value": "present"
+                    },
+                    {
+                        "type": "value",
+                        "key": "Replication.ReplicationConfiguration.Rules[].Status",
+                        "value": "Enabled",
+                        "op": "contains"
+                    }
+                ],
+                "actions": [
+                    {
+                        "type": "set-replication",
+                        "state": "remove"
+                    }
+                ]
+            },
+            session_factory=session_factory,
+        )
+
+        # Test that there was a bucket with an enabled replication policy
+        resources = p.run()
+        self.assertEqual(len(resources), 1)
+
+        # Test to make sure that the replication policy removed from the buckets
+        self.assertRaises(ClientError, client.get_bucket_replication, Bucket=replicated_from_name)
+
+    def test_bucket_replication_policy_disable(self):
+        bname = "repela"
+        self.patch(s3.S3, "executor_factory", MainThreadExecutor)
+        self.patch(
+            s3,
+            "S3_AUGMENT_TABLE",
+            [("get_bucket_replication", 'Replication',
+            None, None, 's3:GetReplicationConfiguration')],
+        )
+        self.patch(
+            s3.S3.resource_type,
+            "enum_spec",
+            ('list_buckets', "Buckets[?Name=='{}']".format(bname), None)
+        )
+        session_factory = self.replay_flight_data("test_s3_replication_policy_disable")
+        session = session_factory()
+        client = session.client("s3")
+        p = self.load_policy(
+            {
+                "name": "s3-has-replica-policy",
+                "resource": "s3",
+                "filters": [
+                    {"Name": bname},
+                    {
+                        "type": "value",
+                        "key": "Replication.ReplicationConfiguration.Rules[].Destination",
+                        "value": "present"
+                    },
+                    {
+                        "type": "value",
+                        "key": "Replication.ReplicationConfiguration.Rules[].Status",
+                        "value": "Enabled",
+                        "op": "contains"
+                    }
+                ],
+                "actions": [
+                    {
+                        "type": "set-replication",
+                        "state": "disable"
+                    }
+                ]
+            },
+            session_factory=session_factory,
+        )
+        resources = p.run()
+
+        # Test that there was a bucket with an enabled replication policy
+        self.assertEqual(len(resources), 1)
+
+        # Test that there is a disbled policy on the bucket now
+        response = client.get_bucket_replication(Bucket=bname)
+        for rule in response['ReplicationConfiguration']['Rules']:
+            self.assertEqual(rule['Status'], 'Disabled')
+
+    def test_set_public_block_enable_all(self):
+        bname = 'mypublicblock'
+
+        self.patch(s3.S3, "executor_factory", MainThreadExecutor)
+        self.patch(s3, "S3_AUGMENT_TABLE", [])
+
+        session_factory = self.replay_flight_data("test_s3_public_block_enable_all")
+        session = session_factory()
+        client = session.client("s3")
+
+        p = self.load_policy(
+            {
+                "name": "CheckForPublicBlocks-Absent",
+                "resource": "s3",
+                "filters": [
+                    {"Name": bname},
+                    {
+                        "type": "check-public-block",
+                        "scope": "Any",
+                        "enabled": False
+                    }
+                ],
+                "actions": [
+                    {
+                        "type": "set-public-block"
+                    }
+                ]
+            },
+            session_factory=session_factory,
+        )
+
+        # Test that there was a bucket with missing public blocks
+        resources = p.run()
+        self.assertEqual(len(resources), 1)
+        self.assertEqual(resources[0]["Name"], bname)
+
+        # Verbose test to make sure that the public blocks are enabled on the buckets
+        response = client.get_public_access_block(
+            Bucket=bname)['PublicAccessBlockConfiguration']
+        for key in response.keys():
+            self.assertEqual(response[key], True)
+
+    def test_set_public_block_disable_all(self):
+        bname = 'mypublicblock'
+
+        self.patch(s3.S3, "executor_factory", MainThreadExecutor)
+        self.patch(s3, "S3_AUGMENT_TABLE", [])
+
+        session_factory = self.replay_flight_data("test_s3_public_block_disable_all")
+        session = session_factory()
+        client = session.client("s3")
+
+        p = self.load_policy(
+            {
+                "name": "CheckForPublicBlocks-Present",
+                "resource": "s3",
+                "filters": [
+                    {"Name": bname},
+                    {
+                        "type": "check-public-block",
+                        "scope": "Any",
+                        "enabled": True
+                    }
+                ],
+                "actions": [
+                    {
+                        "type": "set-public-block",
+                        "state": "disable"
+                    }
+                ]
+            },
+            session_factory=session_factory,
+        )
+
+        # Test that there was a bucket with missing public blocks
+        resources = p.run()
+        self.assertEqual(len(resources), 1)
+        self.assertEqual(resources[0]["Name"], bname)
+
+        # Verbose test to make sure that the public blocks are enabled on the buckets
+        response = client.get_public_access_block(
+            Bucket=bname)['PublicAccessBlockConfiguration']
+        for key in response.keys():
+            self.assertEqual(response[key], False)
+
+    def test_set_public_block_enable_one(self):
+        bname = 'mypublicblock'
+
+        self.patch(s3.S3, "executor_factory", MainThreadExecutor)
+        self.patch(s3, "S3_AUGMENT_TABLE", [])
+
+        session_factory = self.replay_flight_data("test_s3_public_block_enable_one")
+        session = session_factory()
+        client = session.client("s3")
+
+        p = self.load_policy(
+            {
+                "name": "CheckForPublicBlocks-Absent",
+                "resource": "s3",
+                "filters": [
+                    {"Name": bname},
+                    {
+                        "type": "check-public-block",
+                        "scope": "BlockPublicPolicy",
+                        "enabled": False
+                    }
+                ],
+                "actions": [
+                    {
+                        "type": "set-public-block",
+                        "scope": [
+                            "BlockPublicPolicy"
+                        ],
+                        "state": "enable"
+                    }
+                ]
+            },
+            session_factory=session_factory,
+        )
+
+        # Test that there was a bucket with BlockPublicAcls public block
+        resources = p.run()
+        self.assertEqual(len(resources), 1)
+        self.assertEqual(resources[0]["Name"], bname)
+
+        # Verbose test to make sure that the public blocks are enabled on the buckets
+        response = client.get_public_access_block(
+            Bucket=bname)['PublicAccessBlockConfiguration']
+        self.assertEqual(response['BlockPublicPolicy'], True)
+
+    def test_set_public_block_disable_one(self):
+        bname = 'mypublicblock'
+
+        self.patch(s3.S3, "executor_factory", MainThreadExecutor)
+        self.patch(s3, "S3_AUGMENT_TABLE", [])
+
+        session_factory = self.replay_flight_data("test_s3_public_block_disable_one")
+        session = session_factory()
+        client = session.client("s3")
+
+        p = self.load_policy(
+            {
+                "name": "CheckForPublicBlocks-Absent",
+                "resource": "s3",
+                "filters": [
+                    {"Name": bname},
+                    {
+                        "type": "check-public-block",
+                        "scope": "IgnorePublicAcls",
+                        "enabled": True
+                    }
+                ],
+                "actions": [
+                    {
+                        "type": "set-public-block",
+                        "scope": [
+                            "IgnorePublicAcls"
+                        ],
+                        "state": "disable"
+                    }
+                ]
+            },
+            session_factory=session_factory,
+        )
+
+        # Test that there was a bucket with BlockPublicAcls public block
+        resources = p.run()
+        self.assertEqual(len(resources), 1)
+        self.assertEqual(resources[0]["Name"], bname)
+
+        # Verbose test to make sure that the public blocks are enabled on the buckets
+        response = client.get_public_access_block(
+            Bucket=bname)['PublicAccessBlockConfiguration']
+        self.assertEqual(response['IgnorePublicAcls'], False)
+
+    def test_set_public_block_throws_errors(self):
+        bname = 'mypublicblock'
+
+        self.patch(s3.S3, "executor_factory", MainThreadExecutor)
+        self.patch(s3, "S3_AUGMENT_TABLE", [])
+
+        session_factory = self.replay_flight_data("test_s3_public_block_throws_errors")
+        session = session_factory()
+        client = session.client("s3")
+
+        p = self.load_policy(
+            {
+                "name": "CheckForPublicBlocks-Absent",
+                "resource": "s3",
+                "filters": [
+                    {"Name": bname},
+                    {
+                        "type": "check-public-block",
+                        "scope": "All",
+                        "enabled": False
+                    }
+                ]
+            },
+            session_factory=session_factory,
+        )
+
+        # Test that there was a bucket with no public blocks
+        resources = p.run()
+        self.assertEqual(len(resources), 1)
+        self.assertEqual(resources[0]["Name"], bname)
+
+        # Because there are no public blocks we will get a client error
+        # We want this to throw for code cov
+        try:
+            client.get_public_access_block(Bucket=bname)['PublicAccessBlockConfiguration']
+        except ClientError as e:
+            # Assert that it is the proper error code
+            self.assertEqual(e.response['Error']['Code'], 'NoSuchPublicAccessBlockConfiguration')
+
     def test_has_statement_similar_policies(self):
         self.patch(s3.S3, "executor_factory", MainThreadExecutor)
         self.patch(
