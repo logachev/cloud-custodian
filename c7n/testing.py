@@ -232,6 +232,9 @@ class TestUtils(unittest.TestCase, CustodianTestCore):
 
     def tearDown(self):
         self.cleanUp()
+        # Temporary workaround for PyTest 5.4.x issue
+        #  https://github.com/pytest-dev/pytest/issues/6947
+        self.doCleanups()
 
     def cleanUp(self):
         # Clear out thread local session cache
