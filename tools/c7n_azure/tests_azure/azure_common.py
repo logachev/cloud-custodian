@@ -413,7 +413,9 @@ class BaseTest(TestUtils, AzureVCRBaseTest):
             if self._requires_polling:
                 # Patch Poller with constructor that always disables polling
                 # This breaks blocking on long running operations (resource creation).
-                self._lro_patch = patch.object(msrest.polling.LROPoller, '__init__', BaseTest.lro_init)
+                self._lro_patch = patch.object(msrest.polling.LROPoller,
+                                               '__init__',
+                                               BaseTest.lro_init)
                 self._lro_patch.start()
                 self.addCleanup(self._lro_patch.stop)
 
