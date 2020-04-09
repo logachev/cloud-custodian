@@ -400,8 +400,8 @@ class BaseTest(TestUtils, AzureVCRBaseTest):
         super(BaseTest, self).setUp()
         ThreadHelper.disable_multi_threading = True
 
-        if self.is_playback():
-            # We always patch the date for recordings so URLs that involve dates match up
+        # We always patch the date for recordings so URLs that involve dates match up
+        if self.vcr_enabled:
             self._utc_patch = patch.object(utils, 'utcnow', self._get_test_date)
             self._utc_patch.start()
             self.addCleanup(self._utc_patch.stop)
@@ -410,7 +410,14 @@ class BaseTest(TestUtils, AzureVCRBaseTest):
             self._now_patch.start()
             self.addCleanup(self._now_patch.stop)
 
+        if self.is_playback():
             if self._requires_polling:
+                # If using polling we need to monkey patch the timeout during playback
+                # or we'll have long sleeps introduced into our test runs
+                Session._old_client = Session.client
+                Session.client = BaseTest.session_client_wrapper
+                self.addCleanup(BaseTest.session_client_cleanup)
+            else:
                 # Patch Poller with constructor that always disables polling
                 # This breaks blocking on long running operations (resource creation).
                 self._lro_patch = patch.object(msrest.polling.LROPoller,
@@ -418,12 +425,6 @@ class BaseTest(TestUtils, AzureVCRBaseTest):
                                                BaseTest.lro_init)
                 self._lro_patch.start()
                 self.addCleanup(self._lro_patch.stop)
-
-                # If using polling we need to monkey patch the timeout during playback
-                # or we'll have long sleeps introduced into our test runs
-                Session._old_client = Session.client
-                Session.client = BaseTest.session_client_wrapper
-                self.addCleanup(BaseTest.session_client_cleanup)
 
             if constants.ENV_ACCESS_TOKEN in os.environ:
                 self._tenant_patch = patch('c7n_azure.session.Session.get_tenant_id',
