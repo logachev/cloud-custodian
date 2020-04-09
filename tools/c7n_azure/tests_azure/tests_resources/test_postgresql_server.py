@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import pytest
+
 from ..azure_common import BaseTest, arm_template
 
 
@@ -24,6 +26,11 @@ class PostgresqlServerTest(BaseTest):
         self.assertTrue(p)
 
     @arm_template('postgresql.json')
+    # Due to the COVID-19 Azure hardened quota limits for internal subscriptions and some of the
+    # tests in this module might fail.
+    # It is not required during nightly live tests because we have e2e Azure Functions tests.
+    # They test same scenario.
+    @pytest.mark.skiplive
     def test_find_server_by_name(self):
         p = self.load_policy({
             'name': 'test-azure-postgresql-server',
