@@ -11,8 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 from collections import OrderedDict
 import csv
 import datetime
@@ -1377,7 +1375,7 @@ class CredentialReport(Filter):
         for p, t in cls.list_sub_objects:
             obj = dict([(k[len(p):], info.pop(k))
                         for k in keys if k.startswith(p)])
-            if obj.get('active', False):
+            if obj.get('active', False) or obj.get('last_rotated', False):
                 info.setdefault(t, []).append(obj)
         return info
 

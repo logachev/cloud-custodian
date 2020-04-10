@@ -11,8 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 # PYTHON_ARGCOMPLETE_OK  (Must be in first 1024 bytes, so if tab completion
 # is failing, move this above the license)
 
@@ -253,7 +251,7 @@ def setup_parser():
     run.add_argument(
         "--trace",
         dest="tracer",
-        help=argparse.SUPPRESS,
+        help="Tracing integration",
         default=None, nargs="?", const="default")
 
     schema_desc = ("Browse the available vocabularies (resources, filters, modes, and "

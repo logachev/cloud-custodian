@@ -19,8 +19,6 @@ to ec2 (subnets, vpc, security-groups, volumes, instances,
 snapshots).
 
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 from collections import Counter
 from concurrent.futures import as_completed
 
@@ -904,8 +902,7 @@ class UniversalTagDelayedAction(TagDelayedAction):
     """
 
     batch_size = 20
-    concurrency = 2
-    permissions = ('resourcegroupstaggingapi:TagResources',)
+    concurrency = 1
 
     def process(self, resources):
         self.tz = tzutil.gettz(
